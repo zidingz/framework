@@ -22,28 +22,33 @@ class SOA
     const TYPE_SYNC         = 2;
     public $re_connect      = true;    //重新connect
 
-    protected static $_instance;
+    protected static $_instances = array();
 
-    function __construct()
+    /**
+     * @param string $id
+     * @throws \Exception
+     */
+    function __construct($id = 'default')
     {
-        if (self::$_instance)
+        if (!empty(self::$_instances[$id]))
         {
             throw new \Exception("cannot to create two soa client.");
         }
-        self::$_instance = $this;
+        self::$_instances[$id] = $this;
     }
 
     /**
      * 获取SOA服务实例
+     * @param $id
      * @return SOA
      */
-    static function getInstance()
+    static function getInstance($id = 'default')
     {
-        if (!self::$_instance)
+        if (empty(self::$_instances[$id]))
         {
-            self::$_instance = new static;
+            self::$_instances[$id] = new static($id);
         }
-        return self::$_instance;
+        return self::$_instances[$id];
     }
 
     protected function beforeRequest($retObj)
