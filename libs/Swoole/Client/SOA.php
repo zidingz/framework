@@ -24,17 +24,10 @@ class SOA
 
     protected static $_instances = array();
 
-    /**
-     * @param string $id
-     * @throws \Exception
-     */
-    function __construct($id = 'default')
+    function __construct($id = null)
     {
-        if (!empty(self::$_instances[$id]))
-        {
-            throw new \Exception("cannot to create two soa client.");
-        }
-        self::$_instances[$id] = $this;
+        $key = empty($id) ? 'default' : $id;
+        self::$_instances[$key] = $this;
     }
 
     /**
@@ -42,13 +35,18 @@ class SOA
      * @param $id
      * @return SOA
      */
-    static function getInstance($id = 'default')
+    static function getInstance($id = null)
     {
-        if (empty(self::$_instances[$id]))
+        $key = empty($id) ? 'default' : $id;
+        if (empty(self::$_instances[$key]))
         {
-            self::$_instances[$id] = new static($id);
+            $object = new static($id);
         }
-        return self::$_instances[$id];
+        else
+        {
+            $object = self::$_instances[$key];
+        }
+        return $object;
     }
 
     protected function beforeRequest($retObj)
@@ -226,7 +224,7 @@ class SOA
      */
     function task($function, $params = array(), $callback = null)
     {
-        $retObj = new SOA_Result();
+        $retObj = new SOA_Result($this);
         $send = array('call' => $function, 'params' => $params);
         if (count($this->env) > 0)
         {
@@ -418,6 +416,11 @@ class SOA_Result
      */
     public $server_port;
 
+    /**
+     * @var SOA
+     */
+    protected $soa_client;
+
     const ERR_NO_READY   = 8001; //未就绪
     const ERR_CONNECT    = 8002; //连接服务器失败
     const ERR_TIMEOUT    = 8003; //服务器端超时
@@ -429,12 +432,16 @@ class SOA_Result
     const ERR_TOOBIG     = 8008; //超过最大允许的长度
     const ERR_CLOSED     = 8009; //连接被关闭
 
+    function __construct($soa_client)
+    {
+        $this->soa_client = $soa_client;
+    }
+
     function getResult($timeout = 0.5)
     {
         if ($this->code == self::ERR_NO_READY)
         {
-            $soaclient = SOA::getInstance();
-            $soaclient->wait($timeout);
+            $this->soa_client->wait($timeout);
         }
         return $this->data;
     }
