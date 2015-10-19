@@ -636,16 +636,10 @@ function swoole_urlrouter_mvc(&$uri)
     {
         $array['controller'] = $_GET["c"];
     }
-
     if (!empty($_GET["v"]))
     {
         $array['view'] = $_GET["v"];
     }
-    if (empty($uri) or substr($uri, -9) == 'index.php')
-    {
-        return $array;
-    }
-
     $request = explode('/', $uri, 3);
     if (count($request) < 2)
     {
@@ -653,11 +647,11 @@ function swoole_urlrouter_mvc(&$uri)
     }
     $array['controller'] = $request[0];
     $array['view'] = $request[1];
-    if(isset($request[2]))
+    if (isset($request[2]))
     {
         $request[2] = trim($request[2], '/');
         $_id = str_replace('.html', '', $request[2]);
-        if(is_numeric($_id))
+        if (is_numeric($_id))
         {
             $_GET['id'] = $_id;
         }
@@ -666,7 +660,7 @@ function swoole_urlrouter_mvc(&$uri)
             Swoole\Tool::$url_key_join = '-';
             Swoole\Tool::$url_param_join = '-';
             Swoole\Tool::$url_add_end = '.html';
-            Swoole\Tool::$url_prefix = WEBROOT."/{$request[0]}/$request[1]/";
+            Swoole\Tool::$url_prefix = WEBROOT . "/{$request[0]}/$request[1]/";
             Swoole\Tool::url_parse_into($request[2], $_GET);
         }
     }
