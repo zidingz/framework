@@ -663,6 +663,7 @@ function swoole_urlrouter_mvc(&$uri)
             Swoole\Tool::$url_prefix = WEBROOT . "/{$request[0]}/$request[1]/";
             Swoole\Tool::url_parse_into($request[2], $_GET);
         }
+        $_REQUEST = array_merge($_REQUEST, $_GET);
     }
     return $array;
 }
