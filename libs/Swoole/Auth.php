@@ -46,15 +46,19 @@ class Auth
     const HASH_SHA1 = 'sha1';
     const HASH_CRYPT = 'crypt';
 
-    function __construct($config)
+    function __construct($config,$factory_key='master')
     {
         $this->config = $config;
         if (empty($config['login_table']))
         {
             throw new \Exception(__CLASS__.' request login_table config.');
         }
+        if (!empty($config['login_db']))
+        {
+            $factory_key=$config['login_db'];
+        }
         $this->login_table = $config['login_table'];
-        $this->db = \Swoole::$php->db;
+        $this->db = \Swoole::$php->db($factory_key);
         $_SESSION[self::$session_prefix . 'save_key'] = array();
     }
 
