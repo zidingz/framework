@@ -677,8 +677,15 @@ class SelectDB
         }
         else
         {
-
-            $c = $this->db->query($sql)->fetch();
+            $_c = $this->db->query($sql);
+            if ($_c === false)
+            {
+                return false;
+            }
+            else
+            {
+                $c = $_c->fetch();
+            }
             $count = intval($c['c']);
         }
 
