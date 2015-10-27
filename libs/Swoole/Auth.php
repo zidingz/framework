@@ -53,8 +53,16 @@ class Auth
         {
             throw new \Exception(__CLASS__.' request login_table config.');
         }
+        if (!empty($config['login_db']))
+        {
+            $factory_key = $config['login_db'];
+        }
+        else
+        {
+            $factory_key = 'master';
+        }
         $this->login_table = $config['login_table'];
-        $this->db = \Swoole::$php->db;
+        $this->db = \Swoole::$php->db($factory_key);
         $_SESSION[self::$session_prefix . 'save_key'] = array();
     }
 
