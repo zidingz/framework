@@ -28,6 +28,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
         }
 
         $this->archive = isset($config['date']) && $config['date'] == true;
+        $this->verbose = isset($config['verbose']) && $config['verbose'] == true;
         $this->enable_cache = isset($config['enable_cache']) ? (bool) $config['enable_cache'] : true;
 
         //按日期存储日志
