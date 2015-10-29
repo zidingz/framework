@@ -52,7 +52,7 @@ class Auth
         $this->config = $config;
         if (empty($config['login_table']))
         {
-            throw new \Exception(__CLASS__.' request login_table config.');
+            throw new \Exception(__CLASS__ . ' request login_table config.');
         }
         if (!empty($config['login_db']))
         {
@@ -62,6 +62,7 @@ class Auth
         {
             $this->login_db = 'master';
         }
+
         $this->login_table = $config['login_table'];
         $this->db = \Swoole::$php->db($this->login_db);
         $_SESSION[self::$session_prefix . 'save_key'] = array();
@@ -120,7 +121,6 @@ class Auth
     function login($username, $password, $auto_login = false)
     {
         Cookie::set(self::$session_prefix . 'username', $username, time() + self::$cookie_life, '/');
-        $this->db->debug = true;
         $this->user = $this->db->query('select ' . $this->select . ' from ' . $this->login_table . " where " . self::$username . "='$username' limit 1")->fetch();
         if (empty($this->user))
         {
