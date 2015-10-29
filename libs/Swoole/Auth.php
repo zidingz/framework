@@ -38,6 +38,7 @@ class Auth
 
     protected $config;
     protected $login_table = '';
+    protected $login_db = '';
     protected $profile_table = '';
 
     const ERR_NO_EXIST = 1;
@@ -55,14 +56,14 @@ class Auth
         }
         if (!empty($config['login_db']))
         {
-            $factory_key = $config['login_db'];
+            $this->login_db = $config['login_db'];
         }
         else
         {
-            $factory_key = 'master';
+            $this->login_db = 'master';
         }
         $this->login_table = $config['login_table'];
-        $this->db = \Swoole::$php->db($factory_key);
+        $this->db = \Swoole::$php->db($this->login_db);
         $_SESSION[self::$session_prefix . 'save_key'] = array();
     }
 
@@ -74,7 +75,7 @@ class Auth
     /**
      * 更新用户信息
      * @param $set
-     * @return unknown_type
+     * @return bool
      */
     function updateStatus($set = null)
     {
@@ -82,7 +83,7 @@ class Auth
         {
             $set = array(self::$lastlogin => date('Y-m-d H:i:s'), self::$lastip => Client::getIP());
         }
-        $this->db->update($this->user['id'], $set, $this->login_table);
+        return $this->db->update($this->user['id'], $set, $this->login_table);
     }
 
     function setSession($key)
@@ -102,23 +103,24 @@ class Auth
 
     /**
      * 获取登录用户的信息
-     * @return unknown_type
+     * @return array
      */
     function getUserInfo($key = 'userinfo')
     {
         return $this->user;
     }
+
     /**
      * 登录
      * @param $username
      * @param $password
      * @param bool $auto_login 是否自动登录
-     * @param bool $save 保存用户登录信息
      * @return bool
      */
     function login($username, $password, $auto_login = false)
     {
         Cookie::set(self::$session_prefix . 'username', $username, time() + self::$cookie_life, '/');
+        $this->db->debug = true;
         $this->user = $this->db->query('select ' . $this->select . ' from ' . $this->login_table . " where " . self::$username . "='$username' limit 1")->fetch();
         if (empty($this->user))
         {
@@ -184,7 +186,7 @@ class Auth
      */
     function changePassword($uid, $old_pwd, $new_pwd)
     {
-        $table = table($this->login_table);
+        $table = table($this->login_table, $this->login_db);
         $table->primary = self::$userid;
         $_res = $table->gets(array('select' => self::$username . ',' . self::$password, 'limit' => 1, self::$userid => $uid));
         if (count($_res) < 1)
