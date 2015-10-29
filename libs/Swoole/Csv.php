@@ -32,9 +32,7 @@ class Csv
 
     /**
      * 解析一行
-     *
      * @param $line
-     *
      * @return array
      */
     static function parse_line($line)
@@ -154,6 +152,7 @@ class Csv
      */
     static function str2array($str, $line_keys = null)
     {
+        //切分成多行
         $lines = explode(self::$row_sep, $str);
         $result = array();
         foreach ($lines as $li)
@@ -163,6 +162,7 @@ class Csv
             {
                 if (is_array($line_keys))
                 {
+                    //切分成多列
                     $data = self::parse_line($li);
                     $tmp = array();
                     foreach ($line_keys as $index => $key)
