@@ -20,6 +20,10 @@ class DES
     protected $blockSize;
     protected $padding = false;
 
+    const PADDING_NONE = 0;
+    const PADDING_PKCS5 = 1;
+    const PADDING_PKCS7 = 2;
+
     /**
      * @param $key
      * @param null $cipher
@@ -27,7 +31,7 @@ class DES
      * @param bool $base64
      * @throws \Exception
      */
-    public function __construct($key, $cipher = null, $mode = 'cbc', $base64 = true, $padding = true)
+    public function __construct($key, $cipher = null, $mode = 'cbc', $base64 = true, $padding = self::PADDING_NONE)
     {
         if (!function_exists('mcrypt_create_iv'))
         {
@@ -108,7 +112,7 @@ class DES
         //是否补码
         if ($this->padding)
         {
-            $str = $this->cipher == MCRYPT_DES ? $this->addPKCS5Padding($str) : $this->addPKCS7Padding($str);
+            $str = self::PADDING_PKCS5 == $this->padding ? $this->addPKCS5Padding($str) : $this->addPKCS7Padding($str);
         }
         //是否进行BASE64编码
         if ($this->base64Encoding)
@@ -133,7 +137,7 @@ class DES
         //去除补码
         if ($this->padding)
         {
-            $ret = $this->cipher == MCRYPT_DES ? $this->stripPKCS5Padding($ret) : $this->stripPKCS7Padding($ret);
+            $ret =  self::PADDING_PKCS5 == $this->padding ? $this->stripPKCS5Padding($ret) : $this->stripPKCS7Padding($ret);
         }
         //是否使用BASE64编码
         if ($this->base64Encoding)
