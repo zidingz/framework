@@ -11,42 +11,40 @@ namespace Swoole;
  */
 class DES
 {
-    private $mcrypt;
-    private $key;
-    private $mode;
-    private $iv;
-    private $blocksize;
+    public $base64Encoding = true;
+
+    protected $key;
+    protected $mode;
+    protected $cipher;
+    protected $iv = null;
+    protected $blockSize;
+    protected $padding = false;
 
     /**
-     * 构造函数
-     * @param string $key 密钥
-     * @param string $mode 模式
+     * @param $key
+     * @param null $cipher
+     * @param string $mode
+     * @param bool $base64
      * @throws \Exception
      */
-    public function __construct($key, $mode = 'cbc')
+    public function __construct($key, $cipher = null, $mode = 'cbc', $base64 = true, $padding = true)
     {
         if (!function_exists('mcrypt_create_iv'))
         {
             throw new \Exception(__CLASS__ . " require mcrypt extension.");
         }
 
-        switch (strlen($key))
-        {
-            case 8:
-                $this->mcrypt = MCRYPT_DES;
-                break;
-            case 16:
-                $this->mcrypt = MCRYPT_RIJNDAEL_128;
-                break;
-            case 32:
-                $this->mcrypt = MCRYPT_RIJNDAEL_256;
-                break;
-            default:
-                throw new \Exception("des key size must be 8/16/32");
-        }
-
         $this->key = $key;
-
+        if (!$cipher)
+        {
+            $this->cipher = self::getCipher($key);
+        }
+        else
+        {
+            $this->cipher = $cipher;
+        }
+        $this->base64Encoding = $base64;
+        $this->padding = $padding;
         switch (strtolower($mode))
         {
             case 'ofb':
@@ -64,15 +62,40 @@ class DES
         }
     }
 
-    function getIV()
+    static function getCipher($key)
+    {
+        switch (strlen($key))
+        {
+            case 8:
+                $mcrypt = MCRYPT_DES;
+                break;
+            case 16:
+                $mcrypt = MCRYPT_RIJNDAEL_128;
+                break;
+            case 32:
+                $mcrypt = MCRYPT_RIJNDAEL_256;
+                break;
+            default:
+                throw new \Exception("des key size must be 8/16/32");
+        }
+        return $mcrypt;
+    }
+
+    function createIV()
     {
         $source = PHP_OS == 'WINNT' ? MCRYPT_RAND : MCRYPT_DEV_RANDOM;
-        $this->iv = mcrypt_create_iv(mcrypt_get_block_size($this->mcrypt, $this->mode), $source);
+        $this->iv = mcrypt_create_iv($this->blockSize, $source);
+    }
+
+    function getIV()
+    {
+        return $this->iv;
     }
 
     function setIV($iv)
     {
         $this->iv = $iv;
+        $this->blockSize = mcrypt_get_block_size($this->cipher, $this->mode);
     }
 
     /**
@@ -82,11 +105,21 @@ class DES
      */
     public function encode($str)
     {
-        if ($this->mcrypt == MCRYPT_DES)
+        //是否补码
+        if ($this->padding)
         {
-            $str = $this->_pkcs5Pad($str);
+            $str = $this->cipher == MCRYPT_DES ? $this->addPKCS5Padding($str) : $this->addPKCS7Padding($str);
         }
-        return mcrypt_encrypt($this->mcrypt, $this->key, base64_encode($str), $this->mode, $this->iv);
+        //是否进行BASE64编码
+        if ($this->base64Encoding)
+        {
+            $_str = base64_encode($str);
+        }
+        else
+        {
+            $_str = $str;
+        }
+        return mcrypt_encrypt($this->cipher, $this->key, $_str, $this->mode, $this->iv);
     }
 
     /**
@@ -96,33 +129,72 @@ class DES
      */
     public function decode($str)
     {
-        $ret = mcrypt_decrypt($this->mcrypt, $this->key, $str, $this->mode, $this->iv);
-        if ($this->mcrypt == MCRYPT_DES)
+        $ret = mcrypt_decrypt($this->cipher, $this->key, $str, $this->mode, $this->iv);
+        //去除补码
+        if ($this->padding)
         {
-            $ret = $this->_pkcs5Unpad($ret);
+            $ret = $this->cipher == MCRYPT_DES ? $this->stripPKCS5Padding($ret) : $this->stripPKCS7Padding($ret);
         }
-        return base64_decode(rtrim($ret));
+        //是否使用BASE64编码
+        if ($this->base64Encoding)
+        {
+            return base64_decode($ret);
+        }
+        else
+        {
+            return $ret;
+        }
     }
 
-    private function _pkcs5Pad($text)
+    public function addPKCS5Padding($souce)
     {
-        $this->blocksize = mcrypt_get_block_size($this->mcrypt, $this->mode);
-        $pad = $this->blocksize - (strlen($text) % $this->blocksize);
-        return $text . str_repeat(chr($pad), $pad);
+        $pad = $this->blockSize - (strlen($souce) % $this->blockSize);
+        return $souce . str_repeat(chr($pad), $pad);
     }
 
-    private function _pkcs5Unpad($text)
+    public function stripPKCS5Padding($source)
     {
-        $pad = ord($text{strlen($text) - 1});
-        if ($pad > strlen($text))
+        $pad = ord($source{strlen($source) - 1});
+        if ($pad > strlen($source))
         {
             return false;
         }
-        if (strspn($text, chr($pad), strlen($text) - $pad) != $pad)
+        if (strspn($source, chr($pad), strlen($source) - $pad) != $pad)
         {
             return false;
         }
-        $ret = substr($text, 0, -1 * $pad);
+        $ret = substr($source, 0, -1 * $pad);
         return $ret;
+    }
+
+    public function addPKCS7Padding($source)
+    {
+        $pad = $this->blockSize - (strlen($source) % $this->blockSize);
+        if ($pad <= $this->blockSize)
+        {
+            $char = chr($pad);
+            $source .= str_repeat($char, $pad);
+        }
+        return $source;
+    }
+
+    public function stripPKCS7Padding($source)
+    {
+        $char = substr($source, -1, 1);
+        $num = ord($char);
+        if ($num > 8)
+        {
+            return $source;
+        }
+        $len = strlen($source);
+        for ($i = $len - 1; $i >= $len - $num; $i--)
+        {
+            if (ord(substr($source, $i, 1)) != $num)
+            {
+                return $source;
+            }
+        }
+        $source = substr($source, 0, -$num);
+        return $source;
     }
 }

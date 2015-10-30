@@ -612,7 +612,14 @@ class SelectDB
         {
             $this->exeucte();
         }
-        return $this->result->fetchall();
+        if ($this->result)
+        {
+            return $this->result->fetchall();
+        }
+        else
+        {
+            return false;
+        }
     }
 
     /**
