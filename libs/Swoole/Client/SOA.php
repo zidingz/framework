@@ -4,7 +4,18 @@ use Swoole\Protocol\SOAServer;
 
 class SOA
 {
+    /**
+     * Server的实例列表
+     * @var array
+     */
     protected $servers = array();
+
+    /**
+     * 当前选择的Server
+     * @var int
+     */
+    protected $currentServerId;
+
     protected $env = array();
 
     protected $wait_list = array();
@@ -78,8 +89,30 @@ class SOA
      */
     protected function request($type, $send, $retObj)
     {
-        $svr = $this->getServer();
-        $socket = new TCP;
+        $this->beforeRequest($retObj);
+
+        $ret = false;
+        $socket = null;
+        $svr = null;
+
+        //循环连接
+        while (count($this->servers) > 0)
+        {
+            $svr = $this->getServer();
+            $socket = new TCP;
+            $socket->try_reconnect = false;
+            $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
+            //连接被拒绝，证明服务器已经挂了
+            //TODO 如果连接失败，需要上报机器存活状态
+            if ($ret === false and $socket->errCode == 111)
+            {
+                $this->onConnectServerFailed($svr);
+            }
+            else
+            {
+                break;
+            }
+        }
 
         $retObj->socket = $socket;
         $retObj->type = $type;
@@ -87,10 +120,6 @@ class SOA
         $retObj->server_host = $svr['host'];
         $retObj->server_port = $svr['port'];
 
-        $this->beforeRequest($retObj);
-        //异步connect
-        //TODO 如果连接失败，需要上报机器存活状态
-        $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
         //使用SOCKET的编号作为ID
         $retObj->id = (int)$socket->get_socket();
         if ($ret === false)
@@ -208,10 +237,22 @@ class SOA
         {
             throw new \Exception("servers config empty.");
         }
-        $_svr = $this->servers[array_rand($this->servers)];
+        //随机选择1个Server
+        $this->currentServerId = array_rand($this->servers);
+        $_svr = $this->servers[$this->currentServerId];
         $svr = array('host' => '', 'port' => 0);
         list($svr['host'], $svr['port']) = explode(':', $_svr, 2);
         return $svr;
+    }
+
+    /**
+     * 连接服务器失败了
+     * @param $svr
+     */
+    function onConnectServerFailed($svr)
+    {
+        //从Server列表中移除
+        unset($this->servers[$this->currentServerId]);
     }
 
     /**
@@ -233,30 +274,6 @@ class SOA
         }
         $this->request(self::TYPE_SYNC, $send, $retObj);
         $retObj->callback = $callback;
-        return $retObj;
-    }
-
-    /**
-     * 异步任务
-     * @param $function
-     * @param $params
-     * @return SOA_Result
-     */
-    function async($function, $params)
-    {
-        $retObj = new SOA_Result();
-        $send = array('call' => $function, 'params' => $params);
-        $this->request(self::TYPE_ASYNC, $send, $retObj);
-        if ($retObj->socket != null)
-        {
-            $recv = $retObj->socket->recv();
-            if ($recv == false)
-            {
-                $retObj->code = SOA_Result::ERR_TIMEOUT;
-                return $retObj;
-            }
-            $this->finish(SOAServer::decode($recv), $retObj);
-        }
         return $retObj;
     }
 
