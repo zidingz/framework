@@ -1,12 +1,14 @@
 <?php
 namespace Swoole\Cache;
+
+use Swoole;
 /**
  * Memcache封装类，支持memcache和memcached两种扩展
  * @author Tianfeng.Han
  * @package Swoole
  * @subpackage cache
  */
-class Memcache implements \Swoole\IFace\Cache
+class Memcache implements Swoole\IFace\Cache
 {
     /**
      * memcached扩展采用libmemcache，支持更多特性，更标准通用
@@ -14,24 +16,28 @@ class Memcache implements \Swoole\IFace\Cache
     protected $memcached = false;
     protected $cache;
     //启用压缩
-    protected $set_flags = 0;
+    protected $flags = 0;
+
+    const DEFAULT_PORT = 11211;
+    const DEFAULT_HOST = '127.0.0.1';
 
     function __construct($config)
     {
         if (empty($config['use_memcached']))
         {
             $this->cache = new \Memcache;
-            $this->set_flags = MEMCACHE_COMPRESSED;
+            $this->flags = MEMCACHE_COMPRESSED;
         }
         else
         {
             $this->cache = new \Memcached;
             $this->memcached = true;
+            $this->cache->setOption(\Memcached::OPT_DISTRIBUTION, \Memcached::DISTRIBUTION_CONSISTENT);
         }
 
-        if (isset($config['compress']) and $config['compress']===false)
+        if (isset($config['compress']) and $config['compress'] === false)
         {
-            $this->set_flags = 0;
+            $this->flags = 0;
         }
 
         if (empty($config['servers']))
@@ -54,10 +60,22 @@ class Memcache implements \Swoole\IFace\Cache
      */
     protected function formatConfig(&$cf)
     {
-        if (empty($cf['host'])) $cf['host'] = 'localhost';
-        if (empty($cf['port'])) $cf['port'] = 11211;
-        if (empty($cf['weight'])) $cf['weight'] = 1;
-        if (empty($cf['persistent'])) $cf['persistent'] = false;
+        if (empty($cf['host']))
+        {
+            $cf['host'] = self::DEFAULT_HOST;
+        }
+        if (empty($cf['port']))
+        {
+            $cf['port'] = self::DEFAULT_PORT;
+        }
+        if (empty($cf['weight']))
+        {
+            $cf['weight'] = 1;
+        }
+        if (empty($cf['persistent']))
+        {
+            $cf['persistent'] = true;
+        }
     }
 
     /**
@@ -74,13 +92,21 @@ class Memcache implements \Swoole\IFace\Cache
 
     /**
      * 获取数据
-     * @see libs/system/ICache#get($key)
+     * @param $key
+     * @return mixed
      */
     function get($key)
     {
-        return $this->memcached?$this->cache->getMulti($key):$this->cache->get($key);
+        return $this->cache->get($key);
     }
 
+    /**
+     * 设置
+     * @param $key
+     * @param $value
+     * @param int $expire
+     * @return bool
+     */
     function set($key, $value, $expire = 0)
     {
         if ($this->memcached)
@@ -89,17 +115,22 @@ class Memcache implements \Swoole\IFace\Cache
         }
         else
         {
-            return $this->cache->set($key, $value, $this->set_flags, $expire);
+            return $this->cache->set($key, $value, $this->flags, $expire);
         }
     }
 
+    /**
+     * 删除
+     * @param $key
+     * @return bool
+     */
     function delete($key)
     {
         return $this->cache->delete($key);
     }
 
-    function __call($method,$params)
+    function __call($method, $params)
     {
-        return call_user_func_array(array($this->cache,$method),$params);
+        return call_user_func_array(array($this->cache, $method), $params);
     }
 }
