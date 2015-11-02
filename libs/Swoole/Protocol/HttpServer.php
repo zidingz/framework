@@ -217,11 +217,15 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         }
         //完整的请求
         //开始处理
+
+        /**
+         * @var $request Swoole\Request
+         */
         $request = $this->requests[$client_id];
 	    $info = $serv->connection_info($client_id);
         $request->remote_ip = $info['remote_ip'];
+        $request->remote_port = $info['remote_port'];
 	    $_SERVER['SWOOLE_CONNECTION_INFO'] = $info;
-
         $this->parseRequest($request);
         $request->fd = $client_id;
         $this->currentRequest = $request;

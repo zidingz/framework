@@ -16,7 +16,17 @@ class Request
      */
     public $time;
 
+    /**
+     * 客户端IP
+     * @var
+     */
     public $remote_ip;
+
+    /**
+     * 客户端PORT
+     * @var
+     */
+    public $remote_port;
 
     public $get = array();
     public $post = array();
@@ -43,20 +53,35 @@ class Request
      */
     function setGlobal()
     {
-        if ($this->get) $_GET = $this->get;
-        if ($this->post) $_POST = $this->post;
-        if ($this->file) $_FILES = $this->file;
-        if ($this->cookie) $_COOKIE = $this->cookie;
-        if ($this->server) $_SERVER = $this->server;
+        if ($this->get)
+        {
+            $_GET = $this->get;
+        }
+        if ($this->post)
+        {
+            $_POST = $this->post;
+        }
+        if ($this->file)
+        {
+            $_FILES = $this->file;
+        }
+        if ($this->cookie)
+        {
+            $_COOKIE = $this->cookie;
+        }
+        if ($this->server)
+        {
+            $_SERVER = $this->server;
+        }
         $_REQUEST = array_merge($this->get, $this->post, $this->cookie);
 
         $_SERVER['REQUEST_URI'] = $this->meta['uri'];
         /**
          * 将HTTP头信息赋值给$_SERVER超全局变量
          */
-        foreach($this->head as $key => $value)
+        foreach ($this->head as $key => $value)
         {
-            $_key = 'HTTP_'.strtoupper(str_replace('-', '_', $key));
+            $_key = 'HTTP_' . strtoupper(str_replace('-', '_', $key));
             $_SERVER[$_key] = $value;
         }
         $_SERVER['REMOTE_ADDR'] = $this->remote_ip;

@@ -28,50 +28,31 @@ class Client
         header("Content-type: $mime");
         header("Content-Disposition: attachment; filename=$filename");
 	}
-	/**
-	 * 获取客户端IP
-	 * @return unknown_type
-	 */
-	static function getIP()
-	{
-		if (getenv("HTTP_CLIENT_IP") and strcasecmp(getenv("HTTP_CLIENT_IP"), "unknown"))
-		{
-			$ip = getenv("HTTP_CLIENT_IP");
-		}
-		else
-		{
-			if (getenv("HTTP_X_FORWARDED_FOR") and strcasecmp(getenv("HTTP_X_FORWARDED_FOR"), "unknown"))
-			{
-				$ip = getenv("HTTP_X_FORWARDED_FOR");
-			}
-			else
-			{
-				if (getenv("REMOTE_ADDR") and strcasecmp(getenv("REMOTE_ADDR"), "unknown"))
-				{
-					$ip = getenv("REMOTE_ADDR");
-				}
-				else
-				{
-					if (isset($_SERVER['REMOTE_ADDR']) and $_SERVER['REMOTE_ADDR']
-						and strcasecmp($_SERVER['REMOTE_ADDR'],
-							"unknown")
-					)
-					{
-						$ip = $_SERVER['REMOTE_ADDR'];
-					}
-					else
-					{
-						$ip = "unknown";
-					}
-				}
-			}
-		}
-		return $ip;
-	}
+
+    /**
+     * 获取客户端IP
+     * @return string
+     */
+    static function getIP()
+    {
+        if (isset($_SERVER["HTTP_CLIENT_IP"]) and strcasecmp($_SERVER["HTTP_CLIENT_IP"], "unknown"))
+        {
+            return $_SERVER["HTTP_CLIENT_IP"];
+        }
+        if (isset($_SERVER["HTTP_X_FORWARDED_FOR"]) and strcasecmp($_SERVER["HTTP_X_FORWARDED_FOR"], "unknown"))
+        {
+            return $_SERVER["HTTP_X_FORWARDED_FOR"];
+        }
+        if (isset($_SERVER["REMOTE_ADDR"]))
+        {
+            return $_SERVER["REMOTE_ADDR"];
+        }
+        return "";
+    }
 
 	/**
 	 * 获取客户端浏览器信息
-	 * @return unknown_type
+	 * @return string
 	 */
 	static function getBrowser()
 	{

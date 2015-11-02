@@ -181,4 +181,9 @@ class Page extends Swoole\Controller
         //对应apps/factory/user1.php
         $this->user1->hello();
     }
+
+    function ip()
+    {
+        echo "My ip is ".Swoole\Client::getIP()."\n";
+    }
 }
