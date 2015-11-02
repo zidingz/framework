@@ -74,7 +74,6 @@ class Swoole
     	'cache' => true, //缓存
     	'event' => true, //异步事件
     	'log' => true, //日志
-    	'kdb' => true, //key-value数据库
     	'upload' => true, //上传组件
     	'user' => true,   //用户验证组件
         'session' => true, //session
