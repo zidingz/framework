@@ -39,11 +39,6 @@ class PdoDB extends \PDO implements Swoole\IDatabase
         $this->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 	}
 
-    function quote($str, $paramtype = NULL)
-    {
-        return trim(parent::quote($str, $paramtype), '\'');
-    }
-
 	/**
 	 * 执行一个SQL语句
 	 * @param string $sql 执行的SQL语句

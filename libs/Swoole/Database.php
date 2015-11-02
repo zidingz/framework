@@ -5,7 +5,6 @@ namespace Swoole;
  * @author Tianfeng.Han
  * @package SwooleSystem
  * @subpackage database
- *
  */
 
 /**
@@ -22,6 +21,7 @@ interface IDatabase
 	function lastInsertId();
     function getAffectedRows();
     function errno();
+    function quote($str);
 }
 /**
  * Database Driver接口
@@ -39,8 +39,9 @@ interface IDbRecord
 /**
  * Database类，处理数据库连接和基本的SQL组合
  * 提供4种接口，query  insert update delete
- * @author Administrator
  * @method connect
+ * @method quote $str
+ * @method errno
  */
 class Database
 {
