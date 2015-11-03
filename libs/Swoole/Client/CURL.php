@@ -127,9 +127,10 @@ class CURL
     /**
      * 设置SSL模式
      */
-    function setSSL()
+    function setSSLVerify($verify = true)
     {
-        curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, $verify);
+        curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, $verify);
     }
 
     /**
