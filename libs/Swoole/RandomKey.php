@@ -10,28 +10,29 @@ class RandomKey
         $zhcnchr = mb_convert_encoding($unichr, "UTF-8", "HTML-ENTITIES");
         return $zhcnchr;
     }
+
     /**
      * 随机生成一个字符串
      * @param $length
      * @param $number
      * @param $not_o0
-     * @return unknown_type
+     * @return string
      */
-    static function string($length=8,$number=true,$not_o0=false)
+    static function string($length = 8, $number = true, $not_o0 = false)
     {
         $strings = 'ABCDEFGHIJKLOMNOPQRSTUVWXYZ';  //字符池
         $numbers = '0123456789';                    //数字池
-        if($not_o0)
+        if ($not_o0)
         {
-            $strings = str_replace('O','',$strings);
-            $numbers = str_replace('0','',$numbers);
+            $strings = str_replace('O', '', $strings);
+            $numbers = str_replace('0', '', $numbers);
         }
-        $pattern = $strings.$number;
-        $max = strlen($pattern)-1;
+        $pattern = $strings . $number;
+        $max = strlen($pattern) - 1;
         $key = '';
-        for($i=0;$i<$length;$i++)
+        for ($i = 0; $i < $length; $i++)
         {
-            $key .= $pattern{mt_rand(0,$max)};    //生成php随机数
+            $key .= $pattern{mt_rand(0, $max)};    //生成php随机数
         }
         return $key;
     }

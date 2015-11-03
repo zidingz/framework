@@ -37,7 +37,7 @@ class CURL
 
     /**
      * Curl_HTTP_Client constructor
-     * @param boolean debug
+     * @param boolean $debug
      * @access public
      */
     function __construct($debug = false)
@@ -74,8 +74,8 @@ class CURL
 
     /**
      * Set username/pass for basic http auth
-     * @param string user
-     * @param string pass
+     * @param string $username
+     * @param string $password
      * @access public
      */
     function setCredentials($username, $password)
@@ -85,7 +85,7 @@ class CURL
 
     /**
      * Set referrer
-     * @param string referrer url
+     * @param string $referrer_url
      * @access public
      */
     function setReferrer($referrer_url)
@@ -95,7 +95,7 @@ class CURL
 
     /**
      * Set client's useragent
-     * @param string user agent
+     * @param string $useragent
      * @access public
      */
     function setUserAgent($useragent = null)
@@ -116,49 +116,50 @@ class CURL
 
     /**
      * Set proxy to use for each curl request
-     * @param string proxy
+     * @param string $proxy
      * @access public
      */
     function setProxy($proxy)
     {
         curl_setopt($this->ch, CURLOPT_PROXY, $proxy);
     }
+
     /**
      * 设置SSL模式
-     * @return unknown_type
      */
-    function setSsl()
+    function setSSL()
     {
-    	curl_setopt ( $this->_ch, CURLOPT_SSL_VERIFYPEER, false );
+        curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, false);
     }
+
     /**
      * Send post data to target URL
      * return data returned from url or false if error occured
-     * @param string url
-     * @param mixed post data (assoc array ie. $foo['post_var_name'] = $value or as string like var=val1&var2=val2)
-     * @param string ip address to bind (default null)
-     * @param int timeout in sec for complete curl operation (default 10)
+     * @param string $url
+     * @param mixed $postdata data (assoc array ie. $foo['post_var_name'] = $value or as string like var=val1&var2=val2)
+     * @param string $ip address to bind (default null)
+     * @param int $timeout in sec for complete curl operation (default 10)
      * @return string data
      * @access public
      */
-    function post($url, $postdata, $ip=null, $timeout=10)
+    function post($url, $postdata, $ip = null, $timeout = 10)
     {
         //set various curl options first
 
         // set url to post to
-        curl_setopt($this->ch, CURLOPT_URL,$url);
+        curl_setopt($this->ch, CURLOPT_URL, $url);
 
         // return into a variable rather than displaying it
-        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER,true);
+        curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
 
         //bind to specific ip address if it is sent trough arguments
-        if($ip)
+        if ($ip)
         {
-            if($this->debug)
+            if ($this->debug)
             {
                 echo "Binding to ip $ip\n";
             }
-            curl_setopt($this->ch,CURLOPT_INTERFACE,$ip);
+            curl_setopt($this->ch, CURLOPT_INTERFACE, $ip);
         }
 
         //set curl function timeout to $timeout
@@ -222,9 +223,9 @@ class CURL
     /**
      * fetch data from target URL
      * return data returned from url or false if error occured
-     * @param string url
-     * @param string ip address to bind (default null)
-     * @param int timeout in sec for complete curl operation (default 5)
+     * @param string $url
+     * @param string $ip address to bind (default null)
+     * @param int $timeout in sec for complete curl operation (default 5)
      * @return string data
      * @access public
      */
@@ -255,7 +256,7 @@ class CURL
             {
                 echo "Binding to ip $ip\n";
             }
-            curl_setopt($this->ch,CURLOPT_INTERFACE,$ip);
+            curl_setopt($this->ch, CURLOPT_INTERFACE, $ip);
         }
 
         //set curl function timeout to $timeout
@@ -266,10 +267,10 @@ class CURL
     /**
      * Fetch data from target URL
      * and store it directly to file
-     * @param string url
-     * @param resource value stream resource(ie. fopen)
-     * @param string ip address to bind (default null)
-     * @param int timeout in sec for complete curl operation (default 5)
+     * @param string $url
+     * @param resource $fp stream resource(ie. fopen)
+     * @param string $ip address to bind (default null)
+     * @param int $timeout in sec for complete curl operation (default 5)
      * @return boolean true on success false othervise
      * @access public
      */
@@ -301,15 +302,15 @@ class CURL
      * Send multipart post data to the target URL
      * return data returned from url or false if error occured
      * (contribution by vule nikolic, vule@dinke.net)
-     * @param string url
-     * @param array assoc post data array ie. $foo['post_var_name'] = $value
-     * @param array assoc $file_field_array, contains file_field name = value - path pairs
-     * @param string ip address to bind (default null)
-     * @param int timeout in sec for complete curl operation (default 30 sec)
+     * @param string $url
+     * @param array $postdata post data array ie. $foo['post_var_name'] = $value
+     * @param array $file_field_array $file_field_array, contains file_field name = value - path pairs
+     * @param string $ip address to bind (default null)
+     * @param int $timeout in sec for complete curl operation (default 30 sec)
      * @return string data
      * @access public
      */
-    function send_multipart_post_data($url, $postdata, $file_field_array=array(), $ip=null, $timeout=30)
+    function sendPostData($url, $postdata, $file_field_array = array(), $ip = null, $timeout = 30)
     {
         //set various curl options first
 
@@ -320,13 +321,13 @@ class CURL
         curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, true);
 
         //bind to specific ip address if it is sent trough arguments
-        if($ip)
+        if ($ip)
         {
-            if($this->debug)
+            if ($this->debug)
             {
                 echo "Binding to ip $ip\n";
             }
-            curl_setopt($this->ch,CURLOPT_INTERFACE,$ip);
+            curl_setopt($this->ch, CURLOPT_INTERFACE, $ip);
         }
 
         //set curl function timeout to $timeout
@@ -346,21 +347,21 @@ class CURL
         //generate post string
         $post_array = array();
         $post_string_array = array();
-        if(!is_array($postdata))
+        if (!is_array($postdata))
         {
             return false;
         }
 
-        foreach($postdata as $key=>$value)
+        foreach ($postdata as $key => $value)
         {
             $post_array[$key] = $value;
-            $post_string_array[] = urlencode($key)."=".urlencode($value);
+            $post_string_array[] = urlencode($key) . "=" . urlencode($value);
         }
 
-        $post_string = implode("&",$post_string_array);
+        $post_string = implode("&", $post_string_array);
 
 
-        if($this->debug)
+        if ($this->debug)
         {
             echo "Post String: $post_string\n";
         }
@@ -370,12 +371,15 @@ class CURL
 
 
         // set multipart form data - file array field-value pairs
-        if(!empty($file_field_array))
+        if (!empty($file_field_array))
         {
-            foreach($file_field_array as $var_name => $var_value)
+            foreach ($file_field_array as $var_name => $var_value)
             {
-                if(strpos(PHP_OS, "WIN") !== false) $var_value = str_replace("/", "\\", $var_value); // win hack
-                $file_field_array[$var_name] = "@".$var_value;
+                if (strpos(PHP_OS, "WIN") !== false)
+                {
+                    $var_value = str_replace("/", "\\", $var_value);
+                } // win hack
+                $file_field_array[$var_name] = "@" . $var_value;
             }
         }
 
@@ -387,13 +391,13 @@ class CURL
         //and finally send curl request
         $result = curl_exec($this->ch);
 
-        if(curl_errno($this->ch))
+        if (curl_errno($this->ch))
         {
-            if($this->debug)
+            if ($this->debug)
             {
                 echo "Error Occured in Curl\n";
-                echo "Error number: " .curl_errno($this->ch) ."\n";
-                echo "Error message: " .curl_error($this->ch)."\n";
+                echo "Error number: " . curl_errno($this->ch) . "\n";
+                echo "Error message: " . curl_error($this->ch) . "\n";
             }
 
             return false;
@@ -406,10 +410,10 @@ class CURL
 
     /**
      * Set file location where cookie data will be stored and send on each new request
-     * @param string absolute path to cookie file (must be in writable dir)
+     * @param string $cookie_file path to cookie file (must be in writable dir)
      * @access public
      */
-    function store_cookies($cookie_file)
+    function storeCookies($cookie_file)
     {
         // use cookies on each request (cookies stored in $cookie_file)
         curl_setopt ($this->ch, CURLOPT_COOKIEJAR, $cookie_file);
@@ -428,10 +432,10 @@ class CURL
 
     /**
      * Set custom cookie
-     * @param string cookie
+     * @param string $cookie
      * @access public
      */
-    function set_cookie($cookie)
+    function setCookie($cookie)
     {
         curl_setopt ($this->ch, CURLOPT_COOKIE, $cookie);
     }
@@ -442,7 +446,7 @@ class CURL
      * @access public
      * @return string url
      */
-    function get_effective_url()
+    function getEffectiveUrl()
     {
         return curl_getinfo($this->ch, CURLINFO_EFFECTIVE_URL);
     }
@@ -452,9 +456,9 @@ class CURL
      * @access public
      * @return int
      */
-    function get_http_response_code()
+    function getHttpCode()
     {
-        return curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
+        return $this->httpCode;
     }
 
     /**

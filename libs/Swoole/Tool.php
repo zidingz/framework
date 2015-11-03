@@ -203,6 +203,18 @@ class Tool
         return implode(self::$url_param_join, $url);
     }
 
+    static function urlAppend($url, $array)
+    {
+        if (strpos($url, '?') === false)
+        {
+            return $url . '?' . Http::buildQuery($array);
+        }
+        else
+        {
+            return $url . '&' . Http::buildQuery($array);
+        }
+    }
+
     /**
      * URL合并
      * @param $key
