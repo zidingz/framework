@@ -15,7 +15,6 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
     public $debug = false;
     public $conn = null;
     public $config;
-    public $display_error = true;
 
     function __construct($db_config)
     {
@@ -116,11 +115,7 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
                 }
                 else
                 {
-                    if ($this->display_error)
-                    {
-                        trigger_error(__CLASS__ . " SQL Error: " . $this->errorMessage($sql), E_USER_WARNING);
-                        echo Swoole\Error::info("SQL Error", $this->errorMessage($sql));
-                    }
+                    Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
                     return false;
                 }
             }
@@ -128,7 +123,7 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
         }
         if (!$result)
         {
-            echo \Swoole\Error::info("SQL Error", $this->errorMessage($sql));
+            Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
             return false;
         }
         return new MySQLiRecord($result);

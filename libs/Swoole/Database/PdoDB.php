@@ -1,6 +1,7 @@
 <?php
 namespace Swoole\Database;
 use Swoole;
+
 /**
  * PDO数据库封装类
  * @package SwooleExtend
@@ -22,10 +23,13 @@ class PdoDB extends \PDO implements Swoole\IDatabase
         $this->config = $db_config;
 	}
 
-	function connect()
-	{
+    /**
+     * 连接到数据库
+     */
+    function connect()
+    {
         $db_config = &$this->config;
-        $dsn = $db_config['dbms'].":host=".$db_config['host'].";dbname=".$db_config['name'];
+        $dsn = $db_config['dbms'] . ":host=" . $db_config['host'] . ";dbname=" . $db_config['name'];
 
         if (!empty($db_config['persistent']))
         {
@@ -35,9 +39,12 @@ class PdoDB extends \PDO implements Swoole\IDatabase
         {
             parent::__construct($dsn, $db_config['user'], $db_config['passwd']);
         }
-        if ($db_config['setname']) parent::query('set names ' . $db_config['charset']);
+        if ($db_config['setname'])
+        {
+            parent::query('set names ' . $db_config['charset']);
+        }
         $this->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
-	}
+    }
 
 	/**
 	 * 执行一个SQL语句

@@ -48,7 +48,8 @@ class MySQL implements \Swoole\IDatabase
         }
         if (!$this->conn)
         {
-            Swoole\Error::info("SQL Error", mysql_error($this->conn));
+            Swoole\Error::info(__CLASS__." SQL Error", mysql_error($this->conn));
+            return false;
         }
         mysql_select_db($db_config['name'], $this->conn) or Swoole\Error::info("SQL Error", mysql_error($this->conn));
         if ($db_config['setname'])
@@ -56,12 +57,12 @@ class MySQL implements \Swoole\IDatabase
             mysql_query('set names ' . $db_config['charset'], $this->conn) or Swoole\Error::info("SQL Error",
                 mysql_error($this->conn));
         }
+        return true;
     }
 
     function errorMessage($sql)
     {
-        return
-            mysql_error($this->conn) . "<hr />$sql<hr />MySQL Server: {$this->config['host']}:{$this->config['port']}";
+        return mysql_error($this->conn) . "<hr />$sql<hr />MySQL Server: {$this->config['host']}:{$this->config['port']}";
     }
 
     /**
@@ -88,8 +89,7 @@ class MySQL implements \Swoole\IDatabase
                         continue;
                     }
                 }
-                echo \Swoole\Error::info("SQL Error", $this->errorMessage($sql));
-
+                \Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
                 return false;
             }
             break;
@@ -97,8 +97,7 @@ class MySQL implements \Swoole\IDatabase
 
         if (!$res)
         {
-            echo Swoole\Error::info("SQL Error", $this->errorMessage($sql));
-
+            Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
             return false;
         }
 
@@ -107,8 +106,7 @@ class MySQL implements \Swoole\IDatabase
 
     /**
      * 返回上一个Insert语句的自增主键ID
-     *
-     * @return $ID
+     * @return int
      */
     function lastInsertId()
     {
@@ -128,10 +126,8 @@ class MySQL implements \Swoole\IDatabase
         if (!@$this->ping())
         {
             $this->close();
-
             return $this->connect();
         }
-
         return true;
     }
 
