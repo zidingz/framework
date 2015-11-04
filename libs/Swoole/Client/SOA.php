@@ -29,8 +29,6 @@ class SOA
     protected $keep_connection = false;
 
     const OK = 0;
-    const TYPE_ASYNC        = 1;
-    const TYPE_SYNC         = 2;
     public $re_connect      = true;    //重新connect
 
     protected static $_instances = array();
@@ -87,8 +85,10 @@ class SOA
      * @param SOA_result $retObj
      * @return bool
      */
-    protected function request($type, $send, $retObj)
+    protected function request($send, $retObj)
     {
+        $retObj->send = $send;
+
         $this->beforeRequest($retObj);
 
         $ret = false;
@@ -115,8 +115,6 @@ class SOA
         }
 
         $retObj->socket = $socket;
-        $retObj->type = $type;
-        $retObj->send = $send;
         $retObj->server_host = $svr['host'];
         $retObj->server_port = $svr['port'];
 
@@ -138,10 +136,7 @@ class SOA
             return false;
         }
         //加入wait_list
-        if ($type != self::TYPE_ASYNC)
-        {
-            $this->wait_list[$retObj->id] = $retObj;
-        }
+        $this->wait_list[$retObj->id] = $retObj;
         return true;
     }
 
@@ -197,10 +192,7 @@ class SOA
             $retObj->code = $retData['errno'];
             $retObj->data = null;
         }
-        if ($retObj->type != self::TYPE_ASYNC)
-        {
-            unset($this->wait_list[$retObj->id]);
-        }
+        unset($this->wait_list[$retObj->id]);
         //执行after钩子函数
         $this->afterRequest($retObj);
         //执行回调函数
@@ -272,7 +264,7 @@ class SOA
             //调用端环境变量
             $send['env'] = $this->env;
         }
-        $this->request(self::TYPE_SYNC, $send, $retObj);
+        $this->request($send, $retObj);
         $retObj->callback = $callback;
         return $retObj;
     }

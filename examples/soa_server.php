@@ -28,7 +28,7 @@ Swoole\Network\Server::start(function ()
     $server->run(
         array(
             //TODO： 实际使用中必须调大进程数
-            'worker_num' => 4,
+            'worker_num' => 1,
             'max_request' => 5000,
             'dispatch_mode' => 3,
             'open_length_check' => 1,
