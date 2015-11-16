@@ -40,11 +40,6 @@ abstract class Base implements Swoole\IFace\Protocol
         $this->server->run($array);
     }
 
-    function setConfigJS($config)
-    {
-
-    }
-
     function daemonize()
     {
         $this->server->daemonize();
@@ -60,18 +55,26 @@ abstract class Base implements Swoole\IFace\Protocol
         $this->log->info($msg);
     }
 
+    function task($task, $dstWorkerId = -1)
+    {
+        $this->server->task($task, $dstWorkerId = -1);
+    }
+
     function onStart($server)
     {
 
     }
+
     function onConnect($server, $client_id, $from_id)
     {
 
     }
+
     function onClose($server, $client_id, $from_id)
     {
 
     }
+
     function onShutdown($server)
     {
 

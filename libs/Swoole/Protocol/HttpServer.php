@@ -347,7 +347,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         {
             case E_ERROR :
             case E_PARSE :
-            case E_DEPRECATED:
+            case E_USER_ERROR:
             case E_CORE_ERROR :
             case E_COMPILE_ERROR :
                 break;

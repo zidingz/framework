@@ -30,12 +30,13 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
         return $this->insert_id;
     }
 
-    function connect($host = null, $user = null, $password = null, $database = null, $port = null, $socket = null)
+    function connect($_host = null, $user = null, $password = null, $database = null, $port = null, $socket = null)
     {
-        $db_config = & $this->config;
+        $db_config = &$this->config;
+        $host = $db_config['host'];
         if (!empty($db_config['persistent']))
         {
-            $db_config['host'] = 'p:' . $db_config['host'];
+            $host = 'p:' . $host;
         }
         if (isset($db_config['passwd']))
         {
@@ -46,7 +47,7 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
             $db_config['name'] = $db_config['dbname'];
         }
         parent::connect(
-            $db_config['host'],
+            $host,
             $db_config['user'],
             $db_config['password'],
             $db_config['name'],
