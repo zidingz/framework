@@ -588,9 +588,11 @@ class Swoole
             clearstatcache();
             $fstat = stat($controller_file);
             //修改时间大于加载时的时间
-            if($fstat['mtime'] > $this->env['controllers'][$mvc['controller']]['time'])
+            if(isset($this->env['controllers'][$mvc['controller']]) && $fstat['mtime'] > $this->env['controllers'][$mvc['controller']]['time'])
             {
                 runkit_import($controller_file, RUNKIT_IMPORT_CLASS_METHODS|RUNKIT_IMPORT_OVERRIDE);
+                $this->env['controllers'][$mvc['controller']]['time'] = time();
+            } else {
                 $this->env['controllers'][$mvc['controller']]['time'] = time();
             }
         }
