@@ -5,4 +5,3 @@ function smarty_modifier_spacefill($string,$length=0,$fill_str=' ')
 	$len = mb_strlen($string);
     if($len<$length) return $string.str_repeat($fill_str,$length-$len);
 }
-?>

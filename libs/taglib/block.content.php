@@ -33,4 +33,3 @@ function smarty_block_app($params, $body, &$smarty)
 	$data = call_user_func(array($php->model->$model,$func),$params);
 	return SwooleTemplate::parse_loop($data,$body,$fields);
 }
-?>
