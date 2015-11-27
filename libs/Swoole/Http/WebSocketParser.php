@@ -16,14 +16,21 @@ class WebSocketParser
     const ERR_TOO_LONG = 10001;
 
     /**
-     * 弹出frame
+     * 压入解析队列
      * @param $data
+     */
+    function push($data)
+    {
+        $this->buffer .= $data;
+    }
+
+    /**
+     * 弹出frame
      * @return bool|WebSocketFrame
      * @throws Swoole\Http\WebSocketException
      */
-    function parse($data)
+    function pop()
     {
-        $this->buffer .= $data;
         //当前有等待的frame
         if ($this->frame)
         {
@@ -45,6 +52,11 @@ class WebSocketParser
         }
 
         $buffer = &$this->buffer;
+        if (strlen($buffer) < 2)
+        {
+            return false;
+        }
+
         $frame = new WebSocketFrame;
         $data_offset = 0;
 
@@ -115,7 +127,6 @@ class WebSocketParser
             //清理buffer
             $buffer = substr($buffer, $length);
             self::unMask($frame);
-
             return $frame;
         }
         //需要继续等待数据

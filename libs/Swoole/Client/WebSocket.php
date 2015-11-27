@@ -168,7 +168,7 @@ class WebSocket
             {
                 return false;
             }
-            $frame = $this->parser->parse($data);
+            $frame = $this->parser->pop($data);
             if ($frame)
             {
                 return $frame;

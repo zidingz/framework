@@ -84,12 +84,20 @@ class WebSocket extends Swoole\Client\WebSocket
         //已建立连接并完成了握手，解析数据帧
         if ($this->handshake)
         {
+            $this->parser->push($data);
             try
             {
-                $frame = $this->parser->parse($data);
-                if ($frame and $callable = $this->_callback('message'))
+                while (true)
                 {
-                    call_user_func($callable, $this, $frame);
+                    $frame = $this->parser->pop($data);
+                    if ($frame and $callable = $this->_callback('message'))
+                    {
+                        call_user_func($callable, $this, $frame);
+                    }
+                    else
+                    {
+                        return;
+                    }
                 }
             }
             catch (Swoole\Http\WebSocketException $e)

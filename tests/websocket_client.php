@@ -16,19 +16,19 @@ require WEBPATH . '/libs/lib_config.php';
 //    echo "recv: ".strlen($frame->data)." bytes\n";
 //}
 
-
+$i = 0;
 $cli = new Swoole\Async\WebSocket('127.0.0.1', 9501);
 
 $cli->on('open', function(Swoole\Async\WebSocket $o, $header){
-    var_dump($header);
-    $_send = str_repeat('A', rand(7000, 90000));
+    $_send = str_repeat('A', rand(7000, 9000));
     $n = $o->send($_send);
     echo "sent: " . strlen($_send) . ' bytes, ' . "n=$n\n";
 });
 
 $cli->on('message', function(Swoole\Async\WebSocket $o, $frame){
-    echo "recv: ".strlen($frame->data)." bytes\n";
-    $o->disconnect();
+    global $i;
+    echo "$i\trecv: ".strlen($frame->data)." bytes\n";
+    $i++;
 });
 
 $cli->connect();
