@@ -273,6 +273,11 @@ class Upload
      */
     static public function getFileExt($file)
     {
-    	return strtolower(trim(substr(strrchr($file, '.'), 1)));
+        $s = strrchr($file, '.');
+        if ($s === false)
+        {
+            return false;
+        }
+        return strtolower(trim(substr($s, 1)));
     }
 }
