@@ -1,6 +1,8 @@
 <?php
 namespace Swoole\Client;
 
+use Swoole;
+
 class WebSocket
 {
     const VERSION = '0.1.4';
@@ -31,6 +33,9 @@ class WebSocket
      * @var bool
      */
     protected $connected = false;
+    protected $handshake = false;
+
+    protected $header;
     
     const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
     const UserAgent = 'SwooleWebsocketClient';
@@ -39,13 +44,19 @@ class WebSocket
      * @param string $host
      * @param int $port
      * @param string $path
+     * @throws Swoole\Http\WebSocketException
      */
-    function __construct($host = '127.0.0.1', $port = 8080, $path = '/')
+    function __construct($host, $port = 80, $path = '/')
     {
+        if (empty($host))
+        {
+            throw new Swoole\Http\WebSocketException("require websocket server host.");
+        }
         $this->host = $host;
         $this->port = $port;
         $this->path = $path;
         $this->key = $this->generateToken(self::TOKEN_LENGHT);
+        $this->parser = new Swoole\Http\WebSocketParser();
     }
 
     /**
@@ -61,6 +72,7 @@ class WebSocket
 
     /**
      * Connect client to server
+     * @param $timeout
      * @return $this
      */
     public function connect($timeout = 0.5)
@@ -73,12 +85,59 @@ class WebSocket
         {
             $this->socket = new TCP;
         }
+        //建立连接
         if (!$this->socket->connect($this->host, $this->port, $timeout))
         {
             return false;
         }
-        $this->socket->send($this->createHeader());
-        return $this->recv();
+        $this->connected = true;
+        //WebSocket握手
+        if ($this->socket->send($this->createHeader()) === false)
+        {
+            return false;
+        }
+        $headerBuffer = '';
+        while(true)
+        {
+            $_tmp = $this->socket->recv();
+            if ($_tmp)
+            {
+                $headerBuffer .= $_tmp;
+                if (substr($headerBuffer, -4, 4) != "\r\n\r\n")
+                {
+                    continue;
+                }
+            }
+            else
+            {
+                return false;
+            }
+            return $this->doHandShake($headerBuffer);
+        }
+        return false;
+    }
+
+    /**
+     * 握手
+     * @param $headerBuffer
+     * @return bool
+     */
+    function doHandShake($headerBuffer)
+    {
+        $header = Swoole\Http\Parser::parseHeader($headerBuffer);
+        if (!isset($header['Sec-WebSocket-Accept']))
+        {
+            $this->disconnect();
+            return false;
+        }
+        if ($header['Sec-WebSocket-Accept'] != base64_encode(pack('H*', sha1($this->key . self::GUID))))
+        {
+            $this->disconnect();
+            return false;
+        }
+        $this->handshake = true;
+        $this->header = $header;
+        return true;
     }
 
     /**
@@ -90,25 +149,32 @@ class WebSocket
         $this->socket->close();
     }
 
+    /**
+     * 接收数据
+     * @return bool | Swoole\Http\WebSocketFrame
+     * @throws Swoole\Http\WebSocketException
+     */
     function recv()
     {
-        $data = $this->socket->recv();
-        if ($data === false)
+        if (!$this->handshake)
         {
-            echo "Error: {$this->socket->errMsg}";
+            trigger_error("not complete handshake.");
             return false;
         }
-        $this->buffer .= $data;
-        $recv_data = $this->parseData($this->buffer);
-        if ($recv_data)
+        while (true)
         {
-            $this->buffer = '';
-            return $recv_data;
+            $data = $this->socket->recv();
+            if (!$data)
+            {
+                return false;
+            }
+            $frame = $this->parser->parse($data);
+            if ($frame)
+            {
+                return $frame;
+            }
         }
-        else
-        {
-            return false;
-        }
+        return false;
     }
 
     /**
@@ -125,6 +191,11 @@ class WebSocket
         {
             throw new \Exception("data is empty");
         }
+        if (!$this->handshake)
+        {
+            trigger_error("not complete handshake.");
+            return false;
+        }
         return $this->socket->send($this->hybi10Encode($data, $type, $masked));
     }
 
@@ -137,28 +208,6 @@ class WebSocket
     function sendJson($data, $masked = true)
     {
         return $this->send(json_encode($data), 'text', $masked);
-    }
-
-    /**
-     * Parse received data
-     * @param $response
-     * @return string
-     * @throws \Exception
-     */
-    protected function parseData($response)
-    {
-        if (!$this->connected and strpos($response,'Sec-Websocket-Accept') !== false)
-		{
-            if ((strpos($response, base64_encode(pack('H*', sha1($this->key . self::GUID)))) !== false)) 
-			{
-                $this->connected = true;
-            }
-			else 
-			{
-                throw new \Exception("error response key.");
-            }
-        }
-        return $this->hybi10Decode($response);
     }
 
     /**
@@ -254,7 +303,8 @@ class WebSocket
 
         $token = '';
 
-        do {
+        do
+        {
             shuffle($characters);
             $token .= $characters[mt_rand(0, (count($characters) - 1))];
         } while (strlen($token) < $length);
@@ -271,7 +321,6 @@ class WebSocket
     private function hybi10Encode($payload, $type = 'text', $masked = true)
     {
         $frameHead = array();
-        $frame = '';
         $payloadLength = strlen($payload);
 
         switch ($type)
@@ -360,62 +409,35 @@ class WebSocket
 
     /**
      * @param $data
-     * @return null|string
+     * @return string
+     * @throws WebSocketException
      */
     private function hybi10Decode($data)
     {
         if (empty($data))
         {
-            throw new \Exception("data is empty");
+            throw new WebSocketException("data is empty");
         }
 
         $bytes = $data;
-        $dataLength = '';
-        $mask = '';
-        $coded_data = '';
-        $decodedData = '';
         $secondByte = sprintf('%08b', ord($bytes[1]));
         $masked = ($secondByte[0] == '1') ? true : false;
         $dataLength = ($masked === true) ? ord($bytes[1]) & 127 : ord($bytes[1]);
-
-        if ($masked === true)
+        //服务器不会设置mask
+        if ($dataLength === 126)
         {
-            if ($dataLength === 126)
-            {
-                $mask = substr($bytes, 4, 4);
-                $coded_data = substr($bytes, 8);
-            }
-            elseif ($dataLength === 127)
-            {
-                $mask = substr($bytes, 10, 4);
-                $coded_data = substr($bytes, 14);
-            }
-            else
-            {
-                $mask = substr($bytes, 2, 4);
-                $coded_data = substr($bytes, 6);
-            }
-            for ($i = 0; $i < strlen($coded_data); $i++)
-            {
-                $decodedData .= $coded_data[$i] ^ $mask[$i % 4];
-            }
+            $decodedData = substr($bytes, 4);
+        }
+        elseif ($dataLength === 127)
+        {
+            $decodedData = substr($bytes, 10);
         }
         else
         {
-            if ($dataLength === 126)
-            {
-                $decodedData = substr($bytes, 4);
-            }
-            elseif ($dataLength === 127)
-            {
-                $decodedData = substr($bytes, 10);
-            }
-            else
-            {
-                $decodedData = substr($bytes, 2);
-            }
+            $decodedData = substr($bytes, 2);
         }
-
+        exit("len=".$dataLength."\n");
         return $decodedData;
     }
 }
+

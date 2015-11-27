@@ -134,7 +134,10 @@ class TCP extends Socket
      */
     function close()
     {
-        if ($this->sock) socket_close($this->sock);
+        if ($this->sock)
+        {
+            socket_close($this->sock);
+        }
         $this->sock = null;
     }
 }
