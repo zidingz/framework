@@ -165,7 +165,7 @@ class WebSocket
      * Create header for websocket client
      * @return string
      */
-    private function createHeader()
+    final protected function createHeader()
     {
         $host = $this->host;
         if ($host === '127.0.0.1' || $host === '0.0.0.0')
@@ -190,7 +190,7 @@ class WebSocket
      * @param $header
      * @return array
      */
-    private function parseIncomingRaw($header)
+    final protected function parseIncomingRaw($header)
     {
         $retval = array();
         $content = "";
