@@ -151,6 +151,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
             // 重新设置一下log文件和文件指针
             if ($this->archive && $this->date != $date)
             {
+                fclose($this->fp);
                 $this->date = $date;
                 $this->log_file = $this->log_dir.'/'.$this->date.'.log';
                 $this->fp = fopen($this->log_file, 'a+');
@@ -160,7 +161,11 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
 
             if (filesize($this->log_file) > 209715200) //200M
             {
-                rename($this->log_file, $this->log_file.'.'.date('His'));
+                $new_log_file = $this->log_file.'.'.date('His');
+                rename($this->log_file, $new_log_file);
+                $this->log_file = $new_log_file;
+                fclose($this->fp);
+                $this->fp = fopen($this->log_file, 'a+');
             }
         }
 
