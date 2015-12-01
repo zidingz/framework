@@ -15,4 +15,3 @@ function smarty_function_ajax($params, &$smarty)
 	}
 	return $js;
 }
-?>

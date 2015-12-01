@@ -454,4 +454,3 @@ class Form
 		return $forms;
 	}
 }
-?>
