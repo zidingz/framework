@@ -9,4 +9,3 @@ function smarty_block_select($params, $body, &$smarty)
 	$select->put($params);
 	return SwooleTemplate::parse_loop($select->getall(),$body);
 }
-?>

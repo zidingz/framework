@@ -122,8 +122,3 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         return $this->array;
     }
 }
-
-$ar = new ArrayObject(['a', 'b', 'c']);
-$ar->insert(1, '_');
-var_dump($ar->toArray());
-

@@ -25,4 +25,3 @@ function smarty_block_category($params, $body, &$smarty)
 	$data = call_user_func_array(array($category_ins,$func),$params);
 	return $stpl->parse_loop($data,$body,$fields);
 }
-?>

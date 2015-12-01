@@ -114,7 +114,7 @@ class Client
 			return false;
 		}
 	}
-	static function request_method()
+	static function requestMethod()
 	{
 		return $_SERVER['REQUEST_METHOD'];
 	}
