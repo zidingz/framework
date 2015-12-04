@@ -461,7 +461,7 @@ class Swoole
         }
         
         //重定向
-        if (isset($response->head['Location']))
+        if (isset($response->head['Location']) and ($response->http_status < 300 or $response->http_status > 399))
         {
             $response->setHttpStatus(301);
         }
