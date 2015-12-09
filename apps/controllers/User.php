@@ -39,7 +39,7 @@ class User extends Swoole\Controller
     {
         $this->session->start();
         var_dump($_SESSION);
-        Swoole\Auth::login_require();
+        Swoole\Auth::loginRequire();
     }
 
     function logout()

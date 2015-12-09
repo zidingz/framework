@@ -322,7 +322,7 @@ class Auth
      * 验证登录
      * @return bool
      */
-    public static function login_require()
+    public static function loginRequire()
     {
         $user = \Swoole::$php->user;
         if (!$user->isLogin())

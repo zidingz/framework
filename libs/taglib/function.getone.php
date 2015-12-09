@@ -12,4 +12,3 @@ function smarty_function_getone($params, &$smarty)
 	endif;
 	//if(array_key_exists('_field',$params)) return $smarty->_tpl_vars[$record_name][$params['_field']];
 }
-?>

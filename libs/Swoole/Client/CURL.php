@@ -35,6 +35,8 @@ class CURL
     public $errCode;
     public $httpCode;
 
+    protected $httpMethod;
+
     /**
      * Curl_HTTP_Client constructor
      * @param boolean $debug
@@ -105,16 +107,6 @@ class CURL
     }
 
     /**
-     * Set to receive output headers in all output functions
-     * @param boolean true to include all response headers with output, false otherwise
-     * @access public
-     */
-    function include_response_headers($value)
-    {
-        curl_setopt($this->ch, CURLOPT_HEADER, $value);
-    }
-
-    /**
      * Set proxy to use for each curl request
      * @param string $proxy
      * @access public
@@ -133,6 +125,12 @@ class CURL
         curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, $verify);
     }
 
+    function setMethod($method)
+    {
+        curl_setopt($this->ch, CURLOPT_CUSTOMREQUEST, $method);
+        $this->httpMethod = $method;
+    }
+
     /**
      * Send post data to target URL
      * return data returned from url or false if error occured
@@ -145,8 +143,6 @@ class CURL
      */
     function post($url, $postdata, $ip = null, $timeout = 10)
     {
-        //set various curl options first
-
         // set url to post to
         curl_setopt($this->ch, CURLOPT_URL, $url);
 
@@ -167,7 +163,10 @@ class CURL
         curl_setopt($this->ch, CURLOPT_TIMEOUT, $timeout);
 
         //set method to post
-        curl_setopt($this->ch, CURLOPT_POST, true);
+        if (empty($this->httpMethod))
+        {
+            curl_setopt($this->ch, CURLOPT_POST, true);
+        }
 
         //generate post string
         $post_array = array();
@@ -196,8 +195,22 @@ class CURL
         return $this->execute();
     }
 
+    function setHeaderOut($enable = true)
+    {
+        curl_setopt($this->ch, CURLINFO_HEADER_OUT, $enable);
+    }
+
     protected function execute()
     {
+        if (count($this->reqHeader) > 1)
+        {
+            $headers = array();
+            foreach($this->reqHeader as $k => $v)
+            {
+                $headers[] = "$k: $v";
+            }
+            curl_setopt($this->ch, CURLOPT_HTTPHEADER, $headers);
+        }
         //and finally send curl request
         $result = curl_exec($this->ch);
         $this->info = curl_getinfo($this->ch);
@@ -243,13 +256,7 @@ class CURL
         {
             curl_setopt($this->ch, CURLOPT_USERAGENT, $this->userAgent);
         }
-
         $this->url = $url;
-        if ($this->reqHeader)
-        {
-            curl_setopt($this->ch, CURLOPT_HTTPHEADER, $this->reqHeader);
-        }
-
         //bind to specific ip address if it is sent trough arguments
         if ($ip)
         {

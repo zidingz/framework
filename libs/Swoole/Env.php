@@ -41,4 +41,3 @@ class Env implements \ArrayAccess
 		return "This is a memory Object!";
 	}
 }
-?>

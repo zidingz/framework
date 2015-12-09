@@ -45,4 +45,3 @@ function smarty_block_app($params, $body, &$smarty)
 	$data = call_user_func(array($app_instance,$func),$params);
 	return $stpl->parse_loop($data,$body,$fields);
 }
-?>
