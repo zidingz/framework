@@ -247,6 +247,15 @@ class SOA
     }
 
     /**
+     * 设置服务器
+     * @param array $servers
+     */
+    function setServers(array $servers)
+    {
+        $this->servers = $servers;
+    }
+
+    /**
      * 从配置中取出一个服务器配置
      * @return array
      * @throws \Exception
