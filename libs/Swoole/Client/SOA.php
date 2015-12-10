@@ -353,7 +353,11 @@ class SOA
                     else
                     {
                         $header = unpack(SOAServer::HEADER_STRUCT, substr($data, 0, SOAServer::HEADER_SIZE));
-                        $retObj->responseId = $header['serid'];
+                        //串号不一致，丢弃结果
+                        if ($header['serid'] != $retObj->responseId)
+                        {
+                            continue;
+                        }
                         //成功处理
                         $this->finish(SOAServer::decode(substr($data, SOAServer::HEADER_SIZE), $header['type']), $retObj);
                         $success_num++;
