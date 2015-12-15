@@ -11,16 +11,16 @@ namespace Swoole\Client;
 use Swoole\CLPack;
 
 class CLMySQL {
-	private $conn, $dbname, $pack, $result = [1];
+	private $conn, $dbname, $pack, $result = array(), $result_id = 1;
 	private $host, $port;
 	public $last_errno, $last_erro_msg;
 
-	function __construct($host, $port, $dbname) {
+	function __construct($host, $port, $dbname, $pconnect = true) {
 		$this->pack = new CLPack();
 		$this->host = $host;
 		$this->port = $port;
 		$this->dbname = $dbname;
-		$this->conn = new \swoole_client(SWOOLE_SOCK_TCP | SWOOLE_KEEP);
+		$this->conn = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP);
 		$this->connect();
 	}
 
@@ -42,7 +42,7 @@ class CLMySQL {
 			$r = $this->pack->unpack($data);
 			if ($r === false) {
 				#包错误，断线重试
-				echo "包错误\n";
+				#echo "包错误\n";
 				$this->conn->close();
 				return false;
 			}
@@ -66,8 +66,20 @@ class CLMySQL {
 			}
 		}
 		$r = $this->getPack();
-		$this->result[] = $r;
-		$result_id = count($this->result) - 1;
+		if ($r === false) {
+			$this->last_errno = 1;
+			$this->last_erro_msg = $this->pack->last_err;
+		}
+		$result_id = $this->result_id++;
+		$this->result[$result_id] = $r;
+
+		foreach ($r as $k => $v) {
+			if ($v[0] != 0) {
+				$this->last_errno = $v[0];
+				$this->last_erro_msg = $v[1];
+			}
+			return false;
+		}
 
 		/*if ($r && !$is_multi) {
 			if (!isset($r[$this->dbname])) {
@@ -92,13 +104,39 @@ class CLMySQL {
 			}
 			if ($this->result[$result_id][$this->dbname][0] == 0) {
 				return $this->result[$result_id][$this->dbname][1];
-			} else {
-				$this->last_errno = $this->result[$result_id][$this->dbname][0];
-				$this->last_erro_msg = $this->result[$result_id][$this->dbname][1];
-				return false;
 			}
 		}
 		return false;
+	}
+
+	function fetch_row($result_id, $seek, $dbname = '') {
+		if (isset($this->result[$result_id])) {
+			if (!$dbname) {
+				$dbname = $this->dbname;
+			}
+			if ($this->result[$result_id][$this->dbname][0] == 0 && isset($this->result[$result_id][$this->dbname][1][$seek])) {
+				return $this->result[$result_id][$this->dbname][1][$seek];
+			}
+		}
+		return false;
+	}
+
+	function num_rows($result_id, $dbname = '') {
+		if (isset($this->result[$result_id])) {
+			if (!$dbname) {
+				$dbname = $this->dbname;
+			}
+			if ($this->result[$result_id][$this->dbname][0] == 0) {
+				return count($this->result[$result_id][$this->dbname][1]);
+			}
+		}
+		return 0;
+	}
+
+	function free_result($result_id) {
+		if (isset($this->result[$result_id])) {
+			unset($this->result[$result_id]);
+		}
 	}
 
 	function insert_id() {
