@@ -1,10 +1,8 @@
 <?php
 namespace Swoole\Async;
-/**
- * Class MySQL
- * @package Swoole\Async
- */
+
 class MySQL {
+	public $cl_db_name;
 	/**
 	 * max connections for mysql client
 	 * @var int $pool_size
@@ -32,7 +30,7 @@ class MySQL {
 	protected $config = array();
 	/**
 	 * wait connection
-	 * @var array
+	 * @var arrayecho
 	 */
 	protected $wait_queue = array();
 
@@ -99,7 +97,7 @@ class MySQL {
 	public function onSQLReady($db_sock) {
 		$task = empty($this->work_pool[$db_sock]) ? null : $this->work_pool[$db_sock];
 		if (empty($task)) {
-			echo "MySQLi Warning: Maybe SQLReady receive a Close event , such as Mysql server close the socket !\n";
+			#echo "MySQLi Warning: Maybe SQLReady receive a Close event , such as Mysql server close the socket !\n";
 			$this->removeConnection($db_sock);
 			return false;
 		}
@@ -115,7 +113,7 @@ class MySQL {
 			}
 		} else {
 			call_user_func($callback, $mysqli, $result);
-			echo "MySQLi Error: " . mysqli_error($mysqli) . "\n";
+			#echo "MySQLi Error: " . mysqli_error($mysqli) . "\n";
 		}
 		//release mysqli object
 		$this->idle_pool[$task['mysql']['socket']] = $task['mysql'];
@@ -172,7 +170,7 @@ class MySQL {
 						continue;
 					}
 				} else {
-					echo "server exception. \n";
+					#echo "server exception. \n";
 					$this->connection_num--;
 					$this->wait_queue[] = array(
 						'sql' => $sql,
@@ -188,4 +186,25 @@ class MySQL {
 		//join to work pool
 		$this->work_pool[$db['socket']] = $task;
 	}
+
+	function getKey() {
+		return $this->config['host'] . ':' . $this->config['port'];
+	}
+
+	function isFree() {
+		return (!$this->work_pool && !$this->wait_queue) ? true : false;
+	}
+
+	function close() {
+		#echo "destruct\n";
+		foreach ($this->idle_pool as $sock => $conn) {
+			$this->removeConnection($sock);
+		}
+	}
+
+	function __destruct() {
+		$this->close();
+	}
+
+
 }
