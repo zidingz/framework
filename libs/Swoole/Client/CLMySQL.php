@@ -70,17 +70,16 @@ class CLMySQL {
 			$this->last_errno = 1;
 			$this->last_erro_msg = $this->pack->last_err;
 		}
-		$result_id = $this->result_id++;
-		$this->result[$result_id] = $r;
-
 		foreach ($r as $k => $v) {
 			if ($v[0] != 0) {
 				$this->last_errno = $v[0];
 				$this->last_erro_msg = $v[1];
+				return false;
 			}
-			return false;
 		}
 
+		$result_id = $this->result_id++;
+		$this->result[$result_id] = $r;
 		/*if ($r && !$is_multi) {
 			if (!isset($r[$this->dbname])) {
 				return false;
