@@ -8,6 +8,8 @@
 
 namespace Swoole\Client;
 
+use Swoole\CLPack;
+
 class CLMySQL {
 	private $conn, $dbname, $pack, $delay_sql = [];
 	private $host, $port;
