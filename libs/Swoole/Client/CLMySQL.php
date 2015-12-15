@@ -18,7 +18,7 @@ class CLMySQL {
 	function __construct($host, $port, $dbname, $pconnect = true) {
 		$this->pack = new CLPack();
 		$this->host = $host;
-		$this->port = intval($port);
+		$this->port = $port;
 		$this->dbname = $dbname;
 		$this->conn = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP);
 		$this->connect();
@@ -30,7 +30,7 @@ class CLMySQL {
 
 	function connect() {
 		$this->pack->reset();
-		$this->conn->connect($this->host, $this->port);
+		return $this->conn->connect($this->host, $this->port);
 	}
 
 	function getPack() {
