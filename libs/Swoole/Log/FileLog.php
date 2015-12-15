@@ -161,7 +161,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
 
             if (filesize($this->log_file) > 209715200) //200M
             {
-                $new_log_file = $this->log_file.'.'.date('His');
+                $new_log_file = $this->log_dir.'/'.$this->date.date('His').'.log';
                 rename($this->log_file, $new_log_file);
                 $this->log_file = $new_log_file;
                 fclose($this->fp);
