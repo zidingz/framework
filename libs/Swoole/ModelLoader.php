@@ -13,10 +13,10 @@ class ModelLoader
     protected $_models = array();
     protected $_tables = array();
 
-	function __construct($swoole)
-	{
-		$this->swoole = $swoole;
-	}
+    function __construct($swoole)
+    {
+        $this->swoole = $swoole;
+    }
 
     /**
      * 仅获取master
@@ -83,7 +83,7 @@ class ModelLoader
         }
         else
         {
-            $model = new Model(\Swoole::getInstance(), $db_key);
+            $model = new Model($this->swoole, $db_key);
             $model->table = $table_name;
             $this->_tables[$db_key][$table_name] = $model;
             return $model;

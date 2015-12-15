@@ -53,7 +53,7 @@ function model($model_name, $db_key = 'master')
  */
 function table($table_name, $db_key = 'master')
 {
-    Swoole::getInstance()->model->loadTable($table_name, $db_key);
+    return Swoole::getInstance()->model->loadTable($table_name, $db_key);
 }
 
 /**
