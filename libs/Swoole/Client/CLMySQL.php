@@ -11,10 +11,9 @@ namespace Swoole\Client;
 use Swoole\CLPack;
 
 class CLMySQL {
-	private $conn, $dbname, $pack, $delay_sql = [];
+	private $conn, $dbname, $pack, $result = [1];
 	private $host, $port;
 	public $last_errno, $last_erro_msg;
-
 
 	function __construct($host, $port, $dbname) {
 		$this->pack = new CLPack();
@@ -67,7 +66,10 @@ class CLMySQL {
 			}
 		}
 		$r = $this->getPack();
-		if ($r && !$is_multi) {
+		$this->result[] = $r;
+		$result_id = count($this->result) - 1;
+
+		/*if ($r && !$is_multi) {
 			if (!isset($r[$this->dbname])) {
 				return false;
 			} else {
@@ -79,8 +81,24 @@ class CLMySQL {
 					return false;
 				}
 			}
+		}*/
+		return $result_id;
+	}
+
+	function fetch($result_id, $dbname = '') {
+		if (isset($this->result[$result_id])) {
+			if (!$dbname) {
+				$dbname = $this->dbname;
+			}
+			if ($this->result[$result_id][$this->dbname][0] == 0) {
+				return $this->result[$result_id][$this->dbname][1];
+			} else {
+				$this->last_errno = $this->result[$result_id][$this->dbname][0];
+				$this->last_erro_msg = $this->result[$result_id][$this->dbname][1];
+				return false;
+			}
 		}
-		return $r;
+		return false;
 	}
 
 	function insert_id() {
