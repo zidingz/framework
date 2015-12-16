@@ -8,7 +8,7 @@
 namespace Swoole;
 
 class CLPack {
-	const MIN_LEN = 4, MAX_LEN = 8193, LEN_BYTE = 4;
+	const MIN_LEN = 4, MAX_LEN = 8193000, LEN_BYTE = 4;
 
 	private $data = '', $count = 0, $len = 0;
 	public $last_err = '';
