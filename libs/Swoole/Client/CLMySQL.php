@@ -77,7 +77,7 @@ class CLMySQL {
 			$this->last_erro_msg = $this->pack->last_err;
 		}
 		if(!is_array($r)){
-			echo $sql;
+			print_r($sql);
 			print_r($r);exit;
 		}
 		foreach ($r as $k => $v) {
