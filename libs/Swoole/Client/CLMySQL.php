@@ -39,7 +39,7 @@ class CLMySQL {
 
 	function getPack() {
 		while (1) {
-			$data = $this->conn->recv();
+			$data = @$this->conn->recv();
 			if ($data == false) {
 				throw new \Exception('连接Mysql网络中断');
 			}
