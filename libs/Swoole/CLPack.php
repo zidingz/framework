@@ -31,6 +31,7 @@ class CLPack {
 				$this->reset();
 				return $r;
 			}
+			echo $this->count, ":", $this->data, "\n";
 			$this->last_err = "json解包失败	{$this->data}\n";
 			return false;
 		}
