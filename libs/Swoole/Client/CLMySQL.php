@@ -21,7 +21,9 @@ class CLMySQL {
 		$this->port = $port;
 		$this->dbname = $dbname;
 		$this->conn = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP);
-		$this->connect();
+		if (!$this->connect()) {
+			throw new \Exception("数据库连接失败 $host,$port,$dbname");
+		}
 	}
 
 	function select_db($dbname) {
