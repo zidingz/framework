@@ -1,8 +1,10 @@
 <?php
 namespace Swoole;
+use Swoole;
 
 class Redis
 {
+    public $_redis;
     public static $prefix = "autoinc_key:";
     static function getIncreaseId($appKey, $init_id = 1000)
     {
@@ -41,5 +43,21 @@ class Redis
                 return $init_id;
             }
         }
+    }
+
+    function __construct()
+    {
+        $this->_redis = new \Redis();
+    }
+
+    function __call($method, $args = array())
+    {
+        try {
+            $result = call_user_func_array(array($this->_redis,$method),$args);
+        } catch (\RedisException $e) {
+            \Swoole::$php->log->error(__CLASS__." Swoole Redis Exception".var_export($e,1));
+            return false;
+        }
+        return $result;
     }
 }

@@ -22,7 +22,7 @@ if (empty($config['timeout']))
     $config['timeout'] = 0.5;
 }
 
-$redis = new Redis();
+$redis = new \Swoole\Redis();
 if($config['pconnect'])
 {
     $redis->pconnect($config['host'], $config['port'], $config['timeout']);
