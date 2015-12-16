@@ -77,8 +77,8 @@ class SOA
      */
     static function getRequestId()
     {
-        list($us) = explode(' ', microtime());
-        return intval(strval($us * 1000 * 1000) . rand(100000, 999999));
+        $us = strstr(microtime(), ' ', true);
+        return intval(strval($us * 1000 * 1000) . rand(100, 999));
     }
 
     /**
@@ -153,7 +153,6 @@ class SOA
             $retObj->code = SOA_Result::ERR_CONNECT;
             return false;
         }
-
         //请求串号
         $retObj->requestId = self::getRequestId();
         //发送失败了
@@ -353,7 +352,12 @@ class SOA
                     else
                     {
                         $header = unpack(SOAServer::HEADER_STRUCT, substr($data, 0, SOAServer::HEADER_SIZE));
-                        $retObj->responseId = $header['serid'];
+                        //串号不一致，丢弃结果
+                        if ($header['serid'] != $retObj->requestId)
+                        {
+                            trigger_error(__CLASS__." requestId[{$retObj->requestId}]!=responseId[{$header['serid']}]", E_USER_WARNING);
+                            continue;
+                        }
                         //成功处理
                         $this->finish(SOAServer::decode(substr($data, SOAServer::HEADER_SIZE), $header['type']), $retObj);
                         $success_num++;
@@ -465,7 +469,12 @@ class SOA
                     //达到规定的长度
                     if (strlen($buffer[$id]) == $header[$id]['length'])
                     {
-                        $retObj->responseId = $header[$id]['serid'];
+                        //请求串号与响应串号不一致
+                        if ($retObj->requestId != $header[$id]['serid'])
+                        {
+                            trigger_error(__CLASS__." requestId[{$retObj->requestId}]!=responseId[{$header['serid']}]", E_USER_WARNING);
+                            continue;
+                        }
                         //成功处理
                         $this->finish(SOAServer::decode($buffer[$id], $header[$id]['type']), $retObj);
                         $success_num++;
@@ -515,11 +524,6 @@ class SOA_Result
      * 请求串号
      */
     public $requestId;
-
-    /**
-     * 响应串号
-     */
-    public $responseId;
 
     /**
      * 回调函数
