@@ -48,7 +48,9 @@ class CLMySQL {
 				$this->conn->close();
 				return false;
 			}
-			return $r;
+			if ($r) {
+				return $r;
+			}
 		}
 	}
 
