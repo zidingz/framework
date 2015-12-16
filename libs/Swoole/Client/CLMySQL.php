@@ -13,7 +13,7 @@ use Swoole\CLPack;
 class CLMySQL {
 	private $conn, $dbname, $pack, $result = array(), $result_id = 1;
 	private $host, $port;
-	public $last_errno, $last_erro_msg;
+	public $last_errno, $last_erro_msg, $is_connect = false;
 
 	function __construct($host, $port, $dbname, $pconnect = true) {
 		$this->pack = new CLPack();
@@ -33,7 +33,8 @@ class CLMySQL {
 
 	function connect() {
 		$this->pack->reset();
-		return $this->conn->connect($this->host, $this->port);
+		$this->is_connect = $this->conn->connect($this->host, $this->port);
+		return $this->is_connect;
 	}
 
 	function getPack() {
