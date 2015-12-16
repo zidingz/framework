@@ -8,7 +8,7 @@
 namespace Swoole;
 
 class CLPack {
-	const MIN_LEN = 4, MAX_LEN = 8193, LEN_BYTE = 4;
+	const MIN_LEN = 4, MAX_LEN = 8193000, LEN_BYTE = 4;
 
 	private $data = '', $count = 0, $len = 0;
 	public $last_err = '';
@@ -28,7 +28,7 @@ class CLPack {
 		if ($this->len && $this->count >= $this->len) {
 			$r = @json_decode(substr($this->data, self::LEN_BYTE), 1);
 			if (json_last_error() == JSON_ERROR_NONE) {
-				$this->reset(1);
+				$this->reset();
 				return $r;
 			}
 			$this->last_err = "json解包失败	{$this->data}\n";
