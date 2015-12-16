@@ -21,6 +21,10 @@ class CLMySQL {
 		$this->port = $port;
 		$this->dbname = $dbname;
 		$this->conn = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP);
+		$this->conn->on('Close', [
+			$this,
+			'OnClose'
+		]);
 		if (!$this->connect()) {
 			throw new \Exception("数据库连接失败 $host,$port,$dbname");
 		}
@@ -159,5 +163,10 @@ class CLMySQL {
 	function reload() {
 		$this->conn->send(CLPack::pack(CLPack::CMD_reload));
 		return $this->getPack();
+	}
+
+	function onClose(\swoole_client $client) {
+		//连接中断
+		throw new \Exception("clmysql连接被中断");
 	}
 }
