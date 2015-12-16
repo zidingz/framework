@@ -28,6 +28,7 @@ class CLMySQL {
 
 	function select_db($dbname) {
 		$this->dbname = $dbname;
+		return true;
 	}
 
 	function connect() {
