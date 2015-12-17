@@ -23,6 +23,9 @@ class CLPack {
 			if (false === $pack) {
 				return false;
 			}
+			if (!$pack) {
+				break;
+			}
 			$r[] = $pack;
 		}
 		return $r;
