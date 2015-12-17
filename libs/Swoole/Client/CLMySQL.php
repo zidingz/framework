@@ -55,7 +55,7 @@ class CLMySQL {
 				return false;
 			}
 			if ($r) {
-				return $r;
+				return $r[0];
 			}
 		}
 	}

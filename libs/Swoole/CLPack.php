@@ -16,6 +16,19 @@ class CLPack {
 	function unpack($data) {
 		$this->count += strlen($data);
 		$this->data .= $data;
+		$r = [];
+		while ($this->count) {
+			//循环解包
+			$pack = $this->unpackOne();
+			if (false === $pack) {
+				return false;
+			}
+			$r[] = $pack;
+		}
+		return $r;
+	}
+
+	private function unpackOne() {
 		if ($this->count > self::LEN_BYTE && $this->len == 0) {
 			$r = unpack('L', substr($this->data, 0, self::LEN_BYTE));
 			$this->len = $r[1];
@@ -28,7 +41,7 @@ class CLPack {
 		if ($this->len && $this->count >= $this->len) {
 			$r = @json_decode(substr($this->data, self::LEN_BYTE, $this->len - self::LEN_BYTE), 1);
 			if (json_last_error() == JSON_ERROR_NONE) {
-				$this->reset(0);
+				$this->reset(1);
 				return $r;
 			}
 			$this->last_err = "json解包失败	{$this->data}\n";
