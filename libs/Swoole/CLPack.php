@@ -55,7 +55,7 @@ class CLPack {
 
 	static function pack($data, $sign = 0) {
 		$data = json_encode($data, JSON_UNESCAPED_UNICODE);
-		return pack('NN', strlen($data) + self::LEN_BYTE, $sign) . $data;
+		return pack('NN', strlen($data), $sign) . $data;
 	}
 
 	static function unpack($data) {
