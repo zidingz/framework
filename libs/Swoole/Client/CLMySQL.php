@@ -153,16 +153,13 @@ class CLMySQL {
 	}
 
 	function insert_id() {
-		return $this->query('insert_id');
+		$result_id = $this->query('insert_id');
+		return $this->fetch($result_id);
 	}
 
 	function affected_rows() {
-		return $this->query('affected_rows');
-	}
-
-	function reload() {
-		$this->conn->send(CLPack::pack(CLPack::CMD_reload));
-		return $this->getPack();
+		$result_id = $this->query('affected_rows');
+		return $this->fetch($result_id);
 	}
 
 	function onClose(\swoole_client $client) {
