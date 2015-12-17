@@ -65,9 +65,7 @@ class CLMySQL {
 		$sign = mt_rand();
 		if (!is_array($sql)) {
 			$is_multi = false;
-			$sql = [$sign => [$this->dbname => $sql]];
-		} else {
-			$sql = [$sign => $sql];
+			$sql = [$this->dbname => $sql];
 		}
 		if (false === $this->conn->send(CLPack::pack($sql))) {
 			$this->conn->close();
