@@ -20,7 +20,7 @@ class CLMySQL {
 		$this->port = $port;
 		$this->dbname = $dbname;
 		$this->conn = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP);
-		$this->conn->set([
+		$this->conn->set(array(
 			'open_length_check' => 1,
 			'package_length_type' => 'N',
 			'package_length_offset' => 0,
@@ -29,11 +29,11 @@ class CLMySQL {
 			//第几个字节开始计算长度
 			'package_max_length' => CLPack::MAX_LEN,
 			//协议最大长度
-		]);
-		$this->conn->on('Close', [
+		));
+		$this->conn->on('Close', array(
 			$this,
 			'OnClose'
-		]);
+		));
 		if (!$this->connect()) {
 			throw new \Exception("数据库连接失败 $host,$port,$dbname");
 		}
@@ -67,7 +67,7 @@ class CLMySQL {
 		$sign = mt_rand();
 		if (!is_array($sql)) {
 			$is_multi = false;
-			$sql = [$this->dbname => $sql];
+			$sql = array($this->dbname => $sql);
 		}
 		if (false === $this->conn->send(CLPack::pack($sql, $sign))) {
 			$this->conn->close();
