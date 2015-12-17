@@ -26,7 +26,7 @@ class CLPack {
 			}
 		}
 		if ($this->len && $this->count >= $this->len) {
-			$r = @json_decode(substr($this->data, self::LEN_BYTE), 1);
+			$r = @json_decode(substr($this->data, self::LEN_BYTE, $this->len - self::LEN_BYTE), 1);
 			if (json_last_error() == JSON_ERROR_NONE) {
 				$this->reset(1);
 				return $r;
