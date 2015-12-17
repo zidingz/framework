@@ -27,7 +27,7 @@ class CLMySQL {
 			//第N个字节是包长度的值
 			'package_body_offset' => 8,
 			//第几个字节开始计算长度
-			'package_max_length' => 8388608,
+			'package_max_length' => CLPack::MAX_LEN,
 			//协议最大长度
 		]);
 		$this->conn->on('Close', [

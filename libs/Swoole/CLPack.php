@@ -8,7 +8,7 @@
 namespace Swoole;
 
 class CLPack {
-	const MIN_LEN = 4, MAX_LEN = 8193000, LEN_BYTE = 8;
+	const MIN_LEN = 8, MAX_LEN = 8388608, LEN_BYTE = 8;
 
 	private $data = '', $count = 0, $len = 0;
 	public $last_err = '';
@@ -55,6 +55,9 @@ class CLPack {
 
 	static function pack($data, $sign = 0) {
 		$data = json_encode($data, JSON_UNESCAPED_UNICODE);
+		if (strlen($data) > self::MAX_LEN) {
+			return false;
+		}
 		return pack('NN', strlen($data), $sign) . $data;
 	}
 
