@@ -57,6 +57,10 @@ class MySQL {
 		$this->pool_size = $pool_size;
 	}
 
+	public function setPoolSize($pool_size) {
+		$this->pool_size = $pool_size;
+	}
+
 	/**
 	 * create mysql connection
 	 */
@@ -86,7 +90,9 @@ class MySQL {
 	protected function removeConnection($db_sock) {
 		swoole_event_del($db_sock);
 		$this->idle_pool[$db_sock]['object']->close();
-		unset($this->idle_pool[$db_sock]);
+		if (isset($this->idle_pool[$db_sock])) {
+			unset($this->idle_pool[$db_sock]);
+		}
 		$this->connection_num--;
 	}
 
@@ -116,7 +122,12 @@ class MySQL {
 			#echo "MySQLi Error: " . mysqli_error($mysqli) . "\n";
 		}
 		//release mysqli object
-		$this->idle_pool[$task['mysql']['socket']] = $task['mysql'];
+		if ($this->pool_size < $this->connection_num) {
+			//减少连接数
+			$this->removeConnection($db_sock);
+		} else {
+			$this->idle_pool[$task['mysql']['socket']] = $task['mysql'];
+		}
 		unset($this->work_pool[$db_sock]);
 		//fetch a request from wait queue.
 		if (count($this->wait_queue) > 0) {
