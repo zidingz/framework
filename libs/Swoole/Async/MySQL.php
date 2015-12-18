@@ -58,6 +58,9 @@ class MySQL {
 	}
 
 	public function setPoolSize($pool_size) {
+		if ($this->pool_size == $pool_size) {
+			return 0;
+		}
 		$this->pool_size = $pool_size;
 		while ($this->pool_size < $this->connection_num) {
 			$conn = array_pop($this->idle_pool);
@@ -66,6 +69,7 @@ class MySQL {
 			}
 			$this->removeConnection($conn);
 		}
+		return 1;
 	}
 
 	/**
