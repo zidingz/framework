@@ -249,4 +249,14 @@ class MySQLiRecord implements Swoole\IDbRecord
     {
         $this->result->free_result();
     }
+
+    function __get($key)
+    {
+        return $this->result->$key;
+    }
+
+    function __call($func, $params)
+    {
+        return call_user_func_array(array($this->result, $func), $params);
+    }
 }

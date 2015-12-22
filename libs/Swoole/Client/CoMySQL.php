@@ -14,12 +14,30 @@ class CoMySQL
     protected $config;
     protected $list;
     protected $results;
+    protected $sqlIndex = 0;
+    protected $pool = array();
 
     function __construct($db_key = 'master')
     {
         $this->config = \Swoole::getInstance()->config['db'][$db_key];
         //不能使用长连接，避免进程内占用大量连接
         $this->config['persistent'] = false;
+    }
+
+    protected function getConnection()
+    {
+        //没有可用的连接
+        if (count($this->pool) == 0)
+        {
+            $db = new MySQLi($this->config);
+            $db->connect();
+            return $db;
+        }
+        //从连接池中取一个
+        else
+        {
+            return array_pop($this->pool);
+        }
     }
 
     /**
@@ -29,8 +47,7 @@ class CoMySQL
      */
     function query($sql, $callback = null)
     {
-        $db = new MySQLi($this->config);
-        $db->connect();
+        $db = $this->getConnection();
         $result = $db->queryAsync($sql);
         if (!$result)
         {
@@ -39,6 +56,8 @@ class CoMySQL
         $retObj = new CoMySQLResult($db, $callback);
         $retObj->sql = $sql;
         $this->list[] = $retObj;
+        $retObj->id = $this->sqlIndex++;
+        $db->_co_id = $retObj->id;
         return $retObj;
     }
 
@@ -46,14 +65,14 @@ class CoMySQL
     {
         $_timeout_sec = intval($timeout);
         $_timeout_usec = intval(($timeout - $_timeout_sec) * 1000 * 1000);
+        $taskSet = $this->list;
 
         $processed = 0;
         do
         {
             $links = $errors = $reject = array();
-            foreach ($this->list as $k => $retObj)
+            foreach ($taskSet as $k => $retObj)
             {
-                $retObj->db->_co_id = $k;
                 $links[] = $errors[] = $reject[] = $retObj->db;
             }
             if (!mysqli_poll($links, $errors, $reject, $_timeout_sec, $_timeout_usec))
@@ -87,16 +106,26 @@ class CoMySQL
                     trigger_error(sprintf("MySQLi Error: %s", $link->error));
                     $_retObj->code = $link->errno;
                 }
-                unset($this->list[$link->_co_id]);
+                //从任务队列中移除
+                unset($taskSet[$link->_co_id]);
                 $processed++;
             }
         } while ($processed < count($this->list));
+        //将连接重新放回池中
+        foreach ($this->list as $_retObj)
+        {
+            $this->pool[] = $_retObj->db;
+        }
+        //初始化数据
+        $this->list = array();
+        $this->sqlIndex = 0;
         return $processed;
     }
 }
 
 class CoMySQLResult
 {
+    public $id;
     public $db;
     public $callback = null;
     /**
