@@ -82,7 +82,7 @@ class Db extends Swoole\Controller
     function codb()
     {
         $ret1 = $this->codb->query("show tables");
-        $ret2 = $this->code->query("desc test");
+        $ret2 = $this->codb->query("desc user_login");
 
         $this->codb->wait(1.0);
 
