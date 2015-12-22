@@ -87,6 +87,7 @@ class CoMySQL
                     trigger_error(sprintf("MySQLi Error: %s", $link->error));
                     $_retObj->code = $link->errno;
                 }
+                unset($this->list[$link->_co_id]);
                 $processed++;
             }
         } while ($processed < count($this->list));
