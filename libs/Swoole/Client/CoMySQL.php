@@ -65,9 +65,9 @@ class CoMySQL
              */
             foreach ($links as $link)
             {
+                $_retObj = $this->list[$link->_co_id];
                 if ($result = $link->reap_async_query())
                 {
-                    $_retObj = $this->list[$link->_co_id];
                     if (is_object($result))
                     {
                         $_retObj->result = new MySQLiRecord($result);
@@ -75,11 +75,17 @@ class CoMySQL
                         {
                             call_user_func($_retObj->callback, $_retObj->result);
                         }
+                        $_retObj->code = 0;
+                    }
+                    else
+                    {
+                        $_retObj->code = CoMySQLResult::ERR_NO_OBJECT;
                     }
                 }
                 else
                 {
                     trigger_error(sprintf("MySQLi Error: %s", $link->error));
+                    $_retObj->code = $link->errno;
                 }
                 $processed++;
             }
@@ -97,7 +103,11 @@ class CoMySQLResult
      */
     public $result;
     public $sql;
-    public $code = 0;
+    public $code = self::ERR_NO_READY;
+
+    const ERR_NO_READY = 6001;
+    const ERR_TIMEOUT = 6002;
+    const ERR_NO_OBJECT = 6003;
 
     function __construct(\mysqli $db, callable $callback = null)
     {
