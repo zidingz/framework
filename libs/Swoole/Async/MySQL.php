@@ -79,6 +79,12 @@ class MySQL {
 		$config = $this->config;
 		$db = new \mysqli;
 		$db->connect($config['host'], $config['user'], $config['password'], $config['database'], $config['port']);
+		if ($db->connect_error) {
+			return [
+				$db->connect_errno,
+				$db->connect_error
+			];
+		}
 		if (!empty($config['charset'])) {
 			$db->set_charset($config['charset']);
 		}
@@ -92,6 +98,7 @@ class MySQL {
 			'socket' => $db_sock,
 		);
 		$this->connection_num++;
+		return true;
 	}
 
 	/**
@@ -164,7 +171,10 @@ class MySQL {
 		//no idle connection
 		if (count($this->idle_pool) == 0) {
 			if ($this->connection_num < $this->pool_size) {
-				$this->createConnection();
+				$r = $this->createConnection();
+				if ($r) {
+					return $r;
+				}
 				$this->doQuery($sql, $callback);
 			} else {
 				$this->wait_queue[] = array(
@@ -175,6 +185,7 @@ class MySQL {
 		} else {
 			$this->doQuery($sql, $callback);
 		}
+		return 0;
 	}
 
 	/**
