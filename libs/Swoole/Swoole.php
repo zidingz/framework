@@ -70,6 +70,7 @@ class Swoole
 		'redis' => true,  //redis
         'mongo' => true,  //mongodb
     	'db' => true,  //数据库
+        'codb' => true, //并发MySQLi客户端
     	'tpl' => true, //模板系统
     	'cache' => true, //缓存
     	'event' => true, //异步事件
@@ -93,6 +94,7 @@ class Swoole
         'redis' => true,
         'url' => true,
         'log' => true,
+        'codb' => true,
     );
 
     static $default_controller = array('controller' => 'page', 'view' => 'index');
