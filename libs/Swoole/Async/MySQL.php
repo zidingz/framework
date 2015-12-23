@@ -98,7 +98,7 @@ class MySQL {
 			'socket' => $db_sock,
 		);
 		$this->connection_num++;
-		return true;
+		return 0;
 	}
 
 	/**
