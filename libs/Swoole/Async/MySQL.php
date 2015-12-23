@@ -57,6 +57,21 @@ class MySQL {
 		$this->pool_size = $pool_size;
 	}
 
+	public function setPoolSize($pool_size) {
+		if ($this->pool_size == $pool_size) {
+			return 0;
+		}
+		$this->pool_size = $pool_size;
+		while ($this->pool_size < $this->connection_num) {
+			$conn = array_pop($this->idle_pool);
+			if (!$conn) {
+				break;
+			}
+			$this->removeConnection($conn);
+		}
+		return 1;
+	}
+
 	/**
 	 * create mysql connection
 	 */
@@ -64,6 +79,12 @@ class MySQL {
 		$config = $this->config;
 		$db = new \mysqli;
 		$db->connect($config['host'], $config['user'], $config['password'], $config['database'], $config['port']);
+		if ($db->connect_error) {
+			return [
+				$db->connect_errno,
+				$db->connect_error
+			];
+		}
 		if (!empty($config['charset'])) {
 			$db->set_charset($config['charset']);
 		}
@@ -77,16 +98,23 @@ class MySQL {
 			'socket' => $db_sock,
 		);
 		$this->connection_num++;
+		return true;
 	}
 
 	/**
 	 * remove mysql connection
 	 * @param $db_sock
 	 */
-	protected function removeConnection($db_sock) {
-		swoole_event_del($db_sock);
-		$this->idle_pool[$db_sock]['object']->close();
-		unset($this->idle_pool[$db_sock]);
+	protected function removeConnection($db) {
+		if (isset($this->work_pool[$db['socket']])) {
+			#不能删除正在工作的连接
+			return false;
+		}
+		swoole_event_del($db['socket']);
+		$db['object']->close();
+		if (isset($this->idle_pool[$db['socket']])) {
+			unset($this->idle_pool[$db['socket']]);
+		}
 		$this->connection_num--;
 	}
 
@@ -98,7 +126,9 @@ class MySQL {
 		$task = empty($this->work_pool[$db_sock]) ? null : $this->work_pool[$db_sock];
 		if (empty($task)) {
 			#echo "MySQLi Warning: Maybe SQLReady receive a Close event , such as Mysql server close the socket !\n";
-			$this->removeConnection($db_sock);
+			if (isset($this->idle_pool[$db_sock])) {
+				$this->removeConnection($this->idle_pool[$db_sock]);
+			}
 			return false;
 		}
 		/**
@@ -116,14 +146,19 @@ class MySQL {
 			#echo "MySQLi Error: " . mysqli_error($mysqli) . "\n";
 		}
 		//release mysqli object
-		$this->idle_pool[$task['mysql']['socket']] = $task['mysql'];
 		unset($this->work_pool[$db_sock]);
-		//fetch a request from wait queue.
-		if (count($this->wait_queue) > 0) {
-			$idle_n = count($this->idle_pool);
-			for ($i = 0; $i < $idle_n; $i++) {
-				$new_task = array_shift($this->wait_queue);
-				$this->doQuery($new_task['sql'], $new_task['callback']);
+		if ($this->pool_size < $this->connection_num) {
+			//减少连接数
+			$this->removeConnection($task['mysql']);
+		} else {
+			$this->idle_pool[$task['mysql']['socket']] = $task['mysql'];
+			//fetch a request from wait queue.
+			if (count($this->wait_queue) > 0) {
+				$idle_n = count($this->idle_pool);
+				for ($i = 0; $i < $idle_n; $i++) {
+					$new_task = array_shift($this->wait_queue);
+					$this->doQuery($new_task['sql'], $new_task['callback']);
+				}
 			}
 		}
 	}
@@ -136,7 +171,10 @@ class MySQL {
 		//no idle connection
 		if (count($this->idle_pool) == 0) {
 			if ($this->connection_num < $this->pool_size) {
-				$this->createConnection();
+				$r = $this->createConnection();
+				if ($r) {
+					return $r;
+				}
 				$this->doQuery($sql, $callback);
 			} else {
 				$this->wait_queue[] = array(
@@ -147,6 +185,7 @@ class MySQL {
 		} else {
 			$this->doQuery($sql, $callback);
 		}
+		return 0;
 	}
 
 	/**
@@ -176,6 +215,7 @@ class MySQL {
 						'sql' => $sql,
 						'callback' => $callback,
 					);
+					return;
 				}
 			}
 			break;
@@ -197,8 +237,8 @@ class MySQL {
 
 	function close() {
 		#echo "destruct\n";
-		foreach ($this->idle_pool as $sock => $conn) {
-			$this->removeConnection($sock);
+		foreach ($this->idle_pool as $conn) {
+			$this->removeConnection($conn);
 		}
 	}
 
