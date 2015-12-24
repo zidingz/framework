@@ -77,14 +77,12 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
 
     /**
      * 过滤特殊字符
-     *
      * @param $value
-     *
      * @return string
      */
     function quote($value)
     {
-        return $this->escape_string($value);
+        return $this->tryReconnect(array($this, 'escape_string'), array($value));
     }
 
     /**
@@ -101,19 +99,12 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
         return $msg;
     }
 
-    /**
-     * 执行一个SQL语句
-     *
-     * @param string $sql 执行的SQL语句
-     *
-     * @return MySQLiRecord | false
-     */
-    function query($sql)
+    protected function tryReconnect($call, $params)
     {
         $result = false;
         for ($i = 0; $i < 2; $i++)
         {
-            $result = parent::query($sql);
+            $result = call_user_func_array($call, $params);
             if ($result === false)
             {
                 if ($this->errno == 2013 or $this->errno == 2006)
@@ -126,12 +117,23 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
                 }
                 else
                 {
-                    Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
+                    Swoole\Error::info(__CLASS__ . " SQL Error", $this->errorMessage($sql));
                     return false;
                 }
             }
             break;
         }
+        return $result;
+    }
+
+    /**
+     * 执行一个SQL语句
+     * @param string $sql 执行的SQL语句
+     * @return MySQLiRecord | false
+     */
+    function query($sql)
+    {
+        $result = $this->tryReconnect(array('parent', 'query'), array($sql));
         if (!$result)
         {
             Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
@@ -147,28 +149,7 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
      */
     function queryAsync($sql)
     {
-        $result = false;
-        for ($i = 0; $i < 2; $i++)
-        {
-            $result = parent::query($sql, MYSQLI_ASYNC);
-            if ($result === false)
-            {
-                if ($this->errno == 2013 or $this->errno == 2006)
-                {
-                    $r = $this->checkConnection();
-                    if ($r === true)
-                    {
-                        continue;
-                    }
-                }
-                else
-                {
-                    Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
-                    return false;
-                }
-            }
-            break;
-        }
+        $result = $this->tryReconnect(array('parent', 'query'), array($sql, MYSQLI_ASYNC));
         if (!$result)
         {
             Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));

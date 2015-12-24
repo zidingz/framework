@@ -75,6 +75,7 @@ class CoMySQL
             {
                 $links[] = $errors[] = $reject[] = $retObj->db;
             }
+            //wait mysql server response
             if (!mysqli_poll($links, $errors, $reject, $_timeout_sec, $_timeout_usec))
             {
                 continue;
@@ -85,7 +86,8 @@ class CoMySQL
             foreach ($links as $link)
             {
                 $_retObj = $this->list[$link->_co_id];
-                if ($result = $link->reap_async_query())
+                $result = $link->reap_async_query();
+                if ($result)
                 {
                     if (is_object($result))
                     {
