@@ -117,7 +117,7 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
                 }
                 else
                 {
-                    Swoole\Error::info(__CLASS__ . " SQL Error", $this->errorMessage($sql));
+                    Swoole\Error::info(__CLASS__ . " SQL Error", $this->errorMessage($params[0]));
                     return false;
                 }
             }
