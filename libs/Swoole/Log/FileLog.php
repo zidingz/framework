@@ -159,16 +159,16 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
 
             fputs($this->fp, $log_str);
 
-            if (filesize($this->log_file) > 209715200) //200M
-            {
-                $new_log_file = $this->log_dir.'/'.$this->date.'.log.'.date('His');
-                fclose($this->fp);
-                rename($this->log_file, $new_log_file);
-                $this->fp = fopen($this->log_file, 'a+');
-                fputs($this->fp, $log_str);
-            } else {
-                fputs($this->fp, $log_str);
-            }
+//            if (filesize($this->log_file) > 209715200) //200M
+//            {
+//                $new_log_file = $this->log_dir.'/'.$this->date.'.log.'.date('His');
+//                fclose($this->fp);
+//                rename($this->log_file, $new_log_file);
+//                $this->fp = fopen($this->log_file, 'a+');
+//                fputs($this->fp, $log_str);
+//            } else {
+//                fputs($this->fp, $log_str);
+//            }
         }
 
         $this->queue = array();
