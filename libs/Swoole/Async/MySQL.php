@@ -13,7 +13,7 @@ class MySQL {
 	 * number of current connection
 	 * @var int $connection_num
 	 */
-	protected $connection_num;
+	protected $connection_num = 0;
 	/**
 	 * idle connection
 	 * @var array $idle_pool
