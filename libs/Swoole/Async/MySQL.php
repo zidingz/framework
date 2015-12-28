@@ -31,9 +31,9 @@ class MySQL {
 	protected $config = array();
 	/**
 	 * wait connection
-	 * @var arrayecho
+	 * @var \SplQueue
 	 */
-	protected $wait_queue = array();
+	protected $wait_queue;
 
 	/**
 	 * @param array $config
@@ -105,7 +105,8 @@ class MySQL {
 
 	/**
 	 * remove mysql connection
-	 * @param $db_sock
+	 * @param $db
+     * @return bool
 	 */
 	protected function removeConnection($db) {
 		if (isset($this->work_pool[$db['socket']])) {
@@ -158,7 +159,7 @@ class MySQL {
 			if (count($this->wait_queue) > 0) {
 				$idle_n = count($this->idle_pool);
 				for ($i = 0; $i < $idle_n; $i++) {
-					$new_task = array_shift($this->wait_queue);
+					$new_task = $this->wait_queue->shift();
 					$this->doQuery($new_task['sql'], $new_task['callback']);
 				}
 			}
@@ -168,6 +169,7 @@ class MySQL {
 	/**
 	 * @param string $sql
 	 * @param callable $callback
+     * @return bool
 	 */
 	public function query($sql, callable $callback) {
 		//no idle connection
@@ -179,10 +181,10 @@ class MySQL {
 				}
 				$this->doQuery($sql, $callback);
 			} else {
-				$this->wait_queue[] = array(
+				$this->wait_queue->push(array(
 					'sql' => $sql,
 					'callback' => $callback,
-				);
+				));
 			}
 		} else {
 			$this->doQuery($sql, $callback);
@@ -213,10 +215,10 @@ class MySQL {
 				} else {
 					#echo "server exception. \n";
 					$this->connection_num--;
-					$this->wait_queue[] = array(
+					$this->wait_queue->push(array(
 						'sql' => $sql,
 						'callback' => $callback,
-					);
+                    ));
 					return;
 				}
 			}
@@ -235,7 +237,7 @@ class MySQL {
 	}
 
 	function isFree() {
-		return (!$this->work_pool && !$this->wait_queue) ? true : false;
+        return (!$this->work_pool && count($this->wait_queue) == 0) ? true : false;
 	}
 
 	function getConnectionNum() {
