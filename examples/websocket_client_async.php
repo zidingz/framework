@@ -17,10 +17,10 @@ require WEBPATH . '/libs/lib_config.php';
 //}
 
 $i = 0;
-$cli = new Swoole\Async\WebSocket('127.0.0.1', 9501);
+$cli = new Swoole\Async\WebSocket('127.0.0.1', 9443);
 
 $cli->on('open', function(Swoole\Async\WebSocket $o, $header){
-    $_send = str_repeat('A', rand(7000, 9000));
+    $_send = str_repeat('A', rand(700, 900));
     $n = $o->send($_send);
     echo "sent: " . strlen($_send) . ' bytes, ' . "n=$n\n";
 });
