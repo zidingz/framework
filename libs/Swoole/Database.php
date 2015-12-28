@@ -40,6 +40,7 @@ interface IDbRecord
  * Database类，处理数据库连接和基本的SQL组合
  * 提供4种接口，query  insert update delete
  * @method connect
+ * @method close
  * @method quote $str
  * @method errno
  */

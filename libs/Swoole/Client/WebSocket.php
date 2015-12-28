@@ -168,10 +168,11 @@ class WebSocket
             {
                 return false;
             }
+            $this->parser->push($data);
             $frame = $this->parser->pop($data);
             if ($frame)
             {
-                return $frame;
+                return $frame->data;
             }
         }
         return false;

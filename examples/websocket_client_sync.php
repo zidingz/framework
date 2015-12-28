@@ -9,11 +9,14 @@ if(!$client->connect())
     echo "connect to server failed.\n";
     exit;
 }
-while(true)
+while (true)
 {
     $client->send("hello world");
     $message = $client->recv();
-    if($message === false) break;
+    if ($message === false)
+    {
+        break;
+    }
     echo "Received from server: {$message}\n";
     sleep(1);
 }

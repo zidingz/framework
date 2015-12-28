@@ -118,7 +118,6 @@ class WebSocketParser
             return $frame;
         }
 
-
         //完整的一个数据帧
         if (strlen($buffer) >= $length)
         {

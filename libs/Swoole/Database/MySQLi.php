@@ -30,6 +30,16 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
         return $this->insert_id;
     }
 
+    /**
+     * 参数为了兼容parent类，代码不会使用传入的参数作为配置
+     * @param null $_host
+     * @param null $user
+     * @param null $password
+     * @param null $database
+     * @param null $port
+     * @param null $socket
+     * @return bool
+     */
     function connect($_host = null, $user = null, $password = null, $database = null, $port = null, $socket = null)
     {
         $db_config = &$this->config;
@@ -67,14 +77,12 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
 
     /**
      * 过滤特殊字符
-     *
      * @param $value
-     *
      * @return string
      */
     function quote($value)
     {
-        return $this->escape_string($value);
+        return $this->tryReconnect(array($this, 'escape_string'), array($value));
     }
 
     /**
@@ -91,19 +99,12 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
         return $msg;
     }
 
-    /**
-     * 执行一个SQL语句
-     *
-     * @param string $sql 执行的SQL语句
-     *
-     * @return MySQLiRecord | false
-     */
-    function query($sql)
+    protected function tryReconnect($call, $params)
     {
         $result = false;
         for ($i = 0; $i < 2; $i++)
         {
-            $result = parent::query($sql);
+            $result = call_user_func_array($call, $params);
             if ($result === false)
             {
                 if ($this->errno == 2013 or $this->errno == 2006)
@@ -116,18 +117,45 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
                 }
                 else
                 {
-                    Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
+                    Swoole\Error::info(__CLASS__ . " SQL Error", $this->errorMessage($params[0]));
                     return false;
                 }
             }
             break;
         }
+        return $result;
+    }
+
+    /**
+     * 执行一个SQL语句
+     * @param string $sql 执行的SQL语句
+     * @return MySQLiRecord | false
+     */
+    function query($sql)
+    {
+        $result = $this->tryReconnect(array('parent', 'query'), array($sql));
         if (!$result)
         {
             Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
             return false;
         }
         return new MySQLiRecord($result);
+    }
+
+    /**
+     * 异步SQL
+     * @param $sql
+     * @return bool|\mysqli_result
+     */
+    function queryAsync($sql)
+    {
+        $result = $this->tryReconnect(array('parent', 'query'), array($sql, MYSQLI_ASYNC));
+        if (!$result)
+        {
+            Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
+            return false;
+        }
+        return $result;
     }
 
     /**
@@ -201,5 +229,15 @@ class MySQLiRecord implements Swoole\IDbRecord
     function free()
     {
         $this->result->free_result();
+    }
+
+    function __get($key)
+    {
+        return $this->result->$key;
+    }
+
+    function __call($func, $params)
+    {
+        return call_user_func_array(array($this->result, $func), $params);
     }
 }

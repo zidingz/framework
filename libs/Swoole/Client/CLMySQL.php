@@ -69,13 +69,19 @@ class CLMySQL {
 			$is_multi = false;
 			$sql = array($this->dbname => $sql);
 		}
-		if (false === $this->conn->send(CLPack::pack($sql, $sign))) {
+		$pack = CLPack::pack($sql, $sign);
+		if (false === $pack) {
+			$this->last_errno = 1256;
+			$this->last_erro_msg = '发送的sql语句大小超过限制';
+			return false;
+		}
+		if (false === $this->conn->send($pack)) {
 			$this->conn->close();
 			$this->connect();
-			if (false === $this->conn->send(CLPack::pack($sql, $sign))) {
-				{
-					throw new \Exception('连接Mysql网络中断');
-				}
+			if (false === $this->conn->send($pack)) {
+				$this->last_errno = 2006;
+				$this->last_erro_msg = 'Mysql proxy中断';
+				return false;
 			}
 		}
 		$r = $this->getPack($sign);
@@ -146,6 +152,6 @@ class CLMySQL {
 
 	function onClose(\swoole_client $client) {
 		//连接中断
-		throw new \Exception("clmysql连接被中断");
+		#throw new \Exception("clmysql连接被中断");
 	}
 }

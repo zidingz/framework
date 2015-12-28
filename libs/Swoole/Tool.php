@@ -455,4 +455,34 @@ class Tool
         }
         file_put_contents($file, $log, FILE_APPEND);
     }
+
+    static function getHumanSize($n, $round = 3)
+    {
+        if ($n > 1024 * 1024 * 1024)
+        {
+            return round($n / (1024 * 1024 * 1024), $round) . "G";
+        }
+        elseif ($n > 1024 * 1024)
+        {
+            return round($n / (1024 * 1024), $round) . "M";
+        }
+        elseif ($n > 1024)
+        {
+            return round($n / (1024), $round) . "K";
+        }
+        else
+        {
+            return $n;
+        }
+    }
+
+    static function showCost($func)
+    {
+        $_t = microtime(true);
+        $_m = memory_get_usage(true);
+        call_user_func($func);
+        $t = round((microtime(true) - $_t) * 1000, 3);
+        $m = memory_get_usage(true) - $_m;
+        echo "cost Time: {$t}ms, Memory=".self::getHumanSize($m)."\n";
+    }
 }
