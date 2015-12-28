@@ -238,6 +238,10 @@ class MySQL {
 		return (!$this->work_pool && !$this->wait_queue) ? true : false;
 	}
 
+	function getConnectionNum() {
+		return $this->connection_num;
+	}
+
 	function close() {
 		#echo "destruct\n";
 		foreach ($this->idle_pool as $conn) {
