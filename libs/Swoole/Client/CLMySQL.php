@@ -79,9 +79,9 @@ class CLMySQL {
 			$this->conn->close();
 			$this->connect();
 			if (false === $this->conn->send($pack)) {
-				{
-					throw new \Exception('连接Mysql网络中断');
-				}
+				$this->last_errno = 2006;
+				$this->last_erro_msg = 'Mysql proxy中断';
+				return false;
 			}
 		}
 		$r = $this->getPack($sign);
@@ -152,6 +152,6 @@ class CLMySQL {
 
 	function onClose(\swoole_client $client) {
 		//连接中断
-		throw new \Exception("clmysql连接被中断");
+		#throw new \Exception("clmysql连接被中断");
 	}
 }

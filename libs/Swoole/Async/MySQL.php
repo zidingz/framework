@@ -3,6 +3,7 @@ namespace Swoole\Async;
 
 class MySQL {
 	public $cl_db_name;
+	protected $configmd5;
 	/**
 	 * max connections for mysql client
 	 * @var int $pool_size
@@ -12,7 +13,7 @@ class MySQL {
 	 * number of current connection
 	 * @var int $connection_num
 	 */
-	protected $connection_num;
+	protected $connection_num = 0;
 	/**
 	 * idle connection
 	 * @var array $idle_pool
@@ -40,6 +41,7 @@ class MySQL {
 	 * @throws \Exception
 	 */
 	public function __construct(array $config, $pool_size = 100) {
+		$this->configmd5 = md5(json_encode($config));
 		if (empty($config['host']) ||
 			empty($config['database']) ||
 			empty($config['user']) ||
@@ -228,11 +230,16 @@ class MySQL {
 	}
 
 	function getKey() {
-		return $this->config['host'] . ':' . $this->config['port'];
+		#return $this->config['host'] . ':' . $this->config['port'];
+		return $this->configmd5;
 	}
 
 	function isFree() {
 		return (!$this->work_pool && !$this->wait_queue) ? true : false;
+	}
+
+	function getConnectionNum() {
+		return $this->connection_num;
 	}
 
 	function close() {
