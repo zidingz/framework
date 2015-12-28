@@ -19,7 +19,7 @@ class CLMySQL {
 		$this->host = $host;
 		$this->port = $port;
 		$this->dbname = $dbname;
-		$this->conn = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP);
+		$this->conn = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, 'clmysql');
 		$this->conn->set(array(
 			'open_length_check' => 1,
 			'package_length_type' => 'N',
