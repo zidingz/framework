@@ -13,7 +13,7 @@ class MySQL {
 	 * number of current connection
 	 * @var int $connection_num
 	 */
-	protected $connection_num;
+	protected $connection_num = 0;
 	/**
 	 * idle connection
 	 * @var array $idle_pool
@@ -236,6 +236,10 @@ class MySQL {
 
 	function isFree() {
 		return (!$this->work_pool && !$this->wait_queue) ? true : false;
+	}
+
+	function getConnectionNum() {
+		return $this->connection_num;
 	}
 
 	function close() {
