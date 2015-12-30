@@ -7,6 +7,7 @@ class Redis
     public $_redis;
     public $config;
     public static $prefix = "autoinc_key:";
+
     static function getIncreaseId($appKey, $init_id = 1000)
     {
         if (empty($appKey))
@@ -93,8 +94,8 @@ class Redis
             }
             catch (\RedisException $e)
             {
-                \Swoole::$php->log->error(__CLASS__ . " [" . posix_getpid() . "] Swoole Redis Exception(Msg=".$e->getMessage().
-                    ", Code=".$e->getCode()."), Redis->{$method}, Params=" . var_export($args, 1));
+                \Swoole::$php->log->error(__CLASS__ . " [" . posix_getpid() . "] Swoole Redis[{$this->config['host']}:{$this->config['port']}]
+                 Exception(Msg=" . $e->getMessage() . ", Code=" . $e->getCode() . "), Redis->{$method}, Params=" . var_export($args, 1));
                 $this->_redis->close();
                 $this->connect();
                 //已重连过，仍然报错
