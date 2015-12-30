@@ -64,8 +64,9 @@ class Redis
 
     function connect()
     {
-        try {
-            if($this->config['pconnect'])
+        try
+        {
+            if ($this->config['pconnect'])
             {
                 return $this->_redis->pconnect($this->config['host'], $this->config['port'], $this->config['timeout']);
             }
@@ -73,44 +74,50 @@ class Redis
             {
                 return $this->_redis->connect($this->config['host'], $this->config['port'], $this->config['timeout']);
             }
-        } catch(\RedisException $e) {
-            \Swoole::$php->log->error(__CLASS__." Swoole Redis Exception".var_export($e,1));
+        }
+        catch (\RedisException $e)
+        {
+            \Swoole::$php->log->error(__CLASS__ . " Swoole Redis Exception" . var_export($e, 1));
             return false;
         }
     }
 
     function __call($method, $args = array())
     {
-        $result = false;
-        for ($i = 0; $i < 2; $i++)
+        $reConnect = false;
+        while (1)
         {
-            try {
-                $result = call_user_func_array(array($this->_redis,$method),$args);
-            } catch (\RedisException $e) {
-                \Swoole::$php->log->error(__CLASS__." [".posix_getpid()."] Swoole Redis Exception {$i} time ".var_export($e,1));
-                $result = -1;
-            }
-            if ($result === -1)//异常重试一次
+            try
             {
-                $r = $this->checkConnection();
-                if ($r === true)
+                $result = call_user_func_array(array($this->_redis, $method), $args);
+            }
+            catch (\RedisException $e)
+            {
+                \Swoole::$php->log->error(__CLASS__ . " [" . posix_getpid() . "] Swoole Redis Exception {$i} time " . var_export($e, 1));
+                $this->_redis->close();
+                $this->connect();
+                //已重连过，仍然报错
+                if ($reConnect)
                 {
+                    throw $e;
+                }
+                else
+                {
+                    $reConnect = true;
                     continue;
                 }
             }
-            break;
+            return $result;
         }
-        if ($result === -1)
-            return false;
-        return $result;
+        //不可能到这里
+        return false;
     }
 
     protected function checkConnection()
     {
         if (!@$this->_redis->ping())
         {
-            $this->_redis->close();
-            return $this->connect();
+
         }
         return true;
     }

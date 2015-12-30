@@ -547,26 +547,53 @@ class SelectDB
             $this->_call($key,$value);
         }
     }
-    private function _call($method,$param)
+
+    /**
+     * @param $method
+     * @param $param
+     * @return bool
+     */
+    protected function _call($method,$param)
     {
-        if($method=='update' or $method=='delete' or $method=='insert') return false;
-        if(strpos($method,'_')!==0)
+        if ($method == 'update' or $method == 'delete' or $method == 'insert')
         {
-            if(method_exists($this,$method))
+            return false;
+        }
+        if (strpos($method, '_') !== 0)
+        {
+            if (method_exists($this, $method))
             {
-                if(is_array($param)) call_user_func_array(array($this,$method),$param);
-                else $this->$method($param);
+                if (is_array($param))
+                {
+                    call_user_func_array(array($this, $method), $param);
+                }
+                else
+                {
+                    $this->$method($param);
+                }
             }
             else
             {
                 $param = $this->db->quote($param);
-                if($this->call_by=='func') $this->where($method.'="'.$param.'"');
-                elseif($this->call_by=='smarty')
+                if ($this->call_by == 'func')
                 {
-                    if(strpos($param,'$')===false)	$this->where($method."='".$param."'");
-                    else $this->where($method."='{".$param."}'");
+                    $this->where($method . '="' . $param . '"');
                 }
-                else Error::info('Error: SelectDB 错误的参数',"<pre>参数$method=$param</pre>");
+                elseif ($this->call_by == 'smarty')
+                {
+                    if (strpos($param, '$') === false)
+                    {
+                        $this->where($method . "='" . $param . "'");
+                    }
+                    else
+                    {
+                        $this->where($method . "='{" . $param . "}'");
+                    }
+                }
+                else
+                {
+                    Error::info('Error: SelectDB 错误的参数', "<pre>参数$method=$param</pre>");
+                }
             }
         }
     }
