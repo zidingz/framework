@@ -67,6 +67,8 @@ class Redis
     {
         try
         {
+            unset($this->_redis);
+            $this->_redis = new \Redis();
             if ($this->config['pconnect'])
             {
                 return $this->_redis->pconnect($this->config['host'], $this->config['port'], $this->config['timeout']);
@@ -94,33 +96,22 @@ class Redis
             }
             catch (\RedisException $e)
             {
-                \Swoole::$php->log->error(__CLASS__ . " [" . posix_getpid() . "] Swoole Redis[{$this->config['host']}:{$this->config['port']}]
-                 Exception(Msg=" . $e->getMessage() . ", Code=" . $e->getCode() . "), Redis->{$method}, Params=" . var_export($args, 1));
-                $this->_redis->close();
-                $this->connect();
                 //已重连过，仍然报错
                 if ($reConnect)
                 {
                     throw $e;
                 }
-                else
-                {
-                    $reConnect = true;
-                    continue;
-                }
+
+                \Swoole::$php->log->error(__CLASS__ . " [" . posix_getpid() . "] Swoole Redis[{$this->config['host']}:{$this->config['port']}]
+                 Exception(Msg=" . $e->getMessage() . ", Code=" . $e->getCode() . "), Redis->{$method}, Params=" . var_export($args, 1));
+                $this->_redis->close();
+                $this->connect();
+                $reConnect = true;
+                continue;
             }
             return $result;
         }
         //不可能到这里
         return false;
-    }
-
-    protected function checkConnection()
-    {
-        if (!@$this->_redis->ping())
-        {
-
-        }
-        return true;
     }
 }
