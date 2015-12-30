@@ -93,7 +93,8 @@ class Redis
             }
             catch (\RedisException $e)
             {
-                \Swoole::$php->log->error(__CLASS__ . " [" . posix_getpid() . "] Swoole Redis Exception {$i} time " . var_export($e, 1));
+                \Swoole::$php->log->error(__CLASS__ . " [" . posix_getpid() . "] Swoole Redis Exception(Msg=".$e->getMessage().
+                    ", Code=".$e->getCode()."), Redis->{$method}, Params=" . var_export($args, 1));
                 $this->_redis->close();
                 $this->connect();
                 //已重连过，仍然报错
