@@ -67,7 +67,10 @@ class Redis
     {
         try
         {
-            unset($this->_redis);
+            if ($this->_redis)
+            {
+                unset($this->_redis);
+            }
             $this->_redis = new \Redis();
             if ($this->config['pconnect'])
             {
