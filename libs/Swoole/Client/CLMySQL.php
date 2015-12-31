@@ -19,7 +19,7 @@ class CLMySQL {
 		$this->host = $host;
 		$this->port = $port;
 		$this->dbname = $dbname;
-		$this->conn = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, 'clmysql');
+		$this->conn = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC, 'clmysql');
 		$this->conn->set(array(
 			'open_length_check' => 1,
 			'package_length_type' => 'N',
@@ -42,7 +42,13 @@ class CLMySQL {
 		return true;
 	}
 
-	function connect() {
+	function connect($host = '', $port = 0) {
+		if ($host) {
+			$this->host = $host;
+		}
+		if ($port) {
+			$this->port = $port;
+		}
 		$this->is_connect = $this->conn->connect($this->host, $this->port);
 		return $this->is_connect;
 	}
