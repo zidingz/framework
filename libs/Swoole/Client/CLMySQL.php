@@ -19,7 +19,7 @@ class CLMySQL {
 		$this->host = $host;
 		$this->port = $port;
 		$this->dbname = $dbname;
-		$this->conn = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, 'clmysql');
+		$this->conn = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC, 'clmysql');
 		$this->conn->set(array(
 			'open_length_check' => 1,
 			'package_length_type' => 'N',
@@ -34,9 +34,7 @@ class CLMySQL {
 			$this,
 			'OnClose'
 		));
-		if (!$this->connect()) {
-			throw new \Exception("数据库连接失败 $host,$port,$dbname");
-		}
+		$this->connect();
 	}
 
 	function select_db($dbname) {
@@ -44,7 +42,13 @@ class CLMySQL {
 		return true;
 	}
 
-	function connect() {
+	function connect($host = '', $port = 0) {
+		if ($host) {
+			$this->host = $host;
+		}
+		if ($port) {
+			$this->port = $port;
+		}
 		$this->is_connect = $this->conn->connect($this->host, $this->port);
 		return $this->is_connect;
 	}
@@ -53,7 +57,10 @@ class CLMySQL {
 		while (1) {
 			$data = @$this->conn->recv();
 			if ($data == false) {
-				throw new \Exception('连接Mysql网络中断');
+				#throw new \Exception('连接Mysql网络中断');
+				$this->last_errno = 2006;
+				$this->last_erro_msg = 'Mysql proxy中断';
+				return false;
 			}
 			$r = CLPack::unpack($data);
 			if ($r && $r[0] === $sign) {
@@ -63,6 +70,11 @@ class CLMySQL {
 	}
 
 	function query($sql) {
+		if (!$this->is_connect) {
+			$this->last_errno = 2006;
+			$this->last_erro_msg = 'Mysql proxy中断';
+			return false;
+		}
 		$is_multi = true;
 		$sign = mt_rand();
 		if (!is_array($sql)) {
@@ -85,6 +97,9 @@ class CLMySQL {
 			}
 		}
 		$r = $this->getPack($sign);
+		if (!is_array($r)) {
+			return false;
+		}
 		foreach ($r as $k => $v) {
 			if ($v[0] != 0) {
 				$this->last_errno = $v[0];
