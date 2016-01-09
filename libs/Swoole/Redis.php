@@ -7,6 +7,7 @@ class Redis
     public $_redis;
     public $config;
     public static $prefix = "autoinc_key:";
+
     static function getIncreaseId($appKey, $init_id = 1000)
     {
         if (empty($appKey))
@@ -64,8 +65,14 @@ class Redis
 
     function connect()
     {
-        try {
-            if($this->config['pconnect'])
+        try
+        {
+            if ($this->_redis)
+            {
+                unset($this->_redis);
+            }
+            $this->_redis = new \Redis();
+            if ($this->config['pconnect'])
             {
                 return $this->_redis->pconnect($this->config['host'], $this->config['port'], $this->config['timeout']);
             }
@@ -73,45 +80,41 @@ class Redis
             {
                 return $this->_redis->connect($this->config['host'], $this->config['port'], $this->config['timeout']);
             }
-        } catch(\RedisException $e) {
-            \Swoole::$php->log->error(__CLASS__." Swoole Redis Exception".var_export($e,1));
+        }
+        catch (\RedisException $e)
+        {
+            \Swoole::$php->log->error(__CLASS__ . " Swoole Redis Exception" . var_export($e, 1));
             return false;
         }
     }
 
     function __call($method, $args = array())
     {
-        $result = false;
-        for ($i = 0; $i < 2; $i++)
+        $reConnect = false;
+        while (1)
         {
-            try {
-                $result = call_user_func_array(array($this->_redis,$method),$args);
-            } catch (\RedisException $e) {
-                \Swoole::$php->log->error(__CLASS__." [".posix_getpid()."] Swoole Redis Exception {$i} time ".var_export($e,1));
-                $result = -1;
-            }
-            if ($result === -1)//异常重试一次
+            try
             {
-                $r = $this->checkConnection();
-                if ($r === true)
-                {
-                    continue;
-                }
+                $result = call_user_func_array(array($this->_redis, $method), $args);
             }
-            break;
-        }
-        if ($result === -1)
-            return false;
-        return $result;
-    }
+            catch (\RedisException $e)
+            {
+                //已重连过，仍然报错
+                if ($reConnect)
+                {
+                    throw $e;
+                }
 
-    protected function checkConnection()
-    {
-        if (!@$this->_redis->ping())
-        {
-            $this->_redis->close();
-            return $this->connect();
+                \Swoole::$php->log->error(__CLASS__ . " [" . posix_getpid() . "] Swoole Redis[{$this->config['host']}:{$this->config['port']}]
+                 Exception(Msg=" . $e->getMessage() . ", Code=" . $e->getCode() . "), Redis->{$method}, Params=" . var_export($args, 1));
+                $this->_redis->close();
+                $this->connect();
+                $reConnect = true;
+                continue;
+            }
+            return $result;
         }
-        return true;
+        //不可能到这里
+        return false;
     }
 }

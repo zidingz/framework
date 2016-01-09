@@ -1,5 +1,6 @@
 <?php
 namespace Swoole\Cache;
+use Swoole;
 
 /**
  * 使用Redis作为Cache
@@ -7,7 +8,7 @@ namespace Swoole\Cache;
  *
  * @package Swoole\Cache
  */
-class Redis implements \Swoole\IFace\Cache
+class Redis implements Swoole\IFace\Cache
 {
     protected $config;
     protected $redis;
@@ -31,6 +32,10 @@ class Redis implements \Swoole\IFace\Cache
      */
     function set($key, $value, $expire = 0)
     {
+        if ($expire <= 0)
+        {
+            $expire = 0x7fffffff;
+        }
         return $this->redis->setex($key, $expire, $value);
     }
 

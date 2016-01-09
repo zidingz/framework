@@ -219,15 +219,23 @@ class Model
 	{
 		return new RecordSet($this->db, $this->table, $this->primary, $this->select);
 	}
+
 	/**
 	 * 建立表，必须在Model类中，指定create_sql
-	 * @return None
+	 * @return bool
 	 */
-	function createTable()
-	{
-		if($this->create_sql) return $this->db->query($this->create_sql);
-		else return false;
-	}
+    function createTable()
+    {
+        if ($this->create_sql)
+        {
+            return $this->db->query($this->create_sql);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
 	/**
 	 * 获取表状态
 	 * @return array 表的status，包含了自增ID，计数器等状态数据
