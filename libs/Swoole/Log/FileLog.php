@@ -61,21 +61,18 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
         $dir = dirname($this->log_file);
         if (file_exists($dir))
         {
-            if (!is_writeable($dir) && !chmod($dir, 0755))
+            if (!is_writeable($dir) && !chmod($dir, 0777))
             {
                 throw new \Exception(__CLASS__.": {$dir} unwriteable.");
             }
         }
-        elseif (mkdir($dir, 0755, true) === false)
+        elseif (mkdir($dir, 0777, true) === false)
         {
             throw new \Exception(__CLASS__.": mkdir dir {$dir} fail.");
         }
 
-        $this->fp = fopen($this->log_file, 'a+');
-        if (!$this->fp)
-        {
-            throw new \Exception(__CLASS__.": can not open log_file[{$this->log_file}].");
-        }
+        $this->fp = $this->openFile($this->log_file);
+
         parent::__construct($config);
     }
 
@@ -154,7 +151,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
                 fclose($this->fp);
                 $this->date = $date;
                 $this->log_file = $this->log_dir.'/'.$this->date.'.log';
-                $this->fp = fopen($this->log_file, 'a+');
+                $this->fp = $this->openFile($this->log_file);
             }
 
             fputs($this->fp, $log_str);
@@ -172,6 +169,25 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
         }
 
         $this->queue = array();
+    }
+
+    private function openFile($file)
+    {
+        if (!file_exists($file) && touch($file))
+        {
+            $old = umask(0);
+            chmod($file, 0777);
+            umask($old);
+        }
+
+        $fp = fopen($this->log_file, 'a+');
+
+        if (!$fp)
+        {
+            throw new \Exception(__CLASS__.": can not open log_file[{$file}].");
+        }
+
+        return $fp;
     }
 
     function __destruct()
