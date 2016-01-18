@@ -86,8 +86,14 @@ class Memcache implements Swoole\IFace\Cache
     protected function addServer($cf)
     {
         $this->formatConfig($cf);
-        if ($this->memcached) $this->cache->addServer($cf['host'], $cf['port'], $cf['weight']);
-        else $this->cache->addServer($cf['host'], $cf['port'], $cf['persistent'], $cf['weight']);
+        if ($this->memcached)
+        {
+            $this->cache->addServer($cf['host'], $cf['port'], $cf['weight']);
+        }
+        else
+        {
+            $this->cache->addServer($cf['host'], $cf['port'], $cf['persistent'], $cf['weight']);
+        }
     }
 
     /**
