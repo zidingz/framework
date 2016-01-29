@@ -36,7 +36,7 @@ class Redis implements Swoole\IFace\Cache
         {
             $expire = 0x7fffffff;
         }
-        return $this->redis->setex($key, $expire, $value);
+        return $this->redis->setex($key, $expire, serialize($value));
     }
 
     /**
@@ -46,7 +46,7 @@ class Redis implements Swoole\IFace\Cache
      */
     function get($key)
     {
-        return $this->redis->get($key);
+        return unserialize($this->redis->get($key));
     }
 
     /**
