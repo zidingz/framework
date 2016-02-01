@@ -35,6 +35,8 @@ class WebSocket
     protected $connected = false;
     protected $handshake = false;
 
+    protected $haveSwooleEncoder = false;
+
     protected $header;
     
     const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
@@ -52,6 +54,7 @@ class WebSocket
         {
             throw new Swoole\Http\WebSocketException("require websocket server host.");
         }
+        $this->haveSwooleEncoder = method_exists('swoole_websocket_server', 'pack');
         $this->host = $host;
         $this->port = $port;
         $this->path = $path;
@@ -197,7 +200,27 @@ class WebSocket
             trigger_error("not complete handshake.");
             return false;
         }
-        return $this->socket->send($this->hybi10Encode($data, $type, $masked));
+        if ($this->haveSwooleEncoder)
+        {
+            switch($type)
+            {
+                case 'text':
+                    $_type = WEBSOCKET_OPCODE_TEXT;
+                    break;
+                case 'binary':
+                case 'bin':
+                    $_type = WEBSOCKET_OPCODE_BINARY;
+                    break;
+                default:
+                    return false;
+            }
+            $_send = \swoole_websocket_server::pack($data, $_type);
+        }
+        else
+        {
+            $_send =  $this->hybi10Encode($data, $type, $masked);
+        }
+        return $this->socket->send($_send);
     }
 
     /**
