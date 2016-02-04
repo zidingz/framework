@@ -1,15 +1,20 @@
 <?php
 namespace Swoole\Network;
+
 use Swoole;
+use Swoole\Server\Base;
+use Swoole\Server\Driver;
 
 /**
  * Class Server
  * @package Swoole\Network
  */
-class Server extends Swoole\Server implements Swoole\Server\Driver
+class Server extends Base implements Driver
 {
     static $sw_mode = SWOOLE_PROCESS;
     static $pidFile;
+    protected static $options = array();
+
     /**
      * @var \swoole_server
      */
@@ -44,7 +49,19 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
             $server_pid = 0;
         }
         global $argv;
-        if (empty($argv[1]))
+
+        Swoole\Loader::addNameSpace('GetOptionKit', LIBPATH.'/module/GetOptionKit/src/GetOptionKit');
+
+        $kit = new \GetOptionKit\GetOptionKit;
+        $kit->add('d|daemon', '启用守护进程模式');
+        $kit->add('h|help', '显示帮助界面');
+        $kit->add('b|base', '使用BASE模式启动');
+        $kit->add('w|worker?', '设置Worker进程的数量');
+        $kit->add('r|thread?', '设置Reactor线程的数量');
+        $kit->add('t|tasker?', '设置Task进程的数量');
+        $opt = $kit->parse($argv);
+
+        if (empty($argv[1]) or isset($opt['help']))
         {
             goto usage;
         }
@@ -77,8 +94,10 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         else
         {
             usage:
-            exit("Usage: php {$argv[0]} start|stop|reload\n");
+            $kit->specs->printOptions("php {$argv[0]} start|stop|reload");
+            exit;
         }
+        self::$options = $opt;
         $startFunction();
     }
 
@@ -109,6 +128,10 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
     function __construct($host, $port, $ssl = false)
     {
         $flag = $ssl ? (SWOOLE_SOCK_TCP | SWOOLE_SSL) : SWOOLE_SOCK_TCP;
+        if (!empty(self::$options['base']))
+        {
+            self::$sw_mode = SWOOLE_BASE;
+        }
         $this->sw = new \swoole_server($host, $port, self::$sw_mode, $flag);
         $this->host = $host;
         $this->port = $port;
@@ -182,6 +205,23 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         if (self::$pidFile)
         {
             $this->runtimeSetting['pid_file'] = self::$pidFile;
+        }
+
+        if (!empty(self::$options['daemon']))
+        {
+            $this->runtimeSetting['daemonize'] = true;
+        }
+        if (!empty(self::$options['worker']))
+        {
+            $this->runtimeSetting['worker_num'] = intval(self::$options['worker']);
+        }
+        if (!empty(self::$options['thread']))
+        {
+            $this->runtimeSetting['reator_num'] = intval(self::$options['thread']);
+        }
+        if (!empty(self::$options['tasker']))
+        {
+            $this->runtimeSetting['task_worker_num'] = intval(self::$options['tasker']);
         }
         $this->sw->set($this->runtimeSetting);
         $version = explode('.', SWOOLE_VERSION);

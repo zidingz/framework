@@ -1,31 +1,32 @@
 <?php
-namespace Swoole;
+namespace Swoole\Server;
+
 use Swoole;
 
-abstract class Server implements Server\Driver
+abstract class Base implements Driver
 {
     public $setting = array();
     /**
      * @var Swoole\Protocol\WebServer
      */
     public $protocol;
-	public $host = '0.0.0.0';
-	public $port;
-	public $timeout;
+    public $host = '0.0.0.0';
+    public $port;
+    public $timeout;
 
     public $runtimeSetting;
 
-	public $buffer_size = 8192;
-	public $write_buffer_size = 2097152;
-	public $server_block = 0; //0 block,1 noblock
-	public $client_block = 0; //0 block,1 noblock
+    public $buffer_size = 8192;
+    public $write_buffer_size = 2097152;
+    public $server_block = 0; //0 block,1 noblock
+    public $client_block = 0; //0 block,1 noblock
 
-	//最大连接数
-	public $max_connect=1000;
+    //最大连接数
+    public $max_connect = 1000;
     public $client_num = 0;
 
-	//客户端socket列表
-	public $client_sock;
+    //客户端socket列表
+    public $client_sock;
     public $server_sock;
     /**
      * 文件描述符
@@ -33,12 +34,12 @@ abstract class Server implements Server\Driver
      */
     public $fds = array();
 
-	function __construct($host, $port, $timeout=30)
-	{
-		$this->host = $host;
-		$this->port = $port;
-		$this->timeout = $timeout;
-	}
+    function __construct($host, $port, $timeout = 30)
+    {
+        $this->host = $host;
+        $this->port = $port;
+        $this->timeout = $timeout;
+    }
 
     function addListener($host, $port, $type)
     {
@@ -48,20 +49,20 @@ abstract class Server implements Server\Driver
         }
     }
 
-	/**
-	 * 应用协议
+    /**
+     * 应用协议
      * @param $protocol Swoole\Protocol\Base
-	 * @return null
-	 */
-	function setProtocol($protocol)
-	{
+     * @return null
+     */
+    function setProtocol($protocol)
+    {
         if (!($protocol instanceof Swoole\IFace\Protocol))
         {
-             throw new \Exception("The protocol is not instanceof \\Swoole\\IFace\\Protocol");
+            throw new \Exception("The protocol is not instanceof \\Swoole\\IFace\\Protocol");
         }
-		$this->protocol = $protocol;
+        $this->protocol = $protocol;
         $protocol->server = $this;
-	}
+    }
 
     function connection_info($fd)
     {
@@ -75,50 +76,50 @@ abstract class Server implements Server\Driver
      * @return bool|int
      */
     function accept()
-	{
-		$client_socket = stream_socket_accept($this->server_sock, 0);
+    {
+        $client_socket = stream_socket_accept($this->server_sock, 0);
         //惊群
         if ($client_socket === false)
         {
             return false;
         }
-		$client_socket_id = (int)$client_socket;
-		stream_set_blocking($client_socket, $this->client_block);
-		$this->client_sock[$client_socket_id] = $client_socket;
-		$this->client_num++;
-		if($this->client_num > $this->max_connect)
-		{
-			Network\Stream::close($client_socket);
-			return false;
-		}
-		else
-		{
-			//设置写缓冲区
-			stream_set_write_buffer($client_socket, $this->write_buffer_size);
-			return $client_socket_id;
-		}
-	}
+        $client_socket_id = (int)$client_socket;
+        stream_set_blocking($client_socket, $this->client_block);
+        $this->client_sock[$client_socket_id] = $client_socket;
+        $this->client_num++;
+        if ($this->client_num > $this->max_connect)
+        {
+            Swoole\Network\Stream::close($client_socket);
+            return false;
+        }
+        else
+        {
+            //设置写缓冲区
+            stream_set_write_buffer($client_socket, $this->write_buffer_size);
+            return $client_socket_id;
+        }
+    }
 
     function spawn($setting)
     {
         $num = 0;
         if (isset($setting['worker_num']))
         {
-            $num = (int) $setting['worker_num'];
+            $num = (int)$setting['worker_num'];
         }
         if ($num < 2)
         {
             return;
         }
-		if (!extension_loaded('pcntl'))
+        if (!extension_loaded('pcntl'))
         {
-            die(__METHOD__." require pcntl extension!");
+            die(__METHOD__ . " require pcntl extension!");
         }
         $pids = array();
-        for($i=0; $i<$num; $i++)
+        for ($i = 0; $i < $num; $i++)
         {
             $pid = pcntl_fork();
-            if($pid > 0)
+            if ($pid > 0)
             {
                 $pids[] = $pid;
             }
@@ -151,16 +152,18 @@ abstract class Server implements Server\Driver
      * @return mixed
      */
     abstract function close($client_id);
+
     abstract function shutdown();
 
     function daemonize()
     {
         if (!function_exists('pcntl_fork'))
         {
-            throw new \Exception(__METHOD__.": require pcntl_fork.");
+            throw new \Exception(__METHOD__ . ": require pcntl_fork.");
         }
         $pid = pcntl_fork();
-        if ($pid == -1) {
+        if ($pid == -1)
+        {
             die("fork(1) failed!\n");
         }
         elseif ($pid > 0)
@@ -184,93 +187,138 @@ abstract class Server implements Server\Driver
         }
     }
 
-	function onError($errno,$errstr)
-	{
-		exit("$errstr ($errno)");
-	}
-	/**
-	 * 创建一个Stream Server Socket
-	 * @param $uri
-	 * @return unknown_type
-	 */
-	function create($uri, $block=0)
-	{
-		//UDP
-		if($uri{0}=='u') $socket = stream_socket_server($uri,$errno,$errstr,STREAM_SERVER_BIND);
-		//TCP
-		else $socket = stream_socket_server($uri,$errno,$errstr);
+    function onError($errno, $errstr)
+    {
+        exit("$errstr ($errno)");
+    }
 
-		if(!$socket) $this->onError($errno,$errstr);
-		//设置socket为非堵塞或者阻塞
-		stream_set_blocking($socket, $block);
-		return $socket;
-	}
-	function create_socket($uri, $block=false)
-	{
-		$set = parse_url($uri);
-		if($uri{0}=='u') $sock = socket_create(AF_INET, SOCK_DGRAM , SOL_UDP);
-		else $sock = socket_create(AF_INET, SOCK_STREAM , SOL_TCP);
+    /**
+     * 创建一个Stream Server Socket
+     * @param $uri
+     * @return resource
+     */
+    function create($uri, $block = 0)
+    {
+        //UDP
+        if ($uri{0} == 'u')
+        {
+            $socket = stream_socket_server($uri, $errno, $errstr, STREAM_SERVER_BIND);
+        }
+        //TCP
+        else
+        {
+            $socket = stream_socket_server($uri, $errno, $errstr);
+        }
 
-		if($block) socket_set_block($sock);
-		else socket_set_nonblock($sock);
-		socket_bind($sock,$set['host'],$set['port']);
-		socket_listen($sock);
-		return $sock;
-	}
-	function sendData($sock, $data)
-	{
-		return Network\Stream::write($sock, $data);
-	}
-	function log($log)
-	{
-		echo $log,NL;
-	}
+        if (!$socket)
+        {
+            $this->onError($errno, $errstr);
+        }
+        //设置socket为非堵塞或者阻塞
+        stream_set_blocking($socket, $block);
+        return $socket;
+    }
+
+    function create_socket($uri, $block = false)
+    {
+        $set = parse_url($uri);
+        if ($uri{0} == 'u')
+        {
+            $sock = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+        }
+        else
+        {
+            $sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        }
+
+        if ($block)
+        {
+            socket_set_block($sock);
+        }
+        else
+        {
+            socket_set_nonblock($sock);
+        }
+        socket_bind($sock, $set['host'], $set['port']);
+        socket_listen($sock);
+        return $sock;
+    }
+
+    function sendData($sock, $data)
+    {
+        return Swoole\Network\Stream::write($sock, $data);
+    }
+
+    function log($log)
+    {
+        echo $log, NL;
+    }
 }
+
 function sw_run($cmd)
 {
-	if(PHP_OS=='WINNT') pclose(popen("start /B ".$cmd,"r"));
-	else exec($cmd." > /dev/null &");
+    if (PHP_OS == 'WINNT')
+    {
+        pclose(popen("start /B " . $cmd, "r"));
+    }
+    else
+    {
+        exec($cmd . " > /dev/null &");
+    }
 }
+
 function sw_gc_array($array)
 {
-	$new = array();
-	foreach($array as $k=>$v)
-	{
-		$new[$k] = $v;
-		unset($array[$k]);
-	}
-	unset($array);
-	return $new;
+    $new = array();
+    foreach ($array as $k => $v)
+    {
+        $new[$k] = $v;
+        unset($array[$k]);
+    }
+    unset($array);
+    return $new;
 }
 
 interface TCP_Server_Driver
 {
-	function run($num=1);
-	function send($client_id,$data);
-	function close($client_id);
-	function shutdown();
-	function setProtocol($protocol);
+    function run($num = 1);
+
+    function send($client_id, $data);
+
+    function close($client_id);
+
+    function shutdown();
+
+    function setProtocol($protocol);
 }
 
 interface UDP_Server_Driver
 {
-	function run($num=1);
-	function shutdown();
-	function setProtocol($protocol);
+    function run($num = 1);
+
+    function shutdown();
+
+    function setProtocol($protocol);
 }
 
 interface TCP_Server_Protocol
 {
-	function onStart();
-	function onConnect($client_id);
-	function onReceive($client_id, $data);
-	function onClose($client_id);
-	function onShutdown($server);
+    function onStart();
+
+    function onConnect($client_id);
+
+    function onReceive($client_id, $data);
+
+    function onClose($client_id);
+
+    function onShutdown($server);
 }
 
 interface UDP_Server_Protocol
 {
-	function onStart();
-	function onData($peer,$data);
-	function onShutdown();
+    function onStart();
+
+    function onData($peer, $data);
+
+    function onShutdown();
 }

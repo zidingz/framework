@@ -1,7 +1,7 @@
 <?php
 namespace Swoole\Network;
 
-class SelectUDP extends \Swoole\Server implements \Swoole\UDP_Server_Driver
+class SelectUDP extends \Swoole\Server\Base
 {
     public $server_block = 1;
     function __construct($host,$port,$timeout=30)
@@ -29,7 +29,7 @@ class SelectUDP extends \Swoole\Server implements \Swoole\UDP_Server_Driver
     function run($num=1)
     {
         //初始化事件系统
-        if(!($this->protocol instanceof Swoole_UDP_Server_Protocol))
+        if (!($this->protocol instanceof Swoole\Server\UDP_Server_Protocol))
         {
             return error(902);
         }
@@ -41,6 +41,7 @@ class SelectUDP extends \Swoole\Server implements \Swoole\UDP_Server_Driver
         $this->protocol->onStart();
         $this->server_loop();
     }
+
     /**
      * 关闭服务器程序
      * @return unknown_type
@@ -50,6 +51,6 @@ class SelectUDP extends \Swoole\Server implements \Swoole\UDP_Server_Driver
         //关闭服务器端
         sw_socket_close($this->server_sock);
         //关闭事件循环
-        $this->protocol->onShutdown();
+        $this->protocol->onShutdown($this);
     }
 }
