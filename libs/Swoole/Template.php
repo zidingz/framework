@@ -96,7 +96,7 @@ class Template extends \Smarty
 	 * 生成静态页面
 	 * @param $template
 	 * @param $filename
-	 * @return unknown_type
+	 * @return bool
 	 */
 	function outhtml($template, $filename, $path = '')
 	{
