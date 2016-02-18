@@ -33,7 +33,7 @@ abstract class CometServer extends WebSocket
     {
         if ($worker_id < $serv->setting['worker_num'])
         {
-            $serv->addTimer(1000);
+            $serv->tick(1000, array($this, 'onTimer'));
         }
         parent::onStart($serv, $worker_id);
     }
@@ -174,14 +174,13 @@ abstract class CometServer extends WebSocket
 
     /**
      * 定时器，检查某些连接是否已超过最大时间
-     * @param $serv
-     * @param $interval
+     * @param $timerId
      */
-    function onTimer($serv, $interval)
+    function onTimer($timerId)
     {
         $now = time();
         //echo "timer $interval\n";
-        foreach($this->wait_requests as $id => $request)
+        foreach ($this->wait_requests as $id => $request)
         {
             if ($request->time < $now - $this->request_timeout)
             {
