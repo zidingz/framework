@@ -206,7 +206,6 @@ class Server extends Base implements Driver
         {
             $this->runtimeSetting['pid_file'] = self::$pidFile;
         }
-
         if (!empty(self::$options['daemon']))
         {
             $this->runtimeSetting['daemonize'] = true;
