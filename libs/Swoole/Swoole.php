@@ -342,6 +342,23 @@ class Swoole
             }
             return $this->loadModule($func, $param[0]);
         }
+        //尝试加载用户定义的工厂类文件
+        elseif(is_file(self::$app_path . '/factory/' . $func . '.php'))
+        {
+            $object_id = $func . '_' . $param[0];
+            //已创建的对象
+            if (isset($this->objects[$object_id]))
+            {
+                return $this->objects[$object_id];
+            }
+            else
+            {
+                $this->factory_key = $param[0];
+                $object = require self::$app_path . '/factory/' . $func . '.php';
+                $this->objects[$object_id] = $object;
+                return $object;
+            }
+        }
         else
         {
             throw new Exception("call an undefine method[$func].");
