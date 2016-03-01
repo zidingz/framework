@@ -159,9 +159,7 @@ class Server extends Base implements Driver
 
     function onMasterStart($serv)
     {
-        global $argv;
-        Swoole\Console::setProcessName('php ' . $argv[0] . ': master -host=' . $this->host . ' -port=' . $this->port);
-        
+        Swoole\Console::setProcessName($this->getProcessName() . ': master -host=' . $this->host . ' -port=' . $this->port);
         if (!empty($this->runtimeSetting['pid_file']))
         {
             file_put_contents(self::$pidFile, $serv->master_pid);
@@ -184,14 +182,13 @@ class Server extends Base implements Driver
 
     function onWorkerStart($serv, $worker_id)
     {
-        global $argv;
         if ($worker_id >= $serv->setting['worker_num'])
         {
-            Swoole\Console::setProcessName('php ' . $argv[0] . ': task');
+            Swoole\Console::setProcessName($this->getProcessName() . ': task');
         }
         else
         {
-            Swoole\Console::setProcessName('php ' . $argv[0] . ': worker');
+            Swoole\Console::setProcessName($this->getProcessName() . ': worker');
         }
         if (method_exists($this->protocol, 'onStart'))
         {
@@ -229,8 +226,7 @@ class Server extends Base implements Driver
         {
             $this->sw->on('ManagerStart', function ($serv)
             {
-                global $argv;
-                Swoole\Console::setProcessName('php ' . $argv[0] . ': manager');
+                Swoole\Console::setProcessName($this->getProcessName() . ': manager');
             });
         }
         $this->sw->on('Start', array($this, 'onMasterStart'));

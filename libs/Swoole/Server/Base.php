@@ -34,6 +34,8 @@ abstract class Base implements Driver
      */
     public $fds = array();
 
+    protected $processName;
+
     function __construct($host, $port, $timeout = 30)
     {
         $this->host = $host;
@@ -49,6 +51,31 @@ abstract class Base implements Driver
         }
     }
 
+    /**
+     * 设置进程名称
+     * @param $name
+     */
+    function setProcessName($name)
+    {
+        $this->processName = $name;
+    }
+
+    /**
+     * 获取进程名称
+     * @return string
+     */
+    function getProcessName()
+    {
+        if (empty($this->processName))
+        {
+            global $argv;
+            return "php {$argv[0]}";
+        }
+        else
+        {
+            return $this->processName;
+        }
+    }
     /**
      * 应用协议
      * @param $protocol Swoole\Protocol\Base
