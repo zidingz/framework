@@ -19,6 +19,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
      * @var array
      */
     static $clientEnv;
+    static $stop = false;
 
     /**
      * 请求头
@@ -127,6 +128,11 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
             $response = $this->call($request, $_header);
             //发送响应
             $this->server->send($fd, self::encode($response, $_header['type'], $_header['uid'], $_header['serid']));
+            //退出进程
+            if (self::$stop)
+            {
+                exit(0);
+            }
         }
         //清理缓存
         unset($this->_buffer[$fd], $this->_headers[$fd]);
