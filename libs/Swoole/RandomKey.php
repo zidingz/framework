@@ -40,11 +40,11 @@ class RandomKey
      * 按ID计算散列
      * @param $uid
      * @param $base
-     * @return unknown_type
+     * @return integer
      */
-    static function idhash($uid,$base=1000)
+    static function idhash($uid, $base = 1000)
     {
-        return intval($uid/$base);
+        return intval($uid / $base);
     }
 
     /**
@@ -64,11 +64,13 @@ class RandomKey
      * 产生一个随机MD5字符的一部分
      * @param $length
      * @param $seed
-     * @return unknown_type
+     * @return string
      */
-    static function randmd5($length=8,$seed=null)
+    static function randmd5($length = 8, $seed = null)
     {
-        if(empty($seed)) $seed = self::string(16);
-        return substr(md5($seed.rand(111111,999999)),0,$length);
+        if (empty($seed)) {
+            $seed = self::string(16);
+        }
+        return substr(md5($seed . rand(111111, 999999)), 0, $length);
     }
 }
