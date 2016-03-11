@@ -71,8 +71,8 @@ class Tool
 
     /**
      * 解析URI
-     * @param $url
-     * @return unknown_type
+     * @param string $url
+     * @return array $return
      */
     static public function uri($url)
     {
