@@ -17,7 +17,9 @@ class Server extends Base implements Driver
 
     static $defaultOptions = array(
         'd|daemon' => '启用守护进程模式',
-        'h|help' => '显示帮助界面',
+        'h|host?' => '指定监听地址',
+        'p|port?' => '指定监听端口',
+        'help' => '显示帮助界面',
         'b|base' => '使用BASE模式启动',
         'w|worker?' => '设置Worker进程的数量',
         'r|thread?' => '设置Reactor线程的数量',

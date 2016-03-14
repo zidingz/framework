@@ -1,6 +1,6 @@
 <?php
 define('DEBUG', 'on');
-define("WEBPATH", realpath(__DIR__.'/../'));
+define("WEBPATH", realpath(__DIR__ . '/../'));
 require __DIR__ . '/../libs/lib_config.php';
 //require __DIR__'/phar://swoole.phar';
 Swoole\Config::$debug = false;
@@ -15,8 +15,7 @@ class EchoServer extends Swoole\Protocol\Base
 
 //设置PID文件的存储路径
 Swoole\Network\Server::setPidFile(__DIR__ . '/echo_server.pid');
-
-Swoole\Network\Server::addOption('p|port:', "服务器监听的端口");
+Swoole\Network\Server::addOption('c|config:', "要加载的配置文件");
 
 /**
  * 显示Usage界面
@@ -24,9 +23,10 @@ Swoole\Network\Server::addOption('p|port:', "服务器监听的端口");
  */
 Swoole\Network\Server::start(function ($options)
 {
-    debug($options);
     $AppSvr = new EchoServer();
-    $server = Swoole\Network\Server::autoCreate('0.0.0.0', 9505);
+    $listenHost = empty($options['host']) ? '0.0.0.0' : $options['host'];
+    $listenPort = empty($options['port']) ? 9501 : $options['port'];
+    $server = Swoole\Network\Server::autoCreate($listenHost, $listenPort);
     $server->setProtocol($AppSvr);
     $server->run(array('worker_num' => 1));
 });
