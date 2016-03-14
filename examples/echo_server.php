@@ -14,7 +14,7 @@ class EchoServer extends Swoole\Protocol\Base
 }
 
 //设置PID文件的存储路径
-Swoole\Network\Server::setPidFile(__DIR__ . '/app_server.pid');
+Swoole\Network\Server::setPidFile(__DIR__ . '/echo_server.pid');
 
 /**
  * 显示Usage界面
@@ -27,4 +27,3 @@ Swoole\Network\Server::start(function ()
     $server->setProtocol($AppSvr);
     $server->run(array('worker_num' => 1));
 });
-

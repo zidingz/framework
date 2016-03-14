@@ -13,7 +13,6 @@ class Server extends Base implements Driver
 {
     static $sw_mode = SWOOLE_PROCESS;
     static $pidFile;
-    protected static $options = array();
 
     /**
      * @var \swoole_server
@@ -50,7 +49,7 @@ class Server extends Base implements Driver
         }
         global $argv;
 
-        Swoole\Loader::addNameSpace('GetOptionKit', LIBPATH.'/module/GetOptionKit/src/GetOptionKit');
+        Swoole\Loader::addNameSpace('GetOptionKit', LIBPATH . '/module/GetOptionKit/src/GetOptionKit');
 
         $kit = new \GetOptionKit\GetOptionKit;
         $kit->add('d|daemon', '启用守护进程模式');
@@ -194,6 +193,10 @@ class Server extends Base implements Driver
         {
             $this->protocol->onStart($serv, $worker_id);
         }
+        if (method_exists($this->protocol, 'onWorkerStart'))
+        {
+            $this->protocol->onWorkerStart($serv, $worker_id);
+        }
     }
 
     function run($setting = array())
@@ -259,13 +262,13 @@ class Server extends Base implements Driver
         return $this->sw->close($client_id);
     }
 
-    function addListener($host, $port, $type)
-    {
-        return $this->sw->addlistener($host, $port, $type);
-    }
-
     function send($client_id, $data)
     {
         return $this->sw->send($client_id, $data);
+    }
+
+    function __call($func, $params)
+    {
+        return call_user_func_array(array($this->sw, $func), $params);
     }
 }

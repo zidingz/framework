@@ -5,6 +5,7 @@ use Swoole;
 
 abstract class Base implements Driver
 {
+    protected static $options = array();
     public $setting = array();
     /**
      * @var Swoole\Protocol\WebServer
@@ -76,10 +77,11 @@ abstract class Base implements Driver
             return $this->processName;
         }
     }
+
     /**
-     * 应用协议
-     * @param $protocol Swoole\Protocol\Base
-     * @return null
+     * 设置通信协议
+     * @param $protocol
+     * @throws \Exception
      */
     function setProtocol($protocol)
     {
@@ -89,6 +91,16 @@ abstract class Base implements Driver
         }
         $this->protocol = $protocol;
         $protocol->server = $this;
+    }
+
+    /**
+     * 设置选项
+     * @param $key
+     * @param $value
+     */
+    static function setOption($key, $value)
+    {
+        self::$options[$key] = $value;
     }
 
     function connection_info($fd)
