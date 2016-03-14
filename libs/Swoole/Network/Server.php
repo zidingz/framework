@@ -11,8 +11,18 @@ use Swoole\Server\Driver;
  */
 class Server extends Base implements Driver
 {
-    static $sw_mode = SWOOLE_PROCESS;
+    static $swooleMode = SWOOLE_PROCESS;
+    static $optionKit;
     static $pidFile;
+
+    static $defaultOptions = array(
+        'd|daemon' => '启用守护进程模式',
+        'h|help' => '显示帮助界面',
+        'b|base' => '使用BASE模式启动',
+        'w|worker?' => '设置Worker进程的数量',
+        'r|thread?' => '设置Reactor线程的数量',
+        't|tasker?' => '设置Task进程的数量',
+    );
 
     /**
      * @var \swoole_server
@@ -27,6 +37,37 @@ class Server extends Base implements Driver
     static function setPidFile($pidFile)
     {
         self::$pidFile = $pidFile;
+    }
+
+    /**
+     *
+     * $opt->add( 'f|foo:' , 'option requires a value.' );
+     * $opt->add( 'b|bar+' , 'option with multiple value.' );
+     * $opt->add( 'z|zoo?' , 'option with optional value.' );
+     * $opt->add( 'v|verbose' , 'verbose message.' );
+     * $opt->add( 'd|debug'   , 'debug message.' );
+     * $opt->add( 'long'   , 'long option name only.' );
+     * $opt->add( 's'   , 'short option name only.' );
+     *
+     * @param $specString
+     * @param $description
+     * @throws ServerOptionException
+     */
+    static function addOption($specString, $description)
+    {
+        if (!self::$optionKit)
+        {
+            Swoole\Loader::addNameSpace('GetOptionKit', LIBPATH . '/module/GetOptionKit/src/GetOptionKit');
+            self::$optionKit = new \GetOptionKit\GetOptionKit;
+        }
+        foreach (self::$defaultOptions as $k => $v)
+        {
+            if ($k[0] == $specString[0])
+            {
+                throw new ServerOptionException("不能添加系统保留的选项名称");
+            }
+        }
+        self::$optionKit->add($specString, $description);
     }
 
     /**
@@ -47,19 +88,20 @@ class Server extends Base implements Driver
         {
             $server_pid = 0;
         }
+
+        if (!self::$optionKit)
+        {
+            Swoole\Loader::addNameSpace('GetOptionKit', LIBPATH . '/module/GetOptionKit/src/GetOptionKit');
+            self::$optionKit = new \GetOptionKit\GetOptionKit;
+        }
+
+        $kit = self::$optionKit;
+        foreach(self::$defaultOptions as $k => $v)
+        {
+            $kit->add($k, $v);
+        }
         global $argv;
-
-        Swoole\Loader::addNameSpace('GetOptionKit', LIBPATH . '/module/GetOptionKit/src/GetOptionKit');
-
-        $kit = new \GetOptionKit\GetOptionKit;
-        $kit->add('d|daemon', '启用守护进程模式');
-        $kit->add('h|help', '显示帮助界面');
-        $kit->add('b|base', '使用BASE模式启动');
-        $kit->add('w|worker?', '设置Worker进程的数量');
-        $kit->add('r|thread?', '设置Reactor线程的数量');
-        $kit->add('t|tasker?', '设置Task进程的数量');
         $opt = $kit->parse($argv);
-
         if (empty($argv[1]) or isset($opt['help']))
         {
             goto usage;
@@ -97,7 +139,7 @@ class Server extends Base implements Driver
             exit;
         }
         self::$options = $opt;
-        $startFunction();
+        $startFunction($opt);
     }
 
     /**
@@ -129,9 +171,9 @@ class Server extends Base implements Driver
         $flag = $ssl ? (SWOOLE_SOCK_TCP | SWOOLE_SSL) : SWOOLE_SOCK_TCP;
         if (!empty(self::$options['base']))
         {
-            self::$sw_mode = SWOOLE_BASE;
+            self::$swooleMode = SWOOLE_BASE;
         }
-        $this->sw = new \swoole_server($host, $port, self::$sw_mode, $flag);
+        $this->sw = new \swoole_server($host, $port, self::$swooleMode, $flag);
         $this->host = $host;
         $this->port = $port;
         Swoole\Error::$stop = false;
@@ -271,4 +313,9 @@ class Server extends Base implements Driver
     {
         return call_user_func_array(array($this->sw, $func), $params);
     }
+}
+
+class ServerOptionException extends \Exception
+{
+
 }

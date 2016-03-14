@@ -16,12 +16,15 @@ class EchoServer extends Swoole\Protocol\Base
 //设置PID文件的存储路径
 Swoole\Network\Server::setPidFile(__DIR__ . '/echo_server.pid');
 
+Swoole\Network\Server::addOption('p|port:', "服务器监听的端口");
+
 /**
  * 显示Usage界面
  * php app_server.php start|stop|reload
  */
-Swoole\Network\Server::start(function ()
+Swoole\Network\Server::start(function ($options)
 {
+    debug($options);
     $AppSvr = new EchoServer();
     $server = Swoole\Network\Server::autoCreate('0.0.0.0', 9505);
     $server->setProtocol($AppSvr);
