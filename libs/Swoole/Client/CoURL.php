@@ -43,7 +43,7 @@ class CoURL
         return $ret;
     }
 
-    function wait($timeout = 0.5)
+    function wait($timeout = 2)
     {
         foreach($this->requests as $req)
         {
@@ -54,6 +54,7 @@ class CoURL
         }
 
         $mhandle = $this->handle;
+        $n = 0;
         $active = true;
 
         while ($active)
@@ -69,6 +70,9 @@ class CoURL
                 {
                     $ch = $done["handle"];
                     $key = intval($ch);
+                    /**
+                     * @var $retObj CoURLResult
+                     */
                     $retObj = $this->requests[$key];
                     $retObj->info = curl_getinfo($ch);
                     $retObj->error = curl_error($ch);
@@ -80,6 +84,7 @@ class CoURL
                     curl_multi_remove_handle($mhandle, $ch);
                     curl_close($ch);
                     unset($this->requests[$key]);
+                    $n ++;
                     if ($active > 0)
                     {
                         curl_multi_select($mhandle, $timeout);
@@ -88,9 +93,8 @@ class CoURL
             }
         }
         curl_multi_close($mhandle);
-        return true;
+        return $n;
     }
-
 }
 
 class CoURLResult
@@ -104,6 +108,8 @@ class CoURLResult
     public $data;
     public $result;
     public $callback;
+    public $error;
+    public $info;
 
     function __construct($url, $callback, $multiHandle)
     {

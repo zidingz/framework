@@ -6,15 +6,15 @@ require WEBPATH . '/libs/lib_config.php';
 
 $courl = new \Swoole\Client\CoURL();
 
-$ret1 = $courl->get("http://www.baidu.com/", function($ret) {
+$ret1 = $courl->get("http://cn.bing.com/", function($ret) {
     var_dump(strlen($ret->result));
 });
-$ret2 = $courl->get("http://www.baidu.com/", function($ret) {
+$ret2 = $courl->get("http://cn.bing.com/", function($ret) {
     var_dump(strlen($ret->result));
 });
-//$ret3 = $courl->get("http://www.baidu.com/");
-//$ret4 = $courl->get("http://www.baidu.com/");
+$ret3 = $courl->get("http://cn.bing.com/");
+$ret4 = $courl->get("http://cn.bing.com/");
 
 $courl->wait();
 
-//var_dump($ret1, $ret2);
+var_dump($ret3->info, $ret4->info);
