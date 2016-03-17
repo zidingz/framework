@@ -49,7 +49,7 @@ class CLMySQL {
 		if ($port) {
 			$this->port = $port;
 		}
-		$this->is_connect = $this->conn->connect($this->host, $this->port);
+		$this->is_connect = $this->conn->connect($this->host, $this->port, 3);
 		return $this->is_connect;
 	}
 
