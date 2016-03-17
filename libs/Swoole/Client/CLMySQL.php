@@ -59,7 +59,7 @@ class CLMySQL {
 			if ($data == false) {
 				#throw new \Exception('连接Mysql网络中断');
 				$this->last_errno = 2006;
-				$this->last_erro_msg = 'Mysql proxy中断';
+				$this->last_erro_msg = 'Mysql proxy中断(接收失败)';
 				return false;
 			}
 			$r = CLPack::unpack($data);
@@ -72,7 +72,7 @@ class CLMySQL {
 	function query($sql) {
 		if (!$this->is_connect) {
 			$this->last_errno = 2006;
-			$this->last_erro_msg = 'Mysql proxy中断';
+			$this->last_erro_msg = 'Mysql proxy中断(无连接)';
 			return false;
 		}
 		$is_multi = true;
@@ -92,7 +92,7 @@ class CLMySQL {
 			$this->connect();
 			if (false === $this->conn->send($pack)) {
 				$this->last_errno = 2006;
-				$this->last_erro_msg = 'Mysql proxy中断';
+				$this->last_erro_msg = 'Mysql proxy中断(发送失败)';
 				return false;
 			}
 		}
