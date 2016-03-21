@@ -30,10 +30,10 @@ class CLMySQL {
 			'package_max_length' => CLPack::MAX_LEN,
 			//协议最大长度
 		));
-		$this->conn->on('Close', array(
+		/*$this->conn->on('Close', array(
 			$this,
 			'OnClose'
-		));
+		));*/
 		$this->connect();
 	}
 
