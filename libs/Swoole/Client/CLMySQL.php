@@ -14,6 +14,14 @@ class CLMySQL {
 	private $conn, $dbname, $result = array(), $result_id = 1;
 	private $host, $port;
 	public $last_errno, $last_erro_msg, $is_connect = false;
+	private static $instance = [];
+
+	static function getInstance($host, $port, $dbname, $pconnect = true) {
+		if (!isset(self::$instance[$host . '.' . $port])) {
+			self::$instance[$host . '.' . $port] = new CLMySQL($host, $port, $dbname, $pconnect);
+		}
+		return self::$instance[$host . '.' . $port];
+	}
 
 	function __construct($host, $port, $dbname, $pconnect = true) {
 		$this->host = $host;
