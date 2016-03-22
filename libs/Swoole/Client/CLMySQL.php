@@ -20,7 +20,7 @@ class CLMySQL {
 		$this->host = $host;
 		$this->port = $port;
 		$this->dbname = $dbname;
-		if (!isset(self::$conn[$host . ':' . $port])) {
+		if (!isset(self::$conns[$host . ':' . $port])) {
 			self::$conns[$host . ':' . $port] = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC, 'clmysql');
 			self::$conns[$host . ':' . $port]->set(array(
 				'open_length_check' => 1,
@@ -33,7 +33,7 @@ class CLMySQL {
 				//协议最大长度
 			));
 		}
-		$this->conn = self::$conn[$host . ':' . $port];
+		$this->conn = self::$conns[$host . ':' . $port];
 		/*$this->conn->on('Close', array(
 			$this,
 			'OnClose'
