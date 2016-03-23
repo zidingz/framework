@@ -42,6 +42,18 @@ class Server extends Base implements Driver
     }
 
     /**
+     * 杀死所有进程
+     * @param $name
+     * @param int $signo
+     * @return string
+     */
+    static function killProcessByName($name, $signo = 9)
+    {
+        $cmd = 'ps -eaf |grep "' . $name . '" | grep -v "grep"| awk "{print $2}"|xargs kill -'.$signo;
+        return exec($cmd);
+    }
+
+    /**
      *
      * $opt->add( 'f|foo:' , 'option requires a value.' );
      * $opt->add( 'b|bar+' , 'option with multiple value.' );
