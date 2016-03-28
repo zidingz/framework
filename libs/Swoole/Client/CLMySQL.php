@@ -168,7 +168,7 @@ class CLMySQL {
 	function affected_rows() {
 		#$result_id = $this->query('affected_rows');
 		#return $this->fetch($result_id);
-		return isset($this->result_id[$this->result_id - 1][3]) ? $this->result_id[$this->result_id - 1][3] : false;
+		return isset($this->result_id[$this->result_id - 1][$this->dbname][3]) ? $this->result_id[$this->result_id - 1][$this->dbname][3] : false;
 	}
 
 	/*function onClose(\swoole_client $client) {
