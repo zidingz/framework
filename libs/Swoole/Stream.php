@@ -45,7 +45,7 @@ class Stream
                 $n = fwrite($fp, substr($content, $written));
             }
             //写文件失败了
-            if ($n === false)
+            if (empty($n))
             {
                 break;
             }

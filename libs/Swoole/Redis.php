@@ -140,6 +140,8 @@ class Redis
         {
             fseek($fp, $seek);
         }
+
+        //目标Redis服务器
         $dstRedis = stream_socket_client($dstRedisServer, $errno, $errstr, 10);
         if (!$dstRedis)
         {
@@ -150,6 +152,7 @@ class Redis
         $n_lines = 0;
         $n_bytes = 0;
         $command = array();
+        $n_success = 0;
 
         readfile:
         while(!feof($fp))
@@ -171,7 +174,7 @@ class Redis
                     }
                     else
                     {
-                        exit("error data[1].\n{$line}\n");
+                        exit("error data[1]. seek=".ftell($fp)."\n{$line}\n");
                     }
                     break;
                 case self::READ_LENGTH:
@@ -188,14 +191,14 @@ class Redis
                     }
                     else
                     {
-                        exit("error data[2].\n{$line}\n");
+                        exit("error data[2]. seek=".ftell($fp)."\n{$line}\n");
                     }
                     break;
                 case self::READ_DATA:
                     $data = Stream::read($fp, $n_bytes);
                     if (strlen($data) === 0)
                     {
-                        exit("read data failed.\n");
+                        exit("read data failed. seek=".ftell($fp)."\n");
                     }
                     $command []= $data;
                     fgets($fp, 8192);
@@ -205,9 +208,17 @@ class Redis
                         $_send = implode(" ", $command)."\r\n";
                         if (Stream::write($dstRedis, $_send) != strlen($_send))
                         {
-                            exit("write data failed.\n");
+                            exit("write data failed. seek=".ftell($fp)."\n$command\n");
                         }
-                        fread($dstRedis, 8192);
+                        if (fread($dstRedis, 8192) == false)
+                        {
+                            exit("read data failed. seek=".ftell($fp)."\n");
+                        }
+                        $n_success ++;
+                        if ($n_success % 1000 == 0)
+                        {
+                            echo "$n_success finish.\n";
+                        }
                     }
                     else
                     {
@@ -216,9 +227,9 @@ class Redis
                     break;
             }
         }
-
         //等待100ms后继续读
-        usleep(100000);
+        sleep(2);
+        echo "read eof, seek=".ftell($fp)."\n";
         goto readfile;
     }
 }
