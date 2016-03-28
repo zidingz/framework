@@ -158,13 +158,15 @@ class Redis
         readfile:
         while(!feof($fp))
         {
+            step_switch:
             switch($step)
             {
                 case self::READ_LINE_NUMBER:
                     $line = fgets($fp, 8192);
+                    //没有数据
                     if ($line === false)
                     {
-                        continue;
+                        goto wait;
                     }
                     $r = preg_match('/\*(\d+)/', $line, $match);
                     if ($r)
@@ -180,11 +182,15 @@ class Redis
                     }
                     break;
                 case self::READ_LENGTH:
+                    $oldSeek = ftell($fp);
                     read_length:
                     $line = fgets($fp, 8192);
                     if ($line === false)
                     {
                         sleep(1);
+                        fseek($fp, $oldSeek);
+                        echo "read length[4] failed.\n";
+                        var_dump($_send);
                         goto read_length;
                     }
 
@@ -192,8 +198,16 @@ class Redis
                     if ($r)
                     {
                         $n_bytes = $match[1];
-                        $step = self::READ_DATA;
                         $_send .= $line;
+                        //空字符串
+                        if ($n_bytes == 0)
+                        {
+                            goto step_switch;
+                        }
+                        else
+                        {
+                            $step = self::READ_DATA;
+                        }
                     }
                     else
                     {
@@ -208,6 +222,8 @@ class Redis
                     {
                         sleep(1);
                         fseek($fp, $oldSeek);
+                        echo "read data[4] failed.\n";
+                        var_dump($_send);
                         goto read_data;
                     }
                     $command[] = $data;
@@ -219,7 +235,7 @@ class Redis
                         //$_send = implode(" ", $command)."\r\n";
                         if (strcasecmp("select", $command[0]) == 0)
                         {
-                            goto readfile;
+                            goto step_switch;
                         }
                         if (Stream::write($dstRedis, $_send) != strlen($_send))
                         {
@@ -242,6 +258,8 @@ class Redis
                     break;
             }
         }
+
+        wait:
         //等待100ms后继续读
         sleep(2);
         echo "read eof, seek=".ftell($fp)."\n";
