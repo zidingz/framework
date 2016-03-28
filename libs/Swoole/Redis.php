@@ -4,8 +4,13 @@ use Swoole;
 
 class Redis
 {
+    const READ_LINE_NUMBER = 0;
+    const READ_LENGTH = 1;
+    const READ_DATA = 2;
+
     public $_redis;
     public $config;
+
     public static $prefix = "autoinc_key:";
 
     static function getIncreaseId($appKey, $init_id = 1000)
@@ -115,5 +120,105 @@ class Redis
         }
         //不可能到这里
         return false;
+    }
+
+    /**
+     * @param $file
+     * @param $dstRedisServer
+     * @param int $seek
+     * @return bool
+     */
+    static function syncFromAof($file, $dstRedisServer, $seek = 0)
+    {
+        $fp = fopen($file, 'r');
+        if (!$fp)
+        {
+            return false;
+        }
+        //偏移
+        if ($seek > 0)
+        {
+            fseek($fp, $seek);
+        }
+        $dstRedis = stream_socket_client($dstRedisServer, $errno, $errstr, 10);
+        if (!$dstRedis)
+        {
+            return false;
+        }
+
+        $step =  self::READ_LINE_NUMBER;
+        $n_lines = 0;
+        $n_bytes = 0;
+        $command = array();
+
+        readfile:
+        while(!feof($fp))
+        {
+            switch($step)
+            {
+                case self::READ_LINE_NUMBER:
+                    $line = fgets($fp, 8192);
+                    if ($line === false)
+                    {
+                        continue;
+                    }
+                    $r = preg_match('/\*(\d+)/', $line, $match);
+                    if ($r)
+                    {
+                        $n_lines = $match[1];
+                        $command = array();
+                        $step = self::READ_LENGTH;
+                    }
+                    else
+                    {
+                        exit("error data[1].\n{$line}\n");
+                    }
+                    break;
+                case self::READ_LENGTH:
+                    $line = fgets($fp, 8192);
+                    if ($line === false)
+                    {
+                        continue;
+                    }
+                    $r = preg_match('/\$(\d+)/', $line, $match);
+                    if ($r)
+                    {
+                        $n_bytes = $match[1];
+                        $step = self::READ_DATA;
+                    }
+                    else
+                    {
+                        exit("error data[2].\n{$line}\n");
+                    }
+                    break;
+                case self::READ_DATA:
+                    $data = Stream::read($fp, $n_bytes);
+                    if (strlen($data) === 0)
+                    {
+                        exit("read data failed.\n");
+                    }
+                    $command []= $data;
+                    fgets($fp, 8192);
+                    if (count($command) == $n_lines)
+                    {
+                        $step = self::READ_LINE_NUMBER;
+                        $_send = implode(" ", $command)."\r\n";
+                        if (Stream::write($dstRedis, $_send) != strlen($_send))
+                        {
+                            exit("write data failed.\n");
+                        }
+                        fread($dstRedis, 8192);
+                    }
+                    else
+                    {
+                        $step = self::READ_LENGTH;
+                    }
+                    break;
+            }
+        }
+
+        //等待100ms后继续读
+        usleep(100000);
+        goto readfile;
     }
 }

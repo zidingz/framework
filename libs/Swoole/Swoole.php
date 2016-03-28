@@ -286,6 +286,24 @@ class Swoole
         $this->hooks[$type][] = $func;
     }
 
+    /**
+     * 在请求之前执行一个函数
+     * @param callable $callback
+     */
+    function beforeRequest(callable $callback)
+    {
+        $this->addHook(self::HOOK_INIT, $callback);
+    }
+
+    /**
+     * 在请求之后执行一个函数
+     * @param callable $callback
+     */
+    function afterRequest(callable $callback)
+    {
+        $this->addHook(self::HOOK_CLEAN, $callback);
+    }
+
     function __get($lib_name)
     {
         //如果不存在此对象，从工厂中创建一个
