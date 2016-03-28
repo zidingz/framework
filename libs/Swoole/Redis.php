@@ -172,7 +172,7 @@ class Redis
                         $n_lines = $match[1];
                         $command = array();
                         $step = self::READ_LENGTH;
-                        $_send = $line."\n";
+                        $_send = $line;
                     }
                     else
                     {
@@ -180,17 +180,20 @@ class Redis
                     }
                     break;
                 case self::READ_LENGTH:
+                    read_length:
                     $line = fgets($fp, 8192);
                     if ($line === false)
                     {
-                        continue;
+                        sleep(1);
+                        goto read_length;
                     }
+
                     $r = preg_match('/\$(\d+)/', $line, $match);
                     if ($r)
                     {
                         $n_bytes = $match[1];
                         $step = self::READ_DATA;
-                        $_send .= $line."\n";
+                        $_send .= $line;
                     }
                     else
                     {
@@ -198,10 +201,14 @@ class Redis
                     }
                     break;
                 case self::READ_DATA:
+                    $oldSeek = ftell($fp);
+                    read_data:
                     $data = Stream::read($fp, $n_bytes);
                     if (strlen($data) === 0)
                     {
-                        exit("read data failed. seek=".ftell($fp)."\n");
+                        sleep(1);
+                        fseek($fp, $oldSeek);
+                        goto read_data;
                     }
                     $command[] = $data;
                     fgets($fp, 8192);
