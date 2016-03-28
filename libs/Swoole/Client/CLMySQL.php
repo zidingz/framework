@@ -160,17 +160,19 @@ class CLMySQL {
 	}
 
 	function insert_id() {
-		$result_id = $this->query('insert_id');
-		return $this->fetch($result_id);
+		#$result_id = $this->query('insert_id');
+		#return $this->fetch($result_id);
+		return isset($this->result[$this->result_id - 1][$this->dbname][2]) ? $this->result[$this->result_id - 1][$this->dbname][2] : false;
 	}
 
 	function affected_rows() {
-		$result_id = $this->query('affected_rows');
-		return $this->fetch($result_id);
+		#$result_id = $this->query('affected_rows');
+		#return $this->fetch($result_id);
+		return isset($this->result[$this->result_id - 1][$this->dbname][3]) ? $this->result[$this->result_id - 1][$this->dbname][3] : false;
 	}
 
-	function onClose(\swoole_client $client) {
+	/*function onClose(\swoole_client $client) {
 		//连接中断
 		#throw new \Exception("clmysql连接被中断");
-	}
+	}*/
 }
