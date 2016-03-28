@@ -153,6 +153,7 @@ class Redis
         $n_bytes = 0;
         $command = array();
         $n_success = 0;
+        $_send = '';
 
         readfile:
         while(!feof($fp))
@@ -171,6 +172,7 @@ class Redis
                         $n_lines = $match[1];
                         $command = array();
                         $step = self::READ_LENGTH;
+                        $_send = $line."\n";
                     }
                     else
                     {
@@ -188,6 +190,7 @@ class Redis
                     {
                         $n_bytes = $match[1];
                         $step = self::READ_DATA;
+                        $_send .= $line."\n";
                     }
                     else
                     {
@@ -200,12 +203,17 @@ class Redis
                     {
                         exit("read data failed. seek=".ftell($fp)."\n");
                     }
-                    $command []= $data;
+                    $command[] = $data;
                     fgets($fp, 8192);
+                    $_send .= $data."\r\n";
                     if (count($command) == $n_lines)
                     {
                         $step = self::READ_LINE_NUMBER;
-                        $_send = implode(" ", $command)."\r\n";
+                        //$_send = implode(" ", $command)."\r\n";
+                        if (strcasecmp("select", $command[0]) == 0)
+                        {
+                            goto readfile;
+                        }
                         if (Stream::write($dstRedis, $_send) != strlen($_send))
                         {
                             exit("write data failed. seek=".ftell($fp)."\n$command\n");
