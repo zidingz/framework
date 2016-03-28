@@ -162,7 +162,7 @@ class CLMySQL {
 	function insert_id() {
 		#$result_id = $this->query('insert_id');
 		#return $this->fetch($result_id);
-		return isset($this->result[$this->result_id - 1][2]) ? $this->result[$this->result_id - 1][2] : false;
+		return isset($this->result[$this->result_id - 1][$this->dbname][2]) ? $this->result[$this->result_id - 1][$this->dbname][2] : false;
 	}
 
 	function affected_rows() {
