@@ -148,114 +148,50 @@ class Redis
             return false;
         }
 
-        $step =  self::READ_LINE_NUMBER;
-        $n_lines = 0;
-        $n_bytes = 0;
-        $command = array();
         $n_success = 0;
         $_send = '';
 
         readfile:
         while(!feof($fp))
         {
-            step_switch:
-            switch($step)
+            $line = fgets($fp, 8192);
+            if ($line === false)
             {
-                case self::READ_LINE_NUMBER:
-                    $line = fgets($fp, 8192);
-                    //没有数据
-                    if ($line === false)
+                echo "line empty\n";
+                break;
+            }
+            $patten = "#^\\*(\d+)\r\n$#";
+            $r = preg_match($patten, $line);
+            if ($r)
+            {
+                if ($_send)
+                {
+                    if (Stream::write($dstRedis, $_send) === false)
                     {
-                        goto wait;
+                        die("写入Redis失败. $_send");
                     }
-                    $r = preg_match('/\*(\d+)/', $line, $match);
-                    if ($r)
+                    if (fread($dstRedis, 8192) === false)
                     {
-                        $n_lines = $match[1];
-                        $command = array();
-                        $step = self::READ_LENGTH;
-                        $_send = $line;
-                    }
-                    else
-                    {
-                        exit("error data[1]. seek=".ftell($fp)."\n{$line}\n");
-                    }
-                    break;
-                case self::READ_LENGTH:
-                    $oldSeek = ftell($fp);
-                    read_length:
-                    $line = fgets($fp, 8192);
-                    if ($line === false)
-                    {
-                        sleep(1);
-                        fseek($fp, $oldSeek);
-                        echo "read length[4] failed.\n";
-                        var_dump($_send);
-                        goto read_length;
-                    }
-
-                    $r = preg_match('/\$(\d+)/', $line, $match);
-                    if ($r)
-                    {
-                        $n_bytes = $match[1];
-                        $_send .= $line;
-                        //空字符串
-                        if ($n_bytes == 0)
+                        echo "read redis failed. $_send";
+                        $dstRedis = stream_socket_client($dstRedisServer, $errno, $errstr, 10);
+                        if (!$dstRedis)
                         {
-                            goto step_switch;
+                            echo "连接到Redis($dstRedisServer)失败\n";
+                            return false;
                         }
-                        else
-                        {
-                            $step = self::READ_DATA;
-                        }
+                        continue;
                     }
-                    else
-                    {
-                        exit("error data[2]. seek=".ftell($fp)."\n{$line}\n");
-                    }
-                    break;
-                case self::READ_DATA:
-                    $oldSeek = ftell($fp);
-                    read_data:
-                    $data = Stream::read($fp, $n_bytes);
-                    if (strlen($data) === 0)
-                    {
-                        sleep(1);
-                        fseek($fp, $oldSeek);
-                        echo "read data[4] failed.\n";
-                        var_dump($_send);
-                        goto read_data;
-                    }
-                    $command[] = $data;
-                    fgets($fp, 8192);
-                    $_send .= $data."\r\n";
-                    if (count($command) == $n_lines)
-                    {
-                        $step = self::READ_LINE_NUMBER;
-                        //$_send = implode(" ", $command)."\r\n";
-                        if (strcasecmp("select", $command[0]) == 0)
-                        {
-                            goto step_switch;
-                        }
-                        if (Stream::write($dstRedis, $_send) != strlen($_send))
-                        {
-                            exit("write data failed. seek=".ftell($fp)."\n$command\n");
-                        }
-                        if (fread($dstRedis, 8192) == false)
-                        {
-                            exit("read data failed. seek=".ftell($fp)."\n");
-                        }
-                        $n_success ++;
-                        if ($n_success % 1000 == 0)
-                        {
-                            echo "$n_success finish.\n";
-                        }
-                    }
-                    else
-                    {
-                        $step = self::READ_LENGTH;
-                    }
-                    break;
+                    $n_success ++;
+                }
+                $_send = $line;
+            }
+            else
+            {
+                $_send .= $line;
+            }
+            if ($n_success > 100)
+            {
+                exit("finish\n");
             }
         }
 
