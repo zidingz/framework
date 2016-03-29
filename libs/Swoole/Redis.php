@@ -191,6 +191,10 @@ class Redis
                         continue;
                     }
                     $n_success ++;
+                    if ($n_success % 1000 == 0)
+                    {
+                        echo "$n_success 完成\n";
+                    }
                 }
                 $_send = $line;
             }
