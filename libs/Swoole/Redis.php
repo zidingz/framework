@@ -150,6 +150,7 @@ class Redis
 
         $n_success = 0;
         $_send = '';
+        $patten = "#^\\*(\d+)\r\n$#";
 
         readfile:
         while(!feof($fp))
@@ -160,7 +161,6 @@ class Redis
                 echo "line empty\n";
                 break;
             }
-            $patten = "#^\\*(\d+)\r\n$#";
             $r = preg_match($patten, $line);
             if ($r)
             {
@@ -170,15 +170,24 @@ class Redis
                     {
                         die("写入Redis失败. $_send");
                     }
-                    if (fread($dstRedis, 8192) === false)
+                    if (fread($dstRedis, 8192) == false)
                     {
-                        echo "read redis failed. $_send";
-                        $dstRedis = stream_socket_client($dstRedisServer, $errno, $errstr, 10);
+                        echo "读取Redis失败. $_send\n";
+                        for($i = 0; $i < 10; $i++)
+                        {
+                            $dstRedis = stream_socket_client($dstRedisServer, $errno, $errstr, 10);
+                            if (!$dstRedis)
+                            {
+                                echo "连接到Redis($dstRedisServer)失败, 1秒后重试.\n";
+                                sleep(1);
+                            }
+                        }
                         if (!$dstRedis)
                         {
                             echo "连接到Redis($dstRedisServer)失败\n";
                             return false;
                         }
+                        $_send = $line;
                         continue;
                     }
                     $n_success ++;
@@ -188,10 +197,6 @@ class Redis
             else
             {
                 $_send .= $line;
-            }
-            if ($n_success > 100)
-            {
-                exit("finish\n");
             }
         }
 
