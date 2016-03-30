@@ -148,7 +148,8 @@ class Redis
             return false;
         }
 
-        $n_line = 0;
+        $n_bytes = 0;
+        $n_lines = 0;
         $n_success = 0;
         $_send = '';
         $patten = "#^\\*(\d+)\r\n$#";
@@ -162,7 +163,7 @@ class Redis
                 echo "line empty\n";
                 break;
             }
-            $n_line++;
+            $n_lines++;
             $r = preg_match($patten, $line);
             if ($r)
             {
@@ -172,6 +173,7 @@ class Redis
                     {
                         die("写入Redis失败. $_send");
                     }
+                    $n_bytes += strlen($_send);
                     //清理数据
                     if (fread($dstRedis, 8192) == false)
                     {
@@ -197,7 +199,7 @@ class Redis
                     $n_success ++;
                     if ($n_success % 10000 == 0)
                     {
-                        echo "KEY: $n_success, LINE: $n_line. 完成\n";
+                        echo "KEY: $n_success, LINE: $n_lines, BYTE: {$n_bytes}. 完成\n";
                     }
                 }
                 $_send = $line;
@@ -212,6 +214,7 @@ class Redis
         //等待100ms后继续读
         sleep(2);
         echo "read eof, seek=".ftell($fp)."\n";
+        clearstatcache(true);
         goto readfile;
     }
 }
