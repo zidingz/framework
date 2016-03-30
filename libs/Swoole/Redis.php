@@ -174,7 +174,7 @@ class Redis
                     //合并20条指令一起发送
                     if (count($pipeline) == 20)
                     {
-                        if (Stream::write($dstRedis, implode("\r\n", $pipeline)) === false)
+                        if (Stream::write($dstRedis, implode('', $pipeline)) === false)
                         {
                             die("写入Redis失败. $_send");
                         }
