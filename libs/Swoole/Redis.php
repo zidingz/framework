@@ -223,7 +223,10 @@ class Redis
         {
             exit("打开文件失败，seek=$seek\n");
         }
-        fseek($fp, $seek);
+        if (fseek($fp, $seek) < 0)
+        {
+            exit("feek($seek)失败\n");
+        }
         goto readfile;
     }
 }
