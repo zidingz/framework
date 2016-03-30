@@ -151,7 +151,6 @@ class Redis
         $n_line = 0;
         $n_success = 0;
         $_send = '';
-        $pipeline = array();
         $patten = "#^\\*(\d+)\r\n$#";
 
         readfile:
@@ -169,38 +168,32 @@ class Redis
             {
                 if ($_send)
                 {
-                    //多条一起发送
-                    $pipeline[] = $_send;
-                    //合并20条指令一起发送
-                    if (count($pipeline) == 20)
+                    if (Stream::write($dstRedis, $_send) === false)
                     {
-                        if (Stream::write($dstRedis, implode('', $pipeline)) === false)
+                        die("写入Redis失败. $_send");
+                    }
+                    //清理数据
+                    if (fread($dstRedis, 8192) == false)
+                    {
+                        echo "读取Redis失败. $_send\n";
+                        for($i = 0; $i < 10; $i++)
                         {
-                            die("写入Redis失败. $_send");
-                        }
-                        //清理数据
-                        $pipeline = array();
-                        if (fread($dstRedis, 8192) == false)
-                        {
-                            echo "读取Redis失败. $_send\n";
-                            for($i = 0; $i < 10; $i++)
-                            {
-                                $dstRedis = stream_socket_client($dstRedisServer, $errno, $errstr, 10);
-                                if (!$dstRedis)
-                                {
-                                    echo "连接到Redis($dstRedisServer)失败, 1秒后重试.\n";
-                                    sleep(1);
-                                }
-                            }
+                            $dstRedis = stream_socket_client($dstRedisServer, $errno, $errstr, 10);
                             if (!$dstRedis)
                             {
-                                echo "连接到Redis($dstRedisServer)失败\n";
-                                return false;
+                                echo "连接到Redis($dstRedisServer)失败, 1秒后重试.\n";
+                                sleep(1);
                             }
-                            $_send = $line;
-                            continue;
                         }
+                        if (!$dstRedis)
+                        {
+                            echo "连接到Redis($dstRedisServer)失败\n";
+                            return false;
+                        }
+                        $_send = $line;
+                        continue;
                     }
+
                     $n_success ++;
                     if ($n_success % 10000 == 0)
                     {
