@@ -148,7 +148,7 @@ class Redis
             return false;
         }
 
-        $n_bytes = 0;
+        $n_bytes = $seek;
         $n_lines = 0;
         $n_success = 0;
         $_send = '';
@@ -199,7 +199,8 @@ class Redis
                     $n_success ++;
                     if ($n_success % 10000 == 0)
                     {
-                        echo "KEY: $n_success, LINE: $n_lines, BYTE: {$n_bytes}. 完成\n";
+                        $seek = ftell($fp);
+                        echo "KEY: $n_success, LINE: $n_lines, BYTE: {$n_bytes}, SEEK: {$seek}. 完成\n";
                     }
                 }
                 $_send = $line;
@@ -213,8 +214,16 @@ class Redis
         wait:
         //等待100ms后继续读
         sleep(2);
-        echo "read eof, seek=".ftell($fp)."\n";
-        clearstatcache(true);
+        $seek = ftell($fp);
+        echo "read eof, seek={$seek}\n";
+        //关闭文件
+        fclose($fp);
+        $fp = fopen($file, 'r');
+        if (!$fp)
+        {
+            exit("打开文件失败，seek=$seek\n");
+        }
+        fseek($fp, $seek);
         goto readfile;
     }
 }
