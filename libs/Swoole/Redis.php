@@ -148,6 +148,7 @@ class Redis
             return false;
         }
 
+        $n_line = 0;
         $n_success = 0;
         $_send = '';
         $patten = "#^\\*(\d+)\r\n$#";
@@ -161,6 +162,7 @@ class Redis
                 echo "line empty\n";
                 break;
             }
+            $n_line++;
             $r = preg_match($patten, $line);
             if ($r)
             {
@@ -191,9 +193,9 @@ class Redis
                         continue;
                     }
                     $n_success ++;
-                    if ($n_success % 1000 == 0)
+                    if ($n_success % 10000 == 0)
                     {
-                        echo "$n_success 完成\n";
+                        echo "KEY: $n_success, LINE: $n_line. 完成\n";
                     }
                 }
                 $_send = $line;
