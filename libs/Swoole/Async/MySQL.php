@@ -85,19 +85,22 @@ class MySQL {
 	/**
 	 * create mysql connection
 	 */
-	protected function createConnection() {
-		$config = $this->config;
-		$db = new \mysqli;
-		$db->connect($config['host'], $config['user'], $config['password'], $config['database'], $config['port']);
-		if ($db->connect_error) {
-			return [
-				$db->connect_errno,
-				$db->connect_error
-			];
-		}
-		if (!empty($config['charset'])) {
-			$db->set_charset($config['charset']);
-		}
+    protected function createConnection()
+    {
+        $config = $this->config;
+        $db = new \mysqli;
+        $db->connect($config['host'], $config['user'], $config['password'], $config['database'], $config['port']);
+        if ($db->connect_error)
+        {
+            return [
+                $db->connect_errno,
+                $db->connect_error
+            ];
+        }
+        if (!empty($config['charset']))
+        {
+            $db->set_charset($config['charset']);
+        }
         $db_sock = swoole_get_mysqli_sock($db);
         //内置客户端不需要加入EventLoop
         if (!$this->haveSwooleAsyncMySQL)
@@ -117,9 +120,9 @@ class MySQL {
             'socket' => $db_sock,
         );
         //增加计数
-		$this->connection_num++;
-		return 0;
-	}
+        $this->connection_num++;
+        return 0;
+    }
 
 	/**
 	 * remove mysql connection
@@ -136,8 +139,8 @@ class MySQL {
         if (!$this->haveSwooleAsyncMySQL)
         {
             swoole_event_del($db['socket']);
+            $db['object']->close();
         }
-        $db['object']->close();
         if (isset($this->idle_pool[$db['socket']]))
         {
             unset($this->idle_pool[$db['socket']]);
@@ -160,16 +163,22 @@ class MySQL {
             //连接已关闭
             if (empty($task) or ($this->haveSwooleAsyncMySQL and $db->_connected == false))
             {
-                echo "mysql connection is closed\n";
-                if (isset($this->idle_pool[$db_sock]))
+                unset($this->work_pool[$db_sock]);
+                $this->removeConnection($task['mysql']);
+
+                //创建连接成功
+                if ($this->createConnection() === 0)
                 {
-                    $this->removeConnection($this->idle_pool[$db_sock]);
+                    $this->doQuery($task['sql'], $task['callback']);
                 }
-                //创建新的连接
-                $this->createConnection();
-                //继续执行下面的任务
-                $new_task = $this->wait_queue->shift();
-                $this->doQuery($new_task['sql'], $new_task['callback']);
+                //连接建立失败，加入到等待队列中
+                else
+                {
+                    $this->wait_queue->push(array(
+                        'sql' => $task['sql'],
+                        'callback' => $task['callback'],
+                    ));
+                }
                 return;
             }
         }
@@ -281,6 +290,9 @@ class MySQL {
     {
         //remove from idle pool
         $db = array_pop($this->idle_pool);
+        if ($db == null) {
+            var_dump($this->idle_pool);exit;
+        }
         /**
          * @var \mysqli $mysqli
          */
