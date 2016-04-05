@@ -111,7 +111,10 @@ class Redis
 
                 \Swoole::$php->log->error(__CLASS__ . " [" . posix_getpid() . "] Swoole Redis[{$this->config['host']}:{$this->config['port']}]
                  Exception(Msg=" . $e->getMessage() . ", Code=" . $e->getCode() . "), Redis->{$method}, Params=" . var_export($args, 1));
-                $this->_redis->close();
+                if ($this->_redis->isConnected())
+                {
+                    $this->_redis->close();
+                }
                 $this->connect();
                 $reConnect = true;
                 continue;
