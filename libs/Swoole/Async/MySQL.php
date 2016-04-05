@@ -233,11 +233,16 @@ class MySQL {
         {
             deQueue:
             $this->idle_pool[$task['mysql']['socket']] = $task['mysql'];
+            $queue_count = count($this->wait_queue);
             //fetch a request from wait queue.
-            if (count($this->wait_queue) > 0)
+            if ($queue_count > 0)
             {
-                $idle_n = count($this->idle_pool);
-                for ($i = 0; $i < $idle_n; $i++)
+                $task_n = count($this->idle_pool);
+                if ($task_n > $queue_count)
+                {
+                    $task_n = $queue_count;
+                }
+                for ($i = 0; $i < $task_n; $i++)
                 {
                     $new_task = $this->wait_queue->shift();
                     $this->doQuery($new_task['sql'], $new_task['callback']);
@@ -290,9 +295,6 @@ class MySQL {
     {
         //remove from idle pool
         $db = array_pop($this->idle_pool);
-        if ($db == null) {
-            var_dump($this->idle_pool);exit;
-        }
         /**
          * @var \mysqli $mysqli
          */
