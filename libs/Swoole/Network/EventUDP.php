@@ -1,6 +1,6 @@
 <?php
 namespace Swoole\Network;
-class EventUDP extends \Swoole\Server implements \Swoole\UDP_Server_Driver
+class EventUDP extends \Swoole\Server\Base implements \Swoole\UDP_Server_Driver
 {
     /**
      * Server Socket

@@ -286,6 +286,24 @@ class Swoole
         $this->hooks[$type][] = $func;
     }
 
+    /**
+     * 在请求之前执行一个函数
+     * @param callable $callback
+     */
+    function beforeRequest(callable $callback)
+    {
+        $this->addHook(self::HOOK_INIT, $callback);
+    }
+
+    /**
+     * 在请求之后执行一个函数
+     * @param callable $callback
+     */
+    function afterRequest(callable $callback)
+    {
+        $this->addHook(self::HOOK_CLEAN, $callback);
+    }
+
     function __get($lib_name)
     {
         //如果不存在此对象，从工厂中创建一个
@@ -341,6 +359,23 @@ class Swoole
                 throw new Exception("module name cannot be null.");
             }
             return $this->loadModule($func, $param[0]);
+        }
+        //尝试加载用户定义的工厂类文件
+        elseif(is_file(self::$app_path . '/factory/' . $func . '.php'))
+        {
+            $object_id = $func . '_' . $param[0];
+            //已创建的对象
+            if (isset($this->objects[$object_id]))
+            {
+                return $this->objects[$object_id];
+            }
+            else
+            {
+                $this->factory_key = $param[0];
+                $object = require self::$app_path . '/factory/' . $func . '.php';
+                $this->objects[$object_id] = $object;
+                return $object;
+            }
         }
         else
         {

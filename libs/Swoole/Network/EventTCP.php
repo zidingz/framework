@@ -1,6 +1,7 @@
 <?php
 namespace Swoole\Network;
-class EventTCP extends \Swoole\Server
+
+class EventTCP extends \Swoole\Server\Base
 {
 	/**
 	 * Server Socket

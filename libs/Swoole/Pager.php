@@ -266,9 +266,9 @@ class Pager
 			$this->page=intval($nowindex);
 		}
 	}
+
 	/**
 	 * 为指定的页面返回地址值
-	 *
 	 * @param int $pageno
 	 * @return string $url
 	 */
@@ -280,7 +280,7 @@ class Pager
         }
         else
         {
-            return sprintf($this->page_tpl, $pageno);
+            return str_replace('{page}', $pageno, $this->page_tpl);
         }
     }
 

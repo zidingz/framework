@@ -15,6 +15,8 @@ class CURL
     protected $userAgent = "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:28.0) Gecko/20100101 Firefox/28.0";
     protected $reqHeader = array();
 
+    protected $multiHandle = null;
+
     public $info;
     public $url;
 
@@ -66,7 +68,7 @@ class CURL
         curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, true);
 
         // use gzip if possible
-        curl_setopt($this->ch, CURLOPT_ENCODING , 'gzip, deflate');
+        curl_setopt($this->ch, CURLOPT_ENCODING, 'gzip, deflate');
 
         // do not veryfy ssl
         // this is important for windows
@@ -210,6 +212,11 @@ class CURL
                 $headers[] = "$k: $v";
             }
             curl_setopt($this->ch, CURLOPT_HTTPHEADER, $headers);
+        }
+        //multi curl
+        if ($this->multiHandle)
+        {
+            return curl_multi_add_handle($this->multiHandle, $this->ch);
         }
         //and finally send curl request
         $result = curl_exec($this->ch);
@@ -479,5 +486,22 @@ class CURL
     {
         //close curl session and free up resources
         curl_close($this->ch);
+    }
+
+    /**
+     * 获取CURL资源句柄
+     */
+    function getHandle()
+    {
+        return $this->ch;
+    }
+
+    /**
+     * 并发CURL模式
+     * @param $handle
+     */
+    function setMultiHandle($handle)
+    {
+        $this->multiHandle = $handle;
     }
 }

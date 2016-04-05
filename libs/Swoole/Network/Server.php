@@ -1,15 +1,31 @@
 <?php
 namespace Swoole\Network;
+
 use Swoole;
+use Swoole\Server\Base;
+use Swoole\Server\Driver;
 
 /**
  * Class Server
  * @package Swoole\Network
  */
-class Server extends Swoole\Server implements Swoole\Server\Driver
+class Server extends Base implements Driver
 {
-    static $sw_mode = SWOOLE_PROCESS;
+    static $swooleMode = SWOOLE_PROCESS;
+    static $optionKit;
     static $pidFile;
+
+    static $defaultOptions = array(
+        'd|daemon' => '启用守护进程模式',
+        'h|host?' => '指定监听地址',
+        'p|port?' => '指定监听端口',
+        'help' => '显示帮助界面',
+        'b|base' => '使用BASE模式启动',
+        'w|worker?' => '设置Worker进程的数量',
+        'r|thread?' => '设置Reactor线程的数量',
+        't|tasker?' => '设置Task进程的数量',
+    );
+
     /**
      * @var \swoole_server
      */
@@ -23,6 +39,49 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
     static function setPidFile($pidFile)
     {
         self::$pidFile = $pidFile;
+    }
+
+    /**
+     * 杀死所有进程
+     * @param $name
+     * @param int $signo
+     * @return string
+     */
+    static function killProcessByName($name, $signo = 9)
+    {
+        $cmd = 'ps -eaf |grep "' . $name . '" | grep -v "grep"| awk "{print $2}"|xargs kill -'.$signo;
+        return exec($cmd);
+    }
+
+    /**
+     *
+     * $opt->add( 'f|foo:' , 'option requires a value.' );
+     * $opt->add( 'b|bar+' , 'option with multiple value.' );
+     * $opt->add( 'z|zoo?' , 'option with optional value.' );
+     * $opt->add( 'v|verbose' , 'verbose message.' );
+     * $opt->add( 'd|debug'   , 'debug message.' );
+     * $opt->add( 'long'   , 'long option name only.' );
+     * $opt->add( 's'   , 'short option name only.' );
+     *
+     * @param $specString
+     * @param $description
+     * @throws ServerOptionException
+     */
+    static function addOption($specString, $description)
+    {
+        if (!self::$optionKit)
+        {
+            Swoole\Loader::addNameSpace('GetOptionKit', LIBPATH . '/module/GetOptionKit/src/GetOptionKit');
+            self::$optionKit = new \GetOptionKit\GetOptionKit;
+        }
+        foreach (self::$defaultOptions as $k => $v)
+        {
+            if ($k[0] == $specString[0])
+            {
+                throw new ServerOptionException("不能添加系统保留的选项名称");
+            }
+        }
+        self::$optionKit->add($specString, $description);
     }
 
     /**
@@ -43,8 +102,21 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         {
             $server_pid = 0;
         }
+
+        if (!self::$optionKit)
+        {
+            Swoole\Loader::addNameSpace('GetOptionKit', LIBPATH . '/module/GetOptionKit/src/GetOptionKit');
+            self::$optionKit = new \GetOptionKit\GetOptionKit;
+        }
+
+        $kit = self::$optionKit;
+        foreach(self::$defaultOptions as $k => $v)
+        {
+            $kit->add($k, $v);
+        }
         global $argv;
-        if (empty($argv[1]))
+        $opt = $kit->parse($argv);
+        if (empty($argv[1]) or isset($opt['help']))
         {
             goto usage;
         }
@@ -77,9 +149,11 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         else
         {
             usage:
-            exit("Usage: php {$argv[0]} start|stop|reload\n");
+            $kit->specs->printOptions("php {$argv[0]} start|stop|reload");
+            exit;
         }
-        $startFunction();
+        self::$options = $opt;
+        $startFunction($opt);
     }
 
     /**
@@ -109,7 +183,11 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
     function __construct($host, $port, $ssl = false)
     {
         $flag = $ssl ? (SWOOLE_SOCK_TCP | SWOOLE_SSL) : SWOOLE_SOCK_TCP;
-        $this->sw = new \swoole_server($host, $port, self::$sw_mode, $flag);
+        if (!empty(self::$options['base']))
+        {
+            self::$swooleMode = SWOOLE_BASE;
+        }
+        $this->sw = new \swoole_server($host, $port, self::$swooleMode, $flag);
         $this->host = $host;
         $this->port = $port;
         Swoole\Error::$stop = false;
@@ -136,9 +214,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
 
     function onMasterStart($serv)
     {
-        global $argv;
-        Swoole\Console::setProcessName('php ' . $argv[0] . ': master -host=' . $this->host . ' -port=' . $this->port);
-        
+        Swoole\Console::setProcessName($this->getProcessName() . ': master -host=' . $this->host . ' -port=' . $this->port);
         if (!empty($this->runtimeSetting['pid_file']))
         {
             file_put_contents(self::$pidFile, $serv->master_pid);
@@ -161,18 +237,21 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
 
     function onWorkerStart($serv, $worker_id)
     {
-        global $argv;
         if ($worker_id >= $serv->setting['worker_num'])
         {
-            Swoole\Console::setProcessName('php ' . $argv[0] . ': task');
+            Swoole\Console::setProcessName($this->getProcessName() . ': task');
         }
         else
         {
-            Swoole\Console::setProcessName('php ' . $argv[0] . ': worker');
+            Swoole\Console::setProcessName($this->getProcessName() . ': worker');
         }
         if (method_exists($this->protocol, 'onStart'))
         {
             $this->protocol->onStart($serv, $worker_id);
+        }
+        if (method_exists($this->protocol, 'onWorkerStart'))
+        {
+            $this->protocol->onWorkerStart($serv, $worker_id);
         }
     }
 
@@ -183,6 +262,22 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         {
             $this->runtimeSetting['pid_file'] = self::$pidFile;
         }
+        if (!empty(self::$options['daemon']))
+        {
+            $this->runtimeSetting['daemonize'] = true;
+        }
+        if (!empty(self::$options['worker']))
+        {
+            $this->runtimeSetting['worker_num'] = intval(self::$options['worker']);
+        }
+        if (!empty(self::$options['thread']))
+        {
+            $this->runtimeSetting['reator_num'] = intval(self::$options['thread']);
+        }
+        if (!empty(self::$options['tasker']))
+        {
+            $this->runtimeSetting['task_worker_num'] = intval(self::$options['tasker']);
+        }
         $this->sw->set($this->runtimeSetting);
         $version = explode('.', SWOOLE_VERSION);
         //1.7.0
@@ -190,8 +285,7 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         {
             $this->sw->on('ManagerStart', function ($serv)
             {
-                global $argv;
-                Swoole\Console::setProcessName('php ' . $argv[0] . ': manager');
+                Swoole\Console::setProcessName($this->getProcessName() . ': manager');
             });
         }
         $this->sw->on('Start', array($this, 'onMasterStart'));
@@ -224,13 +318,18 @@ class Server extends Swoole\Server implements Swoole\Server\Driver
         return $this->sw->close($client_id);
     }
 
-    function addListener($host, $port, $type)
-    {
-        return $this->sw->addlistener($host, $port, $type);
-    }
-
     function send($client_id, $data)
     {
         return $this->sw->send($client_id, $data);
     }
+
+    function __call($func, $params)
+    {
+        return call_user_func_array(array($this->sw, $func), $params);
+    }
+}
+
+class ServerOptionException extends \Exception
+{
+
 }

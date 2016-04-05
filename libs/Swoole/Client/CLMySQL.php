@@ -14,26 +14,30 @@ class CLMySQL {
 	private $conn, $dbname, $result = array(), $result_id = 1;
 	private $host, $port;
 	public $last_errno, $last_erro_msg, $is_connect = false;
+	private static $conns = [];
 
 	function __construct($host, $port, $dbname, $pconnect = true) {
 		$this->host = $host;
 		$this->port = $port;
 		$this->dbname = $dbname;
-		$this->conn = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC, 'clmysql');
-		$this->conn->set(array(
-			'open_length_check' => 1,
-			'package_length_type' => 'N',
-			'package_length_offset' => 0,
-			//第N个字节是包长度的值
-			'package_body_offset' => 8,
-			//第几个字节开始计算长度
-			'package_max_length' => CLPack::MAX_LEN,
-			//协议最大长度
-		));
-		$this->conn->on('Close', array(
+		if (!isset(self::$conns[$host . ':' . $port])) {
+			self::$conns[$host . ':' . $port] = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC, 'clmysql');
+			self::$conns[$host . ':' . $port]->set(array(
+				'open_length_check' => 1,
+				'package_length_type' => 'N',
+				'package_length_offset' => 0,
+				//第N个字节是包长度的值
+				'package_body_offset' => 8,
+				//第几个字节开始计算长度
+				'package_max_length' => CLPack::MAX_LEN,
+				//协议最大长度
+			));
+		}
+		$this->conn = self::$conns[$host . ':' . $port];
+		/*$this->conn->on('Close', array(
 			$this,
 			'OnClose'
-		));
+		));*/
 		$this->connect();
 	}
 
@@ -49,7 +53,7 @@ class CLMySQL {
 		if ($port) {
 			$this->port = $port;
 		}
-		$this->is_connect = $this->conn->connect($this->host, $this->port);
+		$this->is_connect = $this->conn->connect($this->host, $this->port, 60);
 		return $this->is_connect;
 	}
 
@@ -59,7 +63,7 @@ class CLMySQL {
 			if ($data == false) {
 				#throw new \Exception('连接Mysql网络中断');
 				$this->last_errno = 2006;
-				$this->last_erro_msg = 'Mysql proxy中断';
+				$this->last_erro_msg = 'Mysql proxy中断(接收失败)';
 				return false;
 			}
 			$r = CLPack::unpack($data);
@@ -72,7 +76,7 @@ class CLMySQL {
 	function query($sql) {
 		if (!$this->is_connect) {
 			$this->last_errno = 2006;
-			$this->last_erro_msg = 'Mysql proxy中断';
+			$this->last_erro_msg = 'Mysql proxy中断(无连接)';
 			return false;
 		}
 		$is_multi = true;
@@ -92,7 +96,7 @@ class CLMySQL {
 			$this->connect();
 			if (false === $this->conn->send($pack)) {
 				$this->last_errno = 2006;
-				$this->last_erro_msg = 'Mysql proxy中断';
+				$this->last_erro_msg = 'Mysql proxy中断(发送失败)';
 				return false;
 			}
 		}
@@ -156,17 +160,19 @@ class CLMySQL {
 	}
 
 	function insert_id() {
-		$result_id = $this->query('insert_id');
-		return $this->fetch($result_id);
+		#$result_id = $this->query('insert_id');
+		#return $this->fetch($result_id);
+		return isset($this->result[$this->result_id - 1][$this->dbname][2]) ? $this->result[$this->result_id - 1][$this->dbname][2] : false;
 	}
 
 	function affected_rows() {
-		$result_id = $this->query('affected_rows');
-		return $this->fetch($result_id);
+		#$result_id = $this->query('affected_rows');
+		#return $this->fetch($result_id);
+		return isset($this->result[$this->result_id - 1][$this->dbname][3]) ? $this->result[$this->result_id - 1][$this->dbname][3] : false;
 	}
 
-	function onClose(\swoole_client $client) {
+	/*function onClose(\swoole_client $client) {
 		//连接中断
 		#throw new \Exception("clmysql连接被中断");
-	}
+	}*/
 }

@@ -1,7 +1,7 @@
 <?php
 namespace Swoole\Network;
 
-class SelectTCP extends \Swoole\Server
+class SelectTCP extends \Swoole\Server\Base
 {
     public $server_socket_id;
 
