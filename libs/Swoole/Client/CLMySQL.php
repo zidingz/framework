@@ -45,6 +45,7 @@ class CLMySQL {
 	}
 
 	static function connect($host, $port, $pconnect = false) {
+		$key = $host . ':' . $port;
 		if (!isset(self::$conns[$key])) {
 			self::$conns[$key] = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC, 'clmysql');
 			self::$conns[$key]->set(array(
