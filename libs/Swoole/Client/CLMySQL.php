@@ -133,6 +133,7 @@ class CLMySQL {
 	static function fetch($result_id, $dbname = '') {
 		if (isset(self::$result[$result_id])) {
 			if (!$dbname) {
+				reset(self::$result[$result_id]);
 				$dbname = key(self::$result[$result_id]);
 			}
 			if (self::$result[$result_id][$dbname][0] == 0) {
@@ -145,6 +146,7 @@ class CLMySQL {
 	static function fetch_row($result_id, $seek, $dbname = '') {
 		if (isset(self::$result[$result_id])) {
 			if (!$dbname) {
+				reset(self::$result[$result_id]);
 				$dbname = key(self::$result[$result_id]);
 			}
 			if (self::$result[$result_id][$dbname][0] == 0 && isset(self::$result[$result_id][$dbname][1][$seek])) {
@@ -157,11 +159,9 @@ class CLMySQL {
 	static function num_rows($result_id, $dbname = '') {
 		if (isset(self::$result[$result_id])) {
 			if (!$dbname) {
+				reset(self::$result[$result_id]);
 				$dbname = key(self::$result[$result_id]);
 			}
-			reset(self::$result[$result_id]);
-			echo key(self::$result[$result_id]);
-			exit;
 			if (self::$result[$result_id][$dbname][0] == 0) {
 				return count(self::$result[$result_id][$dbname][1]);
 			}
