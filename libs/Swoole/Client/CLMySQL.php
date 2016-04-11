@@ -159,7 +159,9 @@ class CLMySQL {
 			if (!$dbname) {
 				$dbname = key(self::$result[$result_id]);
 			}
-			echo key(self::$result[$result_id]);exit;
+			reset(self::$result[$result_id]);
+			echo key(self::$result[$result_id]);
+			exit;
 			if (self::$result[$result_id][$dbname][0] == 0) {
 				return count(self::$result[$result_id][$dbname][1]);
 			}
