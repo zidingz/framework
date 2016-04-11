@@ -59,7 +59,7 @@ class CLMySQL {
 				//协议最大长度
 			));
 		}
-		if (self::$conns[$key]->connect($host, $port, 60)) {
+		if (self::$conns[$key]->connect($host, intval($port), 60)) {
 			self::$conn_id++;
 			self::$conninfo[self::$conn_id][self::CONNINFO_F_conn] = self::$conns[$key];
 			return self::$conn_id;
