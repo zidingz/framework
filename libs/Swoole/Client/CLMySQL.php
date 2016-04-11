@@ -45,6 +45,7 @@ class CLMySQL {
 	}
 
 	static function connect($host, $port, $pconnect = false) {
+		$key = $host . ':' . $port;
 		if (!isset(self::$conns[$key])) {
 			self::$conns[$key] = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC, 'clmysql');
 			self::$conns[$key]->set(array(
@@ -58,7 +59,7 @@ class CLMySQL {
 				//协议最大长度
 			));
 		}
-		if (self::$conns[$key]->connect($host, $port, 60)) {
+		if (self::$conns[$key]->connect($host, intval($port), 60)) {
 			self::$conn_id++;
 			self::$conninfo[self::$conn_id][self::CONNINFO_F_conn] = self::$conns[$key];
 			return self::$conn_id;
@@ -119,8 +120,8 @@ class CLMySQL {
 				self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = $v[1];
 				return false;
 			} else {
-				self::$conninfo[$conn_id][self::CONNINFO_F_insert_id] = $v[2];
-				self::$conninfo[$conn_id][self::CONNINFO_F_affected_rows] = $v[3];
+				self::$conninfo[$conn_id][self::CONNINFO_F_insert_id] = isset($v[2]) ? $v[2] : 0;
+				self::$conninfo[$conn_id][self::CONNINFO_F_affected_rows] = isset($v[3]) ? $v[3] : 0;
 			}
 		}
 
@@ -132,6 +133,7 @@ class CLMySQL {
 	static function fetch($result_id, $dbname = '') {
 		if (isset(self::$result[$result_id])) {
 			if (!$dbname) {
+				reset(self::$result[$result_id]);
 				$dbname = key(self::$result[$result_id]);
 			}
 			if (self::$result[$result_id][$dbname][0] == 0) {
@@ -144,6 +146,7 @@ class CLMySQL {
 	static function fetch_row($result_id, $seek, $dbname = '') {
 		if (isset(self::$result[$result_id])) {
 			if (!$dbname) {
+				reset(self::$result[$result_id]);
 				$dbname = key(self::$result[$result_id]);
 			}
 			if (self::$result[$result_id][$dbname][0] == 0 && isset(self::$result[$result_id][$dbname][1][$seek])) {
@@ -156,6 +159,7 @@ class CLMySQL {
 	static function num_rows($result_id, $dbname = '') {
 		if (isset(self::$result[$result_id])) {
 			if (!$dbname) {
+				reset(self::$result[$result_id]);
 				$dbname = key(self::$result[$result_id]);
 			}
 			if (self::$result[$result_id][$dbname][0] == 0) {
