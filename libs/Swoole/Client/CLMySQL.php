@@ -45,6 +45,9 @@ class CLMySQL {
 	}
 
 	static function connect($host, $port, $pconnect = false) {
+		if (!$pconnect) {
+			die("no");
+		}
 		$key = $host . ':' . $port;
 		if (!isset(self::$conns[$key])) {
 			self::$conns[$key] = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC, 'clmysql');
@@ -58,8 +61,11 @@ class CLMySQL {
 				'package_max_length' => CLPack::MAX_LEN,
 				//协议最大长度
 			));
+			if (!self::$conns[$key]->connect($host, intval($port), 60)) {
+				unset(self::$conns[$key]);
+			}
 		}
-		if (self::$conns[$key]->connect($host, intval($port), 60)) {
+		if (isset(self::$conns[$key])) {
 			self::$conn_id++;
 			self::$conninfo[self::$conn_id][self::CONNINFO_F_conn] = self::$conns[$key];
 			return self::$conn_id;
