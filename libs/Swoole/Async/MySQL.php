@@ -85,19 +85,22 @@ class MySQL {
 	/**
 	 * create mysql connection
 	 */
-	protected function createConnection() {
-		$config = $this->config;
-		$db = new \mysqli;
-		$db->connect($config['host'], $config['user'], $config['password'], $config['database'], $config['port']);
-		if ($db->connect_error) {
-			return [
-				$db->connect_errno,
-				$db->connect_error
-			];
-		}
-		if (!empty($config['charset'])) {
-			$db->set_charset($config['charset']);
-		}
+    protected function createConnection()
+    {
+        $config = $this->config;
+        $db = new \mysqli;
+        $db->connect($config['host'], $config['user'], $config['password'], $config['database'], $config['port']);
+        if ($db->connect_error)
+        {
+            return [
+                $db->connect_errno,
+                $db->connect_error
+            ];
+        }
+        if (!empty($config['charset']))
+        {
+            $db->set_charset($config['charset']);
+        }
         $db_sock = swoole_get_mysqli_sock($db);
         //内置客户端不需要加入EventLoop
         if (!$this->haveSwooleAsyncMySQL)
@@ -117,9 +120,9 @@ class MySQL {
             'socket' => $db_sock,
         );
         //增加计数
-		$this->connection_num++;
-		return 0;
-	}
+        $this->connection_num++;
+        return 0;
+    }
 
 	/**
 	 * remove mysql connection
@@ -145,20 +148,40 @@ class MySQL {
         $this->connection_num--;
     }
 
-	/**
-	 * @param $db_sock
-	 * @return bool
-	 */
-	public function onSQLReady($db, $_result = null) {
+    /**
+     * @param $db
+     * @param null $_result
+     * @return bool
+     */
+    public function onSQLReady($db, $_result = null)
+    {
         $db_sock = $this->haveSwooleAsyncMySQL ? $db->sock : $db;
 		$task = empty($this->work_pool[$db_sock]) ? null : $this->work_pool[$db_sock];
-		if (empty($task)) {
-			#echo "MySQLi Warning: Maybe SQLReady receive a Close event , such as Mysql server close the socket !\n";
-			if (isset($this->idle_pool[$db_sock])) {
-				$this->removeConnection($this->idle_pool[$db_sock]);
-			}
-			return false;
-		}
+        //SQL返回了错误
+        if ($_result === false)
+        {
+            //连接已关闭
+            if (empty($task) or ($this->haveSwooleAsyncMySQL and $db->_connected == false))
+            {
+                unset($this->work_pool[$db_sock]);
+                $this->removeConnection($task['mysql']);
+
+                //创建连接成功
+                if ($this->createConnection() === 0)
+                {
+                    $this->doQuery($task['sql'], $task['callback']);
+                }
+                //连接建立失败，加入到等待队列中
+                else
+                {
+                    $this->wait_queue->push(array(
+                        'sql' => $task['sql'],
+                        'callback' => $task['callback'],
+                    ));
+                }
+                return;
+            }
+        }
 
 		/**
 		 * @var \mysqli $mysqli
@@ -199,22 +222,33 @@ class MySQL {
             }
         }
 
-		//release mysqli object
-		unset($this->work_pool[$db_sock]);
-		if ($this->pool_size < $this->connection_num) {
-			//减少连接数
-			$this->removeConnection($task['mysql']);
-		} else {
-			$this->idle_pool[$task['mysql']['socket']] = $task['mysql'];
-			//fetch a request from wait queue.
-			if (count($this->wait_queue) > 0) {
-				$idle_n = count($this->idle_pool);
-				for ($i = 0; $i < $idle_n; $i++) {
-					$new_task = $this->wait_queue->shift();
-					$this->doQuery($new_task['sql'], $new_task['callback']);
-				}
-			}
-		}
+        //release mysqli object
+        unset($this->work_pool[$db_sock]);
+        if ($this->pool_size < $this->connection_num)
+        {
+            //减少连接数
+            $this->removeConnection($task['mysql']);
+        }
+        else
+        {
+            deQueue:
+            $this->idle_pool[$task['mysql']['socket']] = $task['mysql'];
+            $queue_count = count($this->wait_queue);
+            //fetch a request from wait queue.
+            if ($queue_count > 0)
+            {
+                $task_n = count($this->idle_pool);
+                if ($task_n > $queue_count)
+                {
+                    $task_n = $queue_count;
+                }
+                for ($i = 0; $i < $task_n; $i++)
+                {
+                    $new_task = $this->wait_queue->shift();
+                    $this->doQuery($new_task['sql'], $new_task['callback']);
+                }
+            }
+        }
 	}
 
 	/**
@@ -222,32 +256,43 @@ class MySQL {
 	 * @param callable $callback
      * @return bool
 	 */
-	public function query($sql, callable $callback) {
-		//no idle connection
-		if (count($this->idle_pool) == 0) {
-			if ($this->connection_num < $this->pool_size) {
-				$r = $this->createConnection();
-				if ($r) {
-					return $r;
-				}
-				$this->doQuery($sql, $callback);
-			} else {
-				$this->wait_queue->push(array(
-					'sql' => $sql,
-					'callback' => $callback,
-				));
-			}
-		} else {
-			$this->doQuery($sql, $callback);
-		}
-		return 0;
-	}
+    public function query($sql, callable $callback)
+    {
+        //no idle connection
+        if (count($this->idle_pool) == 0)
+        {
+            //创建新的连接
+            if ($this->connection_num < $this->pool_size)
+            {
+                $r = $this->createConnection();
+                if ($r)
+                {
+                    return $r;
+                }
+                $this->doQuery($sql, $callback);
+            }
+            //连接数达到最大值，添加到等待队列中
+            else
+            {
+                $this->wait_queue->push(array(
+                    'sql' => $sql,
+                    'callback' => $callback,
+                ));
+            }
+        }
+        else
+        {
+            $this->doQuery($sql, $callback);
+        }
+        return 0;
+    }
 
 	/**
 	 * @param string $sql
 	 * @param callable $callback
 	 */
-	protected function doQuery($sql, callable $callback) {
+    protected function doQuery($sql, callable $callback)
+    {
         //remove from idle pool
         $db = array_pop($this->idle_pool);
         /**
@@ -255,51 +300,41 @@ class MySQL {
          */
         $mysqli = $db['object'];
 
-        if ($this->haveSwooleAsyncMySQL)
+        for ($i = 0; $i < 2; $i++)
         {
-            $ret = swoole_mysql_query($mysqli, $sql, array($this, 'onSQLReady'));
-            if ($ret == false)
+            if ($this->haveSwooleAsyncMySQL)
             {
-                trigger_error("swoole_mysql_query($sql) failed.", E_USER_WARNING);
-                //执行失败了，重新加入到待执行SQL队列中
-                $this->wait_queue->push(array(
-                    'sql' => $sql,
-                    'callback' => $callback,
-                ));
-                return;
+                $result = swoole_mysql_query($mysqli, $sql, array($this, 'onSQLReady'));
             }
-        }
-        else
-        {
-            for ($i = 0; $i < 2; $i++)
+            else
             {
                 $result = $mysqli->query($sql, MYSQLI_ASYNC);
-                if ($result === false)
+            }
+
+            if ($result === false)
+            {
+                if ($mysqli->errno == 2013 or $mysqli->errno == 2006 or (isset($mysqli->_errno) and $mysqli->_errno == 2006))
                 {
-                    if ($mysqli->errno == 2013 or $mysqli->errno == 2006)
+                    $mysqli->close();
+                    $r = $mysqli->connect();
+                    if ($r === true)
                     {
-                        $mysqli->close();
-                        $r = $mysqli->connect();
-                        if ($r === true)
-                        {
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        #echo "server exception. \n";
-                        $this->connection_num--;
-                        $this->wait_queue->push(array(
-                            'sql' => $sql,
-                            'callback' => $callback,
-                        ));
-                        return;
+                        continue;
                     }
                 }
-                break;
+                else
+                {
+                    #echo "server exception. \n";
+                    $this->connection_num--;
+                    $this->wait_queue->push(array(
+                        'sql' => $sql,
+                        'callback' => $callback,
+                    ));
+                    return;
+                }
             }
+            break;
         }
-
 		$task['sql'] = $sql;
 		$task['callback'] = $callback;
 		$task['mysql'] = $db;
