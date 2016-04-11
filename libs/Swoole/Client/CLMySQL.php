@@ -11,18 +11,20 @@ namespace Swoole\Client;
 use Swoole\CLPack;
 
 class CLMySQL {
-	private $conn, $dbname, $result = array(), $result_id = 1;
+	private static $result = array(), $result_id = 1;
 	private $host, $port;
-	public $last_errno, $last_erro_msg, $is_connect = false;
-	private static $conns = [];
+	private static $conns = array(), $conn_id = 0, $conninfo = array();
 
-	function __construct($host, $port, $dbname, $pconnect = true) {
+	const CONNINFO_F_dbname = 0, CONNINFO_F_conn = 1, CONNINFO_F_errno = 2, CONNINFO_F_erro_msg = 3, CONNINFO_F_insert_id = 4, CONNINFO_F_affected_rows = 5;
+
+	/*function __construct($host, $port, $pconnect = true) {
 		$this->host = $host;
 		$this->port = $port;
-		$this->dbname = $dbname;
-		if (!isset(self::$conns[$host . ':' . $port])) {
-			self::$conns[$host . ':' . $port] = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC, 'clmysql');
-			self::$conns[$host . ':' . $port]->set(array(
+		#$this->dbname = $dbname;
+		$key = $host . ':' . $port;
+		if (!isset(self::$conns[$key])) {
+			self::$conns[$key] = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC, 'clmysql');
+			self::$conns[$key]->set(array(
 				'open_length_check' => 1,
 				'package_length_type' => 'N',
 				'package_length_offset' => 0,
@@ -33,37 +35,48 @@ class CLMySQL {
 				//协议最大长度
 			));
 		}
-		$this->conn = self::$conns[$host . ':' . $port];
-		/*$this->conn->on('Close', array(
-			$this,
-			'OnClose'
-		));*/
-		$this->connect();
-	}
+		$this->conn = self::$conns[$key];
+		#$this->connect();
+	}*/
 
-	function select_db($dbname) {
-		$this->dbname = $dbname;
+	static function select_db($dbname, $conn_id) {
+		self::$conninfo[$conn_id][self::CONNINFO_F_dbname] = $dbname;
 		return true;
 	}
 
-	function connect($host = '', $port = 0) {
-		if ($host) {
-			$this->host = $host;
+	static function connect($host, $port, $pconnect = false) {
+		if (!isset(self::$conns[$key])) {
+			self::$conns[$key] = new \swoole_client($pconnect ? (SWOOLE_SOCK_TCP | SWOOLE_KEEP) : SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC, 'clmysql');
+			self::$conns[$key]->set(array(
+				'open_length_check' => 1,
+				'package_length_type' => 'N',
+				'package_length_offset' => 0,
+				//第N个字节是包长度的值
+				'package_body_offset' => 8,
+				//第几个字节开始计算长度
+				'package_max_length' => CLPack::MAX_LEN,
+				//协议最大长度
+			));
 		}
-		if ($port) {
-			$this->port = $port;
+		if (self::$conns[$key]->connect($host, $port, 60)) {
+			self::$conn_id++;
+			self::$conninfo[self::$conn_id][self::CONNINFO_F_conn] = self::$conns[$key];
+			return self::$conn_id;
 		}
-		$this->is_connect = $this->conn->connect($this->host, $this->port, 60);
-		return $this->is_connect;
+		return false;
 	}
 
-	function getPack($sign) {
+	static function pconnect($host, $port) {
+		return self::connect($host, $port, true);
+	}
+
+	private static function getPack($sign, $conn_id) {
 		while (1) {
-			$data = @$this->conn->recv();
+			$data = @self::$conninfo[$conn_id][self::CONNINFO_F_conn]->recv();
 			if ($data == false) {
 				#throw new \Exception('连接Mysql网络中断');
-				$this->last_errno = 2006;
-				$this->last_erro_msg = 'Mysql proxy中断(接收失败)';
+				$self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 2006;
+				self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = 'Mysql proxy中断(接收失败)';
 				return false;
 			}
 			$r = CLPack::unpack($data);
@@ -73,102 +86,115 @@ class CLMySQL {
 		}
 	}
 
-	function query($sql) {
-		if (!$this->is_connect) {
-			$this->last_errno = 2006;
-			$this->last_erro_msg = 'Mysql proxy中断(无连接)';
+	static function query($sql, $conn_id) {
+		if (!isset(self::$conninfo[$conn_id])) {
+			/*$this->last_errno = 2006;
+			$this->last_erro_msg = 'Mysql proxy中断(无连接)';*/
 			return false;
 		}
 		$is_multi = true;
 		$sign = mt_rand();
 		if (!is_array($sql)) {
 			$is_multi = false;
-			$sql = array($this->dbname => $sql);
+			$sql = array(self::$conninfo[$conn_id][self::CONNINFO_F_dbname] => $sql);
 		}
 		$pack = CLPack::pack($sql, $sign);
 		if (false === $pack) {
-			$this->last_errno = 1256;
-			$this->last_erro_msg = '发送的sql语句大小超过限制';
+			self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 1256;
+			self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = '发送的sql语句大小超过限制';
 			return false;
 		}
-		if (false === $this->conn->send($pack)) {
-			$this->conn->close();
-			$this->connect();
-			if (false === $this->conn->send($pack)) {
-				$this->last_errno = 2006;
-				$this->last_erro_msg = 'Mysql proxy中断(发送失败)';
-				return false;
-			}
+		if (false === self::$conninfo[$conn_id][self::CONNINFO_F_conn]->send($pack)) {
+			self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 2006;
+			self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = 'Mysql proxy中断(发送失败)';
+			return false;
 		}
-		$r = $this->getPack($sign);
+		$r = self::getPack($sign, $conn_id);
 		if (!is_array($r)) {
 			return false;
 		}
 		foreach ($r as $k => $v) {
 			if ($v[0] != 0) {
-				$this->last_errno = $v[0];
-				$this->last_erro_msg = $v[1];
+				self::$conninfo[$conn_id][self::CONNINFO_F_errno] = $v[0];
+				self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = $v[1];
 				return false;
+			} else {
+				self::$conninfo[$conn_id][self::CONNINFO_F_insert_id] = $v[2];
+				self::$conninfo[$conn_id][self::CONNINFO_F_affected_rows] = $v[3];
 			}
 		}
 
-		$result_id = $this->result_id++;
-		$this->result[$result_id] = $r;
-		return $result_id;
+		self::$result_id++;
+		self::$result[self::$result_id] = $r;
+		return self::$result_id;
 	}
 
-	function fetch($result_id, $dbname = '') {
-		if (isset($this->result[$result_id])) {
+	static function fetch($result_id, $dbname = '') {
+		if (isset(self::$result[$result_id])) {
 			if (!$dbname) {
-				$dbname = $this->dbname;
+				$dbname = key(self::$result[$result_id]);
 			}
-			if ($this->result[$result_id][$this->dbname][0] == 0) {
-				return $this->result[$result_id][$this->dbname][1];
-			}
-		}
-		return false;
-	}
-
-	function fetch_row($result_id, $seek, $dbname = '') {
-		if (isset($this->result[$result_id])) {
-			if (!$dbname) {
-				$dbname = $this->dbname;
-			}
-			if ($this->result[$result_id][$this->dbname][0] == 0 && isset($this->result[$result_id][$this->dbname][1][$seek])) {
-				return $this->result[$result_id][$this->dbname][1][$seek];
+			if (self::$result[$result_id][$dbname][0] == 0) {
+				return self::$result[$result_id][$dbname][1];
 			}
 		}
 		return false;
 	}
 
-	function num_rows($result_id, $dbname = '') {
-		if (isset($this->result[$result_id])) {
+	static function fetch_row($result_id, $seek, $dbname = '') {
+		if (isset(self::$result[$result_id])) {
 			if (!$dbname) {
-				$dbname = $this->dbname;
+				$dbname = key(self::$result[$result_id]);
 			}
-			if ($this->result[$result_id][$this->dbname][0] == 0) {
-				return count($this->result[$result_id][$this->dbname][1]);
+			if (self::$result[$result_id][$dbname][0] == 0 && isset(self::$result[$result_id][$dbname][1][$seek])) {
+				return self::$result[$result_id][$dbname][1][$seek];
+			}
+		}
+		return false;
+	}
+
+	static function num_rows($result_id, $dbname = '') {
+		if (isset(self::$result[$result_id])) {
+			if (!$dbname) {
+				$dbname = key(self::$result[$result_id]);
+			}
+			if (self::$result[$result_id][$dbname][0] == 0) {
+				return count(self::$result[$result_id][$dbname][1]);
 			}
 		}
 		return 0;
 	}
 
-	function free_result($result_id) {
-		if (isset($this->result[$result_id])) {
-			unset($this->result[$result_id]);
+	static function free_result($result_id) {
+		if (isset(self::$result[$result_id])) {
+			unset(self::$result[$result_id]);
 		}
 	}
 
-	function insert_id() {
+	static function insert_id($conn_id) {
+		return self::$conninfo[$conn_id][self::CONNINFO_F_insert_id];
 		#$result_id = $this->query('insert_id');
 		#return $this->fetch($result_id);
-		return isset($this->result[$this->result_id - 1][$this->dbname][2]) ? $this->result[$this->result_id - 1][$this->dbname][2] : false;
+		#return isset($this->result[$this->result_id - 1][$this->dbname][2]) ? $this->result[$this->result_id - 1][$this->dbname][2] : false;
 	}
 
-	function affected_rows() {
+	static function affected_rows($conn_id) {
+		return self::$conninfo[$conn_id][self::CONNINFO_F_affected_rows];
 		#$result_id = $this->query('affected_rows');
 		#return $this->fetch($result_id);
-		return isset($this->result[$this->result_id - 1][$this->dbname][3]) ? $this->result[$this->result_id - 1][$this->dbname][3] : false;
+		#return isset($this->result[$this->result_id - 1][$this->dbname][3]) ? $this->result[$this->result_id - 1][$this->dbname][3] : false;
+	}
+
+	static function get_last_errno($conn_id) {
+		return self::$conninfo[$conn_id][self::CONNINFO_F_errno];
+	}
+
+	static function get_last_erro_msg($conn_id) {
+		return self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg];
+	}
+
+	static function close($conn_id) {
+		unset(self::$conninfo[$conn_id]);
 	}
 
 	/*function onClose(\swoole_client $client) {
