@@ -120,8 +120,8 @@ class CLMySQL {
 				self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = $v[1];
 				return false;
 			} else {
-				self::$conninfo[$conn_id][self::CONNINFO_F_insert_id] = $v[2];
-				self::$conninfo[$conn_id][self::CONNINFO_F_affected_rows] = $v[3];
+				self::$conninfo[$conn_id][self::CONNINFO_F_insert_id] = isset($v[2]) ? $v[2] : 0;
+				self::$conninfo[$conn_id][self::CONNINFO_F_affected_rows] = isset($v[3]) ? $v[3] : 0;
 			}
 		}
 
