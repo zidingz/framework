@@ -79,7 +79,7 @@ class CLMySQL {
 			$data = @self::$conninfo[$conn_id][self::CONNINFO_F_conn]->recv();
 			if ($data == false) {
 				#throw new \Exception('连接Mysql网络中断');
-				$self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 2006;
+				self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 2006;
 				self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = 'Mysql proxy中断(接收失败)';
 				return false;
 			}
