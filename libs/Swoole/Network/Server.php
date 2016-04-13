@@ -219,14 +219,21 @@ class Server extends Base implements Driver
         {
             file_put_contents(self::$pidFile, $serv->master_pid);
         }
+        if (method_exists($this->protocol, 'onMasterStart'))
+        {
+            $this->protocol->onMasterStart($serv);
+        }
     }
-
 
     function onMasterStop($serv)
     {
         if (!empty($this->runtimeSetting['pid_file']))
         {
             unlink(self::$pidFile);
+        }
+        if (method_exists($this->protocol, 'onMasterStop'))
+        {
+            $this->protocol->onMasterStop($serv);
         }
     }
 
