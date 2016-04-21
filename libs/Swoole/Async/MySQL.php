@@ -316,7 +316,8 @@ class MySQL {
                 if ($mysqli->errno == 2013 or $mysqli->errno == 2006 or (isset($mysqli->_errno) and $mysqli->_errno == 2006))
                 {
                     $mysqli->close();
-                    $r = $mysqli->connect();
+                    $config = $this->config;
+                    $r = $mysqli->connect($config['host'], $config['user'], $config['password'], $config['database'], $config['port']);
                     if ($r === true)
                     {
                         continue;
@@ -351,7 +352,7 @@ class MySQL {
         return (!$this->work_pool && count($this->wait_queue) == 0) ? true : false;
 	}
 
-	function getConnectionNum() {
+	function getionNum() {
 		return $this->connection_num;
 	}
 
