@@ -293,49 +293,47 @@ class MySQL {
 	 */
     protected function doQuery($sql, callable $callback)
     {
+        deQueue:
         //remove from idle pool
         $db = array_pop($this->idle_pool);
+
         /**
          * @var \mysqli $mysqli
          */
         $mysqli = $db['object'];
 
-        for ($i = 0; $i < 2; $i++)
+        if ($this->haveSwooleAsyncMySQL)
         {
-            if ($this->haveSwooleAsyncMySQL)
+            $result = swoole_mysql_query($mysqli, $sql, array($this, 'onSQLReady'));
+        }
+        else
+        {
+            $result = $mysqli->query($sql, MYSQLI_ASYNC);
+        }
+
+        if ($result === false)
+        {
+            if ($mysqli->errno == 2013 or $mysqli->errno == 2006 or (isset($mysqli->_errno) and $mysqli->_errno == 2006))
             {
-                $result = swoole_mysql_query($mysqli, $sql, array($this, 'onSQLReady'));
+                $mysqli->close();
+                unset($mysqli);
+                $this->connection_num --;
+                //创建连接成功
+                if ($this->createConnection() === 0)
+                {
+                    goto deQueue;
+                }
             }
             else
             {
-                $result = $mysqli->query($sql, MYSQLI_ASYNC);
+                $this->wait_queue->push(array(
+                    'sql' => $sql,
+                    'callback' => $callback,
+                ));
+                return;
             }
-
-            if ($result === false)
-            {
-                if ($mysqli->errno == 2013 or $mysqli->errno == 2006 or (isset($mysqli->_errno) and $mysqli->_errno == 2006))
-                {
-                    $mysqli->close();
-                    $config = $this->config;
-                    $r = $mysqli->connect($config['host'], $config['user'], $config['password'], $config['database'], $config['port']);
-                    if ($r === true)
-                    {
-                        continue;
-                    }
-                }
-                else
-                {
-                    #echo "server exception. \n";
-                    $this->connection_num--;
-                    $this->wait_queue->push(array(
-                        'sql' => $sql,
-                        'callback' => $callback,
-                    ));
-                    return;
-                }
-            }
-            break;
         }
+
 		$task['sql'] = $sql;
 		$task['callback'] = $callback;
 		$task['mysql'] = $db;
