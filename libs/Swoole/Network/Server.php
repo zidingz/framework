@@ -11,6 +11,9 @@ use Swoole\Server\Driver;
  */
 class Server extends Base implements Driver
 {
+    protected static $beforeStopCallback;
+    protected static $beforeReloadCallback;
+
     static $swooleMode = SWOOLE_PROCESS;
     static $optionKit;
     static $pidFile;
@@ -85,6 +88,22 @@ class Server extends Base implements Driver
     }
 
     /**
+     * @param callable $function
+     */
+    static function beforeStop(callable $function)
+    {
+        self::$beforeStopCallback = $function;
+    }
+
+    /**
+     * @param callable $function
+     */
+    static function beforeReload(callable $function)
+    {
+        self::$beforeReloadCallback = $function;
+    }
+
+    /**
      * 显示命令行指令
      */
     static function start($startFunction)
@@ -126,6 +145,10 @@ class Server extends Base implements Driver
             {
                 exit("Server is not running");
             }
+            if (self::$beforeReloadCallback)
+            {
+                call_user_func(self::$beforeReloadCallback, $opt);
+            }
             posix_kill($server_pid, SIGUSR1);
             exit;
         }
@@ -134,6 +157,10 @@ class Server extends Base implements Driver
             if (empty($server_pid))
             {
                 exit("Server is not running\n");
+            }
+            if (self::$beforeStopCallback)
+            {
+                call_user_func(self::$beforeStopCallback, $opt);
             }
             posix_kill($server_pid, SIGTERM);
             exit;
