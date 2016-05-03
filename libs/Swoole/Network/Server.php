@@ -14,7 +14,7 @@ class Server extends Base implements Driver
     protected static $beforeStopCallback;
     protected static $beforeReloadCallback;
 
-    static $swooleMode = SWOOLE_PROCESS;
+    static $swooleMode;
     static $optionKit;
     static $pidFile;
 
@@ -224,6 +224,11 @@ class Server extends Base implements Driver
         {
             self::$swooleMode = SWOOLE_BASE;
         }
+        elseif (extension_loaded('swoole'))
+        {
+            self::$swooleMode = SWOOLE_PROCESS;
+        }
+
         $this->sw = new \swoole_server($host, $port, self::$swooleMode, $flag);
         $this->host = $host;
         $this->port = $port;
