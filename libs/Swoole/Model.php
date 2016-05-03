@@ -75,7 +75,7 @@ class Model
 	 * @param $where
 	 * @return Record Object
 	 */
-	public final function get($object_id = 0, $where = '')
+	public function get($object_id = 0, $where = '')
 	{
 		return new Record($object_id, $this->db, $this->table, $this->primary, $where, $this->select);
 	}
@@ -87,7 +87,7 @@ class Model
      * @throws \Exception
 	 * @return array
 	 */
-	public final function gets($params, &$pager=null)
+	public function gets($params, &$pager=null)
 	{
 		if (empty($params))
 		{
@@ -119,7 +119,7 @@ class Model
 	 * @param $data Array 必须是键值（表的字段对应值）对应
 	 * @return int
 	 */
-    public final function put($data)
+    public function put($data)
     {
         if (empty($data) or !is_array($data))
         {
@@ -142,7 +142,7 @@ class Model
 	 * @param $where string 指定匹配字段，默认为主键
 	 * @return bool
 	 */
-    public final function set($id, $data, $where = '')
+    public function set($id, $data, $where = '')
     {
         if (empty($where))
         {
@@ -158,40 +158,44 @@ class Model
 	 * @return bool
 	 * @throws \Exception
 	 */
-	public final function sets($data, $params)
-	{
-		if (empty($params))
-		{
-			throw new \Exception("Model sets params is empty!");
-		}
-		$selectdb = new SelectDB($this->db);
-		$selectdb->from($this->table);
-		$selectdb->put($params);
-		return $selectdb->update($data);
+	public function sets($data, $params)
+    {
+        if (empty($params))
+        {
+            throw new \Exception("Model sets params is empty!");
+        }
+        $selectdb = new SelectDB($this->db);
+        $selectdb->from($this->table);
+        $selectdb->put($params);
+        return $selectdb->update($data);
 	}
 
 	/**
 	 * 删除一条数据主键为$id的记录，
 	 * @param $id
-	 * @param $where 指定匹配字段，默认为主键
+	 * @param $where string 指定匹配字段，默认为主键
 	 * @return true/false
 	 */
-	public final function del($id, $where=null)
+	public function del($id, $where=null)
 	{
-		if($where==null) $where = $this->primary;
-		return $this->db->delete($id,$this->table,$where);
+        if ($where == null)
+        {
+            $where = $this->primary;
+        }
+        return $this->db->delete($id, $this->table, $where);
 	}
+
     /**
      * 删除一条数据包含多个参数
-     * @param array $params
-     * @return true/false
+     * @param $params
+     * @return bool
+     * @throws \Exception
      */
-    public final function dels($params)
+    public function dels($params)
     {
-        if(empty($params))
+        if (empty($params))
         {
             throw new \Exception("Model dels params is empty!");
-            return false;
         }
     	$selectdb = new SelectDB($this->db);
         $selectdb->from($this->table);
@@ -199,23 +203,25 @@ class Model
         $selectdb->delete();
         return true;
     }
+
     /**
      * 返回符合条件的记录数
      * @param array $params
      * @return true/false
      */
-    public final function count($params)
+    public function count($params)
     {
     	$selectdb = new SelectDB($this->db);
 		$selectdb->from($this->table);
 		$selectdb->put($params);
 		return $selectdb->count();
     }
+
 	/**
 	 * 获取到所有表记录的接口，通过这个接口可以访问到数据库的记录
 	 * @return RecordSet Object (这是一个接口，不包含实际的数据)
 	 */
-	public final function all()
+	public function all()
 	{
 		return new RecordSet($this->db, $this->table, $this->primary, $this->select);
 	}
