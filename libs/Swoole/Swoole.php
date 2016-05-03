@@ -523,7 +523,6 @@ class Swoole
 
     /**
      * 运行MVC处理模型
-     * @param $url_processor
      */
     function runMVC()
     {
@@ -591,6 +590,9 @@ class Swoole
             $this->http->status(404);
             return Swoole\Error::info('MVC Error!'.$mvc['view'],"View <b>{$mvc['controller']}->{$mvc['view']}</b> Not Found!");
         }
+
+        $this->request = new \Swoole\Request();
+        $this->request->initWithLamp();
 
         $param = empty($mvc['param']) ? null : $mvc['param'];
         $method = $mvc['view'];
