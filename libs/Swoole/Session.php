@@ -65,6 +65,7 @@ class Session
             }
             $_SESSION = $this->load($sessid);
         }
+        \Swoole::$php->request->session = $_SESSION;
     }
 
     function setId($session_id)
