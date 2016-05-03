@@ -45,7 +45,7 @@ function require_ext($ext_name)
 function import_all_model()
 {
     global $php;
-    $d = dir(APPSPATH.'/models');
+    $d = dir(Swoole::$app_path.'/models');
     while($file=$d->read())
     {
         $name = basename($file,'.model.php');
