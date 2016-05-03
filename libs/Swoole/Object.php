@@ -21,6 +21,8 @@ namespace Swoole;
  * @property Auth                $user
  * @property URL                 $url
  * @property Limit               $limit
+ * @property Request             $request
+ * @property Response            $response
  * @method Database              db
  * @method \MongoClient          mongo
  * @method \redis                redis
