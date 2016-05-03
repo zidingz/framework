@@ -78,7 +78,7 @@ abstract class Socket
         return socket_get_option($this->sock, SOL_SOCKET, $opt);
     }
 
-    function get_socket()
+    function getSocket()
     {
         return $this->sock;
     }

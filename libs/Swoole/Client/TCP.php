@@ -1,8 +1,9 @@
 <?php
 namespace Swoole\Client;
+
 /**
  * TCP客户端
- * @author 兰戈
+ * @author hantianfeng
  */
 class TCP extends Socket
 {

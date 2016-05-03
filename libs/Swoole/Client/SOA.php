@@ -29,7 +29,8 @@ class SOA
      */
     protected $keepConnection = false;
 
-    protected $useSwoole = true;
+    protected $haveSwoole = false;
+    protected $haveSockets = false;
 
     const OK = 0;
 
@@ -39,7 +40,8 @@ class SOA
     {
         $key = empty($id) ? 'default' : $id;
         self::$_instances[$key] = $this;
-        $this->useSwoole = extension_loaded('swoole');
+        $this->haveSwoole = extension_loaded('swoole');
+        $this->haveSockets = extension_loaded('sockets');
     }
 
     /**
@@ -94,14 +96,8 @@ class SOA
         while (count($this->servers) > 0)
         {
             $svr = $this->getServer();
-            if (!$this->useSwoole)
-            {
-                $socket = new TCP;
-                $socket->try_reconnect = false;
-                $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
-                $socketFd = intval($socket->get_socket());
-            }
-            else
+            //基于Swoole扩展
+            if ($this->haveSwoole)
             {
                 $key = $svr['host'].':'.$svr['port'].'-'.$retObj->index;
                 $socket = new \swoole_client(SWOOLE_SOCK_TCP | SWOOLE_KEEP, SWOOLE_SOCK_SYNC, $key);
@@ -114,6 +110,21 @@ class SOA
                 ));
                 $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
                 $socketFd = $socket->sock;
+            }
+            //基于sockets扩展
+            elseif ($this->haveSockets)
+            {
+                $socket = new TCP;
+                $socket->try_reconnect = false;
+                $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
+                $socketFd = intval($socket->getSocket());
+            }
+            //基于stream
+            else
+            {
+                $socket = new Stream();
+                $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
+                $socketFd = intval($socket->getSocket());
             }
 
             //连接被拒绝，证明服务器已经挂了
@@ -305,6 +316,119 @@ class SOA
         return $retObj;
     }
 
+    protected function recvWaitForSockets($timeout)
+    {
+        $st = microtime(true);
+        $t_sec = (int)$timeout;
+        $t_usec = (int)(($timeout - $t_sec) * 1000 * 1000);
+        $buffer = $header = array();
+        $success_num = 0;
+
+        while (true)
+        {
+            $write = $error = $read = array();
+            if(empty($this->waitList))
+            {
+                break;
+            }
+            foreach($this->waitList as $obj)
+            {
+                if($obj->socket !== null)
+                {
+                    $read[] = $obj->socket->getSocket();
+                }
+            }
+            if (empty($read))
+            {
+                break;
+            }
+            $n = socket_select($read, $write, $error, $t_sec, $t_usec);
+            if ($n > 0)
+            {
+                //可读
+                foreach($read as $sock)
+                {
+                    $id = (int)$sock;
+
+                    /**
+                     * @var $retObj SOA_Result
+                     */
+                    $retObj = $this->waitList[$id];
+                    $data = $retObj->socket->recv();
+                    //socket被关闭了
+                    if (empty($data))
+                    {
+                        $retObj->code = SOA_Result::ERR_CLOSED;
+                        unset($this->waitList[$id], $retObj->socket);
+                        continue;
+                    }
+                    //一个新的请求，缓存区中没有数据
+                    if (!isset($buffer[$id]))
+                    {
+                        //这里仅使用了length和type，uid,serid未使用
+                        $header[$id] = unpack(SOAServer::HEADER_STRUCT, substr($data, 0, SOAServer::HEADER_SIZE));
+                        //错误的包头
+                        if ($header[$id] === false or $header[$id]['length'] <= 0)
+                        {
+                            $retObj->code = SOA_Result::ERR_HEADER;
+                            unset($this->waitList[$id]);
+                            continue;
+                        }
+                        //错误的长度值
+                        elseif ($header[$id]['length'] > $this->packet_maxlen)
+                        {
+                            $retObj->code = SOA_Result::ERR_TOOBIG;
+                            unset($this->waitList[$id]);
+                            continue;
+                        }
+                        $buffer[$id] = substr($data, SOAServer::HEADER_SIZE);
+                    }
+                    else
+                    {
+                        $buffer[$id] .= $data;
+                    }
+                    //达到规定的长度
+                    if (strlen($buffer[$id]) == $header[$id]['length'])
+                    {
+                        //请求串号与响应串号不一致
+                        if ($retObj->requestId != $header[$id]['serid'])
+                        {
+                            trigger_error(__CLASS__." requestId[{$retObj->requestId}]!=responseId[{$header['serid']}]", E_USER_WARNING);
+                            continue;
+                        }
+                        //成功处理
+                        $this->finish(SOAServer::decode($buffer[$id], $header[$id]['type']), $retObj);
+                        $success_num++;
+                    }
+                    //继续等待数据
+                }
+            }
+            //发生超时
+            if ((microtime(true) - $st) > $timeout)
+            {
+                foreach($this->waitList as $obj)
+                {
+                    //TODO 如果请求超时了，需要上报服务器负载
+                    $obj->code = ($obj->socket->connected) ? SOA_Result::ERR_TIMEOUT : SOA_Result::ERR_CONNECT;
+                    //执行after钩子函数
+                    $this->afterRequest($obj);
+                }
+                //清空当前列表
+                $this->waitList = array();
+                return $success_num;
+            }
+        }
+        //未发生任何超时
+        $this->waitList = array();
+        $this->requestIndex = 0;
+        return $success_num;
+    }
+
+    /**
+     * 使用Swoole扩展
+     * @param $timeout
+     * @return int
+     */
     protected function recvWaitForSwoole($timeout)
     {
         $st = microtime(true);
@@ -392,9 +516,13 @@ class SOA
      */
     function wait($timeout = 0.5)
     {
-        if ($this->useSwoole)
+        if ($this->haveSwoole)
         {
             return $this->recvWaitForSwoole($timeout);
+        }
+        elseif ($this->haveSockets)
+        {
+            return $this->recvWaitForSockets($timeout);
         }
 
         $st = microtime(true);
@@ -414,14 +542,15 @@ class SOA
             {
                 if($obj->socket !== null)
                 {
-                    $read[] = $obj->socket->get_socket();
+                    $read[] = $obj->socket->getSocket();
                 }
             }
             if (empty($read))
             {
                 break;
             }
-            $n = socket_select($read, $write, $error, $t_sec, $t_usec);
+
+            $n = stream_select($read, $write, $error, $t_sec, $t_usec);
             if ($n > 0)
             {
                 //可读
