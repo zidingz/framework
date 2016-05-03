@@ -56,6 +56,7 @@ class Swoole
      * @var Swoole\Response
      */
     public $response;
+
     static public $app_path;
     static public $controller_path = '';
 
@@ -153,19 +154,19 @@ class Swoole
             Swoole\Error::$echo_html = true;
         }
 
-        if (empty(self::$app_path))
+        if (defined('APPSPATH'))
         {
-            if (defined('WEBPATH'))
-            {
-                self::$app_path = WEBPATH.'/apps';
-            }
-            else
-            {
-                Swoole\Error::info("core error", __CLASS__.": Swoole::\$app_path and WEBPATH empty.");
-            }
+            self::$app_path = APPSPATH;
         }
-
-        define('APPSPATH', self::$app_path);
+        elseif (defined('WEBPATH'))
+        {
+            self::$app_path = WEBPATH . '/apps';
+            define('APPSPATH', self::$app_path);
+        }
+        else
+        {
+            Swoole\Error::info("core error", __CLASS__ . ": Swoole::\$app_path and WEBPATH empty.");
+        }
 
         //将此目录作为App命名空间的根目录
         Swoole\Loader::addNameSpace('App', self::$app_path . '/classes');

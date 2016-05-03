@@ -47,7 +47,7 @@ class Loader
         }
         else
         {
-            $model_file = APPSPATH . '/models/' . $model_name . '.model.php';
+            $model_file = \Swoole::$app_path . '/models/' . $model_name . '.model.php';
             if (!file_exists($model_file))
             {
                 Error::info('MVC错误', "不存在的模型, <b>$model_name</b>");
