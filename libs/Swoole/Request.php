@@ -33,6 +33,7 @@ class Request
     public $file = array();
     public $cookie = array();
     public $session = array();
+    public $request = array();
     public $server = array();
 
     /**
@@ -73,7 +74,7 @@ class Request
         {
             $_SERVER = $this->server;
         }
-        $_REQUEST = array_merge($this->get, $this->post, $this->cookie);
+        $this->request = $_REQUEST = array_merge($this->get, $this->post, $this->cookie);
 
         $_SERVER['REQUEST_URI'] = $this->meta['uri'];
         /**
@@ -85,6 +86,18 @@ class Request
             $_SERVER[$_key] = $value;
         }
         $_SERVER['REMOTE_ADDR'] = $this->remote_ip;
+    }
+
+    /**
+     * LAMP环境初始化
+     */
+    function initWithLamp()
+    {
+        $this->get = $_GET;
+        $this->post = $_POST;
+        $this->cookie = $_COOKIE;
+        $this->server = $_SERVER;
+        $this->request = $_REQUEST;
     }
 
     function unsetGlobal()
