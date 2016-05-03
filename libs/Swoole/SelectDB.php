@@ -52,8 +52,10 @@ class SelectDB
     public $pager = null;
 
     public $auto_cache = false;
-    public $cache_lifetime;
-    public $cache_prefix = 'swoole_selectdb_';
+    protected $enableCache;
+
+    const CACHE_PREFIX = 'swoole_selectdb_';
+    const CACHE_LIFETIME = 300;
 
     public $RecordSet;
 
@@ -368,11 +370,10 @@ class SelectDB
 
     /**
      * 启用缓存
-     * @param int $lifetime
      */
-    function cache($lifetime = 300)
+    function cache()
     {
-        $this->cache_lifetime = $lifetime;
+        $this->enableCache = true;
     }
 
     /**
@@ -617,15 +618,14 @@ class SelectDB
     /**
      * 获取记录
      * @param $field
-     * @param $cache_id
-     * @return unknown_type
+     * @return array
      */
     function getone($field = '')
     {
         $this->limit('1');
         if ($this->auto_cache or !empty($cache_id))
         {
-            $cache_key = empty($cache_id)?$this->cache_prefix.'_one_'.md5($this->sql):$this->cache_prefix.'_all_'.$cache_id;
+            $cache_key = empty($cache_id) ? self::CACHE_PREFIX . '_one_' . md5($this->sql) : self::CACHE_PREFIX . '_all_' . $cache_id;
             global $php;
             $record = $php->cache->get($cache_key);
             if (empty($data))
@@ -646,7 +646,10 @@ class SelectDB
             }
             $record = $this->result->fetch();
         }
-        if($field==='') return $record;
+        if ($field === '')
+        {
+            return $record;
+        }
         return $record[$field];
     }
 
@@ -673,16 +676,43 @@ class SelectDB
     function getall()
     {
         //启用了Cache
-        if ($this->cache_lifetime)
+        if ($this->enableCache)
         {
             $this->getsql(false);
-            $cache_key = $this->cache_prefix . '_all_' . md5($this->sql);
-            $data = \Swoole::$php->cache->get($cache_key);
+            //指定Cache的Key
+            if (empty($this->extraParmas['cache_key']))
+            {
+                $cache_key = self::CACHE_PREFIX . '_all_' . md5($this->sql);
+            }
+            else
+            {
+                $cache_key = $this->extraParmas['cache_key'];
+            }
+            //指定使用哪个Cache实例
+            if (empty($this->extraParmas['cache_object_id']))
+            {
+                $cacheObject = \Swoole::$php->cache;
+            }
+            else
+            {
+                $cacheObject = \Swoole::$php->cache($this->extraParmas['cache_object_id']);
+            }
+            //指定缓存的生命周期
+            if (empty($this->extraParmas['cache_lifetime']))
+            {
+                $cacheLifeTime = self::CACHE_LIFETIME;
+            }
+            else
+            {
+                $cacheLifeTime = intval($this->extraParmas['cache_lifetime']);
+            }
+
+            $data = $cacheObject->get($cache_key);
             //Cache数据为空，从DB中拉取
             if (empty($data))
             {
                 $data = $this->_execute();
-                \Swoole::$php->cache->set($cache_key, $data, $this->cache_lifetime);
+                $cacheObject->set($cache_key, $data, $cacheLifeTime);
                 return $data;
             }
             else
@@ -703,17 +733,6 @@ class SelectDB
     public function count()
     {
         $sql = "select count({$this->count_fields}) as c from {$this->table} {$this->join} {$this->where} {$this->union} {$this->group}";
-
-        if ($this->cache_lifetime)
-        {
-            $this->getsql(false);
-            $cache_key = $this->cache_prefix . '_count_' . md5($this->sql);
-            $data = \Swoole::$php->cache->get($cache_key);
-            if ($data)
-            {
-                return $data;
-            }
-        }
 
         if ($this->if_union)
         {
@@ -738,11 +757,6 @@ class SelectDB
                 $c = $_c->fetch();
             }
             $count = intval($c['c']);
-        }
-
-        if ($this->cache_lifetime and $count !== false)
-        {
-            \Swoole::$php->cache->set($cache_key, $count, $this->cache_lifetime);
         }
         return $count;
     }
