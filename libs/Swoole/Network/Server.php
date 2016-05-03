@@ -84,6 +84,11 @@ class Server extends Base implements Driver
                 throw new ServerOptionException("不能添加系统保留的选项名称");
             }
         }
+        //解决Windows平台乱码问题
+        if (PHP_OS == 'WINNT')
+        {
+            $description = iconv('utf-8', 'gbk', $description);
+        }
         self::$optionKit->add($specString, $description);
     }
 
@@ -131,6 +136,11 @@ class Server extends Base implements Driver
         $kit = self::$optionKit;
         foreach(self::$defaultOptions as $k => $v)
         {
+            //解决Windows平台乱码问题
+            if (PHP_OS == 'WINNT')
+            {
+                $v = iconv('utf-8', 'gbk', $v);
+            }
             $kit->add($k, $v);
         }
         global $argv;
@@ -149,7 +159,7 @@ class Server extends Base implements Driver
             {
                 call_user_func(self::$beforeReloadCallback, $opt);
             }
-            posix_kill($server_pid, SIGUSR1);
+            \Swoole::$php->os->kill($server_pid, SIGUSR1);
             exit;
         }
         elseif ($argv[1] == 'stop')
@@ -162,13 +172,13 @@ class Server extends Base implements Driver
             {
                 call_user_func(self::$beforeStopCallback, $opt);
             }
-            posix_kill($server_pid, SIGTERM);
+            \Swoole::$php->os->kill($server_pid, SIGTERM);
             exit;
         }
         elseif ($argv[1] == 'start')
         {
             //已存在ServerPID，并且进程存在
-            if (!empty($server_pid) and posix_kill($server_pid, 0))
+            if (!empty($server_pid) and \Swoole::$php->os->kill($server_pid, 0))
             {
                 exit("Server is already running.\n");
             }
