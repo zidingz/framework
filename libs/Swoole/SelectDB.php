@@ -40,6 +40,8 @@ class SelectDB
     private $if_join = false;
     private $if_add_tablename = false;
 
+    protected $extraParmas = array();
+
     //Count计算
     private $count_fields = '*';
 
@@ -447,11 +449,11 @@ class SelectDB
 
     function raw_put($params)
     {
-        foreach($params as $array)
+        foreach ($params as $array)
         {
-            if(isset($array[0]) and isset($array[1]) and count($array)==2)
+            if (isset($array[0]) and isset($array[1]) and count($array) == 2)
             {
-                $this->_call($array[0],$array[1]);
+                $this->_call($array[0], $array[1]);
             }
             else
             {
@@ -532,19 +534,33 @@ class SelectDB
             unset($params['orwhere']);
         }
         //处理walk调用
-        if(isset($params['walk']))
+        if (isset($params['walk']))
         {
             foreach($params['walk'] as $call)
             {
-                list($key,$value) = each($call);
-                $this->_call($key,$value);
+                list($key, $value) = each($call);
+                if (strpos($key, '_') !== 0)
+                {
+                    $this->_call($key, $value);
+                }
+                else
+                {
+                    $this->extraParmas[substr($key, 1)] = $value;
+                }
             }
             unset($params['walk']);
         }
         //处理其他参数
-        foreach($params as $key=>$value)
+        foreach ($params as $key => $value)
         {
-            $this->_call($key,$value);
+            if (strpos($key, '_') !== 0)
+            {
+                $this->_call($key, $value);
+            }
+            else
+            {
+                $this->extraParmas[substr($key, 1)] = $value;
+            }
         }
     }
 
@@ -553,49 +569,50 @@ class SelectDB
      * @param $param
      * @return bool
      */
-    protected function _call($method,$param)
+    protected function _call($method, $param)
     {
         if ($method == 'update' or $method == 'delete' or $method == 'insert')
         {
             return false;
         }
-        if (strpos($method, '_') !== 0)
+
+        //调用对应的方法
+        if (method_exists($this, $method))
         {
-            if (method_exists($this, $method))
+            if (is_array($param))
             {
-                if (is_array($param))
+                call_user_func_array(array($this, $method), $param);
+            }
+            else
+            {
+                $this->$method($param);
+            }
+        }
+        //直接将Key作为条件
+        else
+        {
+            $param = $this->db->quote($param);
+            if ($this->call_by == 'func')
+            {
+                $this->where($method . '="' . $param . '"');
+            }
+            elseif ($this->call_by == 'smarty')
+            {
+                if (strpos($param, '$') === false)
                 {
-                    call_user_func_array(array($this, $method), $param);
+                    $this->where($method . "='" . $param . "'");
                 }
                 else
                 {
-                    $this->$method($param);
+                    $this->where($method . "='{" . $param . "}'");
                 }
             }
             else
             {
-                $param = $this->db->quote($param);
-                if ($this->call_by == 'func')
-                {
-                    $this->where($method . '="' . $param . '"');
-                }
-                elseif ($this->call_by == 'smarty')
-                {
-                    if (strpos($param, '$') === false)
-                    {
-                        $this->where($method . "='" . $param . "'");
-                    }
-                    else
-                    {
-                        $this->where($method . "='{" . $param . "}'");
-                    }
-                }
-                else
-                {
-                    Error::info('Error: SelectDB 错误的参数', "<pre>参数$method=$param</pre>");
-                }
+                Error::info('Error: SelectDB 错误的参数', "<pre>参数$method=$param</pre>");
             }
         }
+        return true;
     }
     /**
      * 获取记录
