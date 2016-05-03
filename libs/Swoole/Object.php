@@ -29,6 +29,7 @@ namespace Swoole;
  * @method IFace\Cache           cache
  * @method URL                   url
  * @method Client\CoMySQL        codb
+ * @method Platform\Linux os
  */
 class Object
 {

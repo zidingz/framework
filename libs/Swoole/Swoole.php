@@ -32,6 +32,7 @@ use Swoole\Exception\NotFound;
  * @method \redis                redis
  * @method \Swoole\IFace\Cache   cache
  * @method \Swoole\URL           url
+ * @method \Swoole\Platform\Linux os
  */
 class Swoole
 {
