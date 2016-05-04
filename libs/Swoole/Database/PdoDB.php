@@ -62,6 +62,15 @@ class PdoDB extends \PDO implements Swoole\IDatabase
             implode(", ", $this->errorInfo()) . "<hr />$sql"
         );
         $this->lastStatement = $res;
+        //非查询语句直接返回结果
+        if ($sql[0] !== 's')
+        {
+            $r = $res->fetch();
+            if (is_bool($r))
+            {
+                return $r;
+            }
+        }
         return $res;
     }
 

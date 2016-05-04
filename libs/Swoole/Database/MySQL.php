@@ -100,7 +100,10 @@ class MySQL implements \Swoole\IDatabase
             Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
             return false;
         }
-
+        if (is_bool($res))
+        {
+            return $res;
+        }
         return new MySQLRecord($res);
     }
 
