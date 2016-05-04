@@ -62,7 +62,6 @@ class Database
 	const TYPE_MYSQL   = 1;
 	const TYPE_MYSQLi  = 2;
 	const TYPE_PDO     = 3;
-	const TYPE_AdoDB   = 4;
 
     function __construct($db_config)
     {
