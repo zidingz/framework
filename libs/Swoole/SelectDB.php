@@ -296,7 +296,15 @@ class SelectDB
      */
     function in($field, $ins)
     {
-        $ins = trim($ins, ','); //去掉2面的分号
+        //去掉2面的分号
+        if (is_array($ins))
+        {
+            $ins = implode(',', $ins);
+        }
+        else
+        {
+            $ins = trim($ins, ',');
+        }
         $this->where("`$field` in ({$ins})");
     }
 
