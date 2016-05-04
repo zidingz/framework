@@ -316,7 +316,7 @@ class SOA
         return $retObj;
     }
 
-    protected function recvWaitForSockets($timeout)
+    protected function recvWaitWithSockets($timeout)
     {
         $st = microtime(true);
         $t_sec = (int)$timeout;
@@ -429,7 +429,7 @@ class SOA
      * @param $timeout
      * @return int
      */
-    protected function recvWaitForSwoole($timeout)
+    protected function recvWaitWithSwoole($timeout)
     {
         $st = microtime(true);
         $success_num = 0;
@@ -518,11 +518,11 @@ class SOA
     {
         if ($this->haveSwoole)
         {
-            return $this->recvWaitForSwoole($timeout);
+            return $this->recvWaitWithSwoole($timeout);
         }
         elseif ($this->haveSockets)
         {
-            return $this->recvWaitForSockets($timeout);
+            return $this->recvWaitWithSockets($timeout);
         }
 
         $st = microtime(true);
