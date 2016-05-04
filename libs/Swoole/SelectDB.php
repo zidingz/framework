@@ -42,6 +42,12 @@ class SelectDB
 
     protected $extraParmas = array();
 
+    /**
+     * 缓存选项
+     * @var array
+     */
+    protected $cacheOptions = array();
+
     //Count计算
     private $count_fields = '*';
 
@@ -370,10 +376,19 @@ class SelectDB
 
     /**
      * 启用缓存
+     * @param $params
      */
-    function cache()
+    function cache($params = true)
     {
-        $this->enableCache = true;
+        if ($params === false)
+        {
+            $this->enableCache = false;
+        }
+        else
+        {
+            $this->cacheOptions = $params;
+            $this->enableCache = true;
+        }
     }
 
     /**
@@ -680,31 +695,31 @@ class SelectDB
         {
             $this->getsql(false);
             //指定Cache的Key
-            if (empty($this->extraParmas['cache_key']))
+            if (empty($this->cacheOptions['key']))
             {
                 $cache_key = self::CACHE_PREFIX . '_all_' . md5($this->sql);
             }
             else
             {
-                $cache_key = $this->extraParmas['cache_key'];
+                $cache_key = $this->cacheOptions['key'];
             }
             //指定使用哪个Cache实例
-            if (empty($this->extraParmas['cache_object_id']))
+            if (empty($this->cacheOptions['object_id']))
             {
                 $cacheObject = \Swoole::$php->cache;
             }
             else
             {
-                $cacheObject = \Swoole::$php->cache($this->extraParmas['cache_object_id']);
+                $cacheObject = \Swoole::$php->cache($this->cacheOptions['object_id']);
             }
             //指定缓存的生命周期
-            if (empty($this->extraParmas['cache_lifetime']))
+            if (empty($this->cacheOptions['lifetime']))
             {
                 $cacheLifeTime = self::CACHE_LIFETIME;
             }
             else
             {
-                $cacheLifeTime = intval($this->extraParmas['cache_lifetime']);
+                $cacheLifeTime = intval($this->cacheOptions['lifetime']);
             }
 
             $data = $cacheObject->get($cache_key);

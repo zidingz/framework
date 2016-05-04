@@ -5,10 +5,11 @@ define('WEBPATH', realpath(__DIR__ . '/..'));
 require WEBPATH . '/libs/lib_config.php';
 
 $res = table('user_login')->gets(array(
-    'cache' => true,
-    //'_cache_key' => 'user_1234',
-    //'_cache_lifetime' => 180,
-    '_cache_object_id' => 'master',
+    'cache' => array(
+//        'key' => 'user_1234',
+//        'lifetime' => 180,
+//        'object_id' => 'master',
+    ),
 ));
 
 var_dump($res);

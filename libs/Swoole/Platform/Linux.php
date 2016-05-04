@@ -7,4 +7,9 @@ class Linux
     {
         return posix_kill($pid, $signo);
     }
+
+    function fork()
+    {
+        return pcntl_fork();
+    }
 }

@@ -7,4 +7,9 @@ class Windows
     {
         return false;
     }
+
+    function fork()
+    {
+        return false;
+    }
 }
