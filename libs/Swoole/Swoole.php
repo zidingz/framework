@@ -581,6 +581,9 @@ class Swoole
 
         do_action:
 
+        $this->request = new \Swoole\Request();
+        $this->request->initWithLamp();
+
         //服务器模式下，尝试重载入代码
         if (defined('SWOOLE_SERVER'))
         {
@@ -592,9 +595,6 @@ class Swoole
             $this->http->status(404);
             return Swoole\Error::info('MVC Error!'.$mvc['view'],"View <b>{$mvc['controller']}->{$mvc['view']}</b> Not Found!");
         }
-
-        $this->request = new \Swoole\Request();
-        $this->request->initWithLamp();
 
         $param = empty($mvc['param']) ? null : $mvc['param'];
         $method = $mvc['view'];
