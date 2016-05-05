@@ -32,9 +32,9 @@ class Model
 	 *
 	 * @var int
 	 */
-	public $tablesize = 1000000;
-	public $fields;
-	public $select='*';
+    public $tablesize = 1000000;
+    public $fields;
+    public $select = '*';
 
 	public $create_sql='';
 
@@ -127,7 +127,15 @@ class Model
         }
         if ($this->db->insert($data, $this->table))
         {
-            return $this->db->lastInsertId();
+            $lastInsertId = $this->db->lastInsertId();
+            if ($lastInsertId == 0)
+            {
+                return true;
+            }
+            else
+            {
+                return $lastInsertId;
+            }
         }
         else
         {

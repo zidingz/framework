@@ -165,13 +165,13 @@ class SelectDB
     function where($where)
     {
         //$where = str_replace(' or ','',$where);
-        if($this->where=="")
+        if ($this->where == "")
         {
-            $this->where="where ".$where;
+            $this->where = "where " . $where;
         }
         else
         {
-            $this->where=$this->where." and ".$where;
+            $this->where = $this->where . " and " . $where;
         }
     }
 
@@ -205,13 +205,13 @@ class SelectDB
      */
     function orwhere($where)
     {
-        if($this->where=="")
+        if ($this->where == "")
         {
-            $this->where="where ".$where;
+            $this->where = "where " . $where;
         }
         else
         {
-            $this->where=$this->where." or ".$where;
+            $this->where = $this->where . " or " . $where;
         }
     }
 
@@ -791,14 +791,16 @@ class SelectDB
      */
     function insert($data)
     {
-        $field="";
-        $values="";
+        $field = "";
+        $values = "";
+
         foreach($data as $key => $value)
         {
             $value = $this->db->quote($value);
             $field = $field . "`$key`,";
             $values = $values . "'$value',";
         }
+
         $field = substr($field, 0, -1);
         $values = substr($values, 0, -1);
         return $this->db->query("insert into {$this->table} ($field) values($values)");

@@ -65,11 +65,7 @@ class PdoDB extends \PDO implements Swoole\IDatabase
         //非查询语句直接返回结果
         if ($sql[0] !== 's')
         {
-            $r = $res->fetch();
-            if (is_bool($r))
-            {
-                return $r;
-            }
+            return !empty($res);
         }
         return $res;
     }
@@ -181,4 +177,10 @@ class PdoDB extends \PDO implements Swoole\IDatabase
 	{
 		unset($this);
 	}
+
+    function quote($str)
+    {
+        $safeStr = parent::quote($str);
+        return substr($safeStr, 1, strlen($safeStr) - 2);
+    }
 }
