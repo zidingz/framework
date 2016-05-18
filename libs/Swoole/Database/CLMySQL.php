@@ -150,13 +150,14 @@ class CLMySQL implements \Swoole\IDatabase {
 
 class CLMySQLRecord implements \Swoole\IDbRecord {
     public $result;
+    private $seek = 0;
 
     function __construct($result) {
         $this->result = $result;
     }
 
     function fetch() {
-        return Swoole\Client\CLMySQL::fetch_row($this->result);
+        return Swoole\Client\CLMySQL::fetch_row($this->result, $this->seek++);
     }
 
     function fetchall() {
