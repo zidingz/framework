@@ -47,7 +47,7 @@ class CLMySQL implements \Swoole\IDatabase {
     }
 
     function errorMessage($sql) {
-        return Swoole\Client\CLMySQL::get_last_erro_msg($this->conn) . "<hr />$sql<hr />MySQL Server: {$this->config['host']}:{$this->config['port']}";
+        return Swoole\Client\CLMySQL::get_last_erro_msg($this->conn) . "(" . Swoole\Client\CLMySQL::get_last_errno($this->conn) . ")" . "<hr />$sql<hr />MySQL Server: {$this->config['host']}:{$this->config['port']}";
     }
 
     /**
