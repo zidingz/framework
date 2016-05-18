@@ -109,11 +109,7 @@ class CLMySQL implements \Swoole\IDatabase {
     }
 
     function ping() {
-        if (!mysql_ping($this->conn)) {
-            return false;
-        } else {
-            return true;
-        }
+        return Swoole\Client\CLMySQL::query("ping", $this->conn);
     }
 
     /**
