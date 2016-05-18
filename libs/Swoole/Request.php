@@ -77,6 +77,14 @@ class Request
         $this->request = $_REQUEST = array_merge($this->get, $this->post, $this->cookie);
 
         $_SERVER['REQUEST_URI'] = $this->meta['uri'];
+        $_SERVER['REMOTE_ADDR'] = $this->remote_ip;
+        $_SERVER['REMOTE_PORT'] = $this->remote_port;
+        $_SERVER['REQUEST_METHOD'] = $this->meta['method'];
+        $_SERVER['REQUEST_TIME'] = $this->time;
+        $_SERVER['SERVER_PROTOCOL'] = $this->meta['protocol'];
+        $_SERVER['QUERY_STRING'] = $this->meta['query'];
+        $_SERVER['DOCUMENT_ROOT'] = $this->meta['document_root'];
+
         /**
          * 将HTTP头信息赋值给$_SERVER超全局变量
          */
@@ -85,7 +93,6 @@ class Request
             $_key = 'HTTP_' . strtoupper(str_replace('-', '_', $key));
             $_SERVER[$_key] = $value;
         }
-        $_SERVER['REMOTE_ADDR'] = $this->remote_ip;
     }
 
     /**

@@ -145,8 +145,12 @@ class SelectDB
      * @param $force
      * @return null
      */
-    function select($select, $force=false)
+    function select($select, $force = false)
     {
+        if (is_array($select))
+        {
+            $select = implode(',', $select);
+        }
         if ($this->select == "*" or $force)
         {
             $this->select = $select;
@@ -296,13 +300,13 @@ class SelectDB
      */
     function in($field, $ins)
     {
-        //去掉2面的分号
         if (is_array($ins))
         {
             $ins = implode(',', $ins);
         }
         else
         {
+            //去掉两边的分号
             $ins = trim($ins, ',');
         }
         $this->where("`$field` in ({$ins})");
@@ -316,6 +320,15 @@ class SelectDB
      */
     function notin($field,$ins)
     {
+        if (is_array($ins))
+        {
+            $ins = implode(',', $ins);
+        }
+        else
+        {
+            //去掉两边的分号
+            $ins = trim($ins, ',');
+        }
         $this->where("`$field` not in ({$ins})");
     }
 
