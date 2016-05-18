@@ -109,6 +109,7 @@ class CLMySQL implements \Swoole\IDatabase {
     }
 
     function ping() {
+        //
         return Swoole\Client\CLMySQL::query("ping", $this->conn);
     }
 
