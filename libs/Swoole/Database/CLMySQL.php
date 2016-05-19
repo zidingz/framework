@@ -13,7 +13,7 @@ use Swoole;
 class CLMySQL implements \Swoole\IDatabase {
     public $debug = false;
     public $conn = null;
-    public $config;
+    public $config, $error = '';
     const DEFAULT_PORT = 9701;
 
     function __construct($db_config) {
@@ -94,7 +94,7 @@ class CLMySQL implements \Swoole\IDatabase {
     }
 
     function quote($value) {
-        return mysql_real_escape_string($value, $this->conn);
+        return addslashes($value);
     }
 
     /**
@@ -144,6 +144,7 @@ class CLMySQL implements \Swoole\IDatabase {
      * @return int
      */
     function errno() {
+        $this->error = Swoole\Client\CLMySQL::get_last_erro_msg($this->conn);
         return Swoole\Client\CLMySQL::get_last_errno($this->conn);
     }
 }

@@ -182,23 +182,23 @@ class CLMySQL {
 
     static function insert_id($conn_id) {
         return self::$conninfo[$conn_id][self::CONNINFO_F_insert_id];
-        #$result_id = $this->query('insert_id');
-        #return $this->fetch($result_id);
-        #return isset($this->result[$this->result_id - 1][$this->dbname][2]) ? $this->result[$this->result_id - 1][$this->dbname][2] : false;
     }
 
     static function affected_rows($conn_id) {
         return self::$conninfo[$conn_id][self::CONNINFO_F_affected_rows];
-        #$result_id = $this->query('affected_rows');
-        #return $this->fetch($result_id);
-        #return isset($this->result[$this->result_id - 1][$this->dbname][3]) ? $this->result[$this->result_id - 1][$this->dbname][3] : false;
     }
 
     static function get_last_errno($conn_id) {
+        if (!isset(self::$conninfo[$conn_id][self::CONNINFO_F_errno])) {
+            return 0;
+        }
         return self::$conninfo[$conn_id][self::CONNINFO_F_errno];
     }
 
     static function get_last_erro_msg($conn_id) {
+        if (!isset(self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg])) {
+            return "";
+        }
         return self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg];
     }
 
