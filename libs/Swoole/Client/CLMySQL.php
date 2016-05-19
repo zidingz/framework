@@ -117,6 +117,8 @@ class CLMySQL {
         }
         $r = self::getPack($sign, $conn_id);
         if (!is_array($r)) {
+            self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 1256;
+            self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = '返回非数组结果' . print_r($r, 1);
             return false;
         }
         foreach ($r as $k => $v) {
