@@ -95,6 +95,11 @@ class CLMySQL {
 				self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = 'Mysql proxy中断(签名验证失败:"' . $sign . '"!="' . $r[0] . '")';
 				return false;
 			}
+			if (!is_array($r[1])) {
+				self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 2006;
+				self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = '返回非数组结果:' . $data;
+				return false;
+			}
 			return $r[1];
 		}
 	}
@@ -128,11 +133,11 @@ class CLMySQL {
 		if ($r === false) {
 			return false;
 		}
-		if (!is_array($r)) {
+		/*if (!is_array($r)) {
 			self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 1256;
 			self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = '返回非数组结果' . print_r($r, 1);
 			return false;
-		}
+		}*/
 		foreach ($r as $k => $v) {
 			if ($v[0] != 0) {
 				self::$conninfo[$conn_id][self::CONNINFO_F_errno] = $v[0];
