@@ -282,7 +282,7 @@ class Tool
         {
             $prefix = self::$url_prefix;
         }
-        return $prefix . self::combine_query($urls) . self::$url_add_end;
+        return $prefix . http_build_query($urls) . self::$url_add_end;
     }
 
     /**
