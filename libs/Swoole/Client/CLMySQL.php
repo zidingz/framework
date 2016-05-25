@@ -55,6 +55,7 @@ class CLMySQL {
 				//第N个字节是包长度的值
 				'package_body_offset' => 8,
 				//第几个字节开始计算长度
+				'buffer_output_size' => CLPack::MAX_LEN,
 				'package_max_length' => CLPack::MAX_LEN,
 				//协议最大长度
 			));
@@ -84,9 +85,22 @@ class CLMySQL {
 				return false;
 			}
 			$r = CLPack::unpack($data);
-			if ($r && $r[0] === $sign) {
-				return $r[1];
+			if (!$r) {
+				self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 2006;
+				self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = 'Mysql proxy中断(解包失败:' . $data . ')';
+				return false;
 			}
+			if ($r[0] !== $sign) {
+				self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 2006;
+				self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = 'Mysql proxy中断(签名验证失败:"' . $sign . '"!="' . $r[0] . '")';
+				return false;
+			}
+			if (!is_array($r[1])) {
+				self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 2006;
+				self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = '返回非数组结果:' . $data;
+				return false;
+			}
+			return $r[1];
 		}
 	}
 
@@ -94,6 +108,8 @@ class CLMySQL {
 		if (!isset(self::$conninfo[$conn_id])) {
 			/*$this->last_errno = 2006;
 			$this->last_erro_msg = 'Mysql proxy中断(无连接)';*/
+			self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 1256;
+			self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = '连接不存在 $conn_id=' . $conn_id;
 			return false;
 		}
 		$is_multi = true;
@@ -114,9 +130,14 @@ class CLMySQL {
 			return false;
 		}
 		$r = self::getPack($sign, $conn_id);
-		if (!is_array($r)) {
+		if ($r === false) {
 			return false;
 		}
+		/*if (!is_array($r)) {
+			self::$conninfo[$conn_id][self::CONNINFO_F_errno] = 1256;
+			self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg] = '返回非数组结果' . print_r($r, 1);
+			return false;
+		}*/
 		foreach ($r as $k => $v) {
 			if ($v[0] != 0) {
 				self::$conninfo[$conn_id][self::CONNINFO_F_errno] = $v[0];
@@ -180,23 +201,23 @@ class CLMySQL {
 
 	static function insert_id($conn_id) {
 		return self::$conninfo[$conn_id][self::CONNINFO_F_insert_id];
-		#$result_id = $this->query('insert_id');
-		#return $this->fetch($result_id);
-		#return isset($this->result[$this->result_id - 1][$this->dbname][2]) ? $this->result[$this->result_id - 1][$this->dbname][2] : false;
 	}
 
 	static function affected_rows($conn_id) {
 		return self::$conninfo[$conn_id][self::CONNINFO_F_affected_rows];
-		#$result_id = $this->query('affected_rows');
-		#return $this->fetch($result_id);
-		#return isset($this->result[$this->result_id - 1][$this->dbname][3]) ? $this->result[$this->result_id - 1][$this->dbname][3] : false;
 	}
 
 	static function get_last_errno($conn_id) {
+		if (!isset(self::$conninfo[$conn_id][self::CONNINFO_F_errno])) {
+			return 0;
+		}
 		return self::$conninfo[$conn_id][self::CONNINFO_F_errno];
 	}
 
 	static function get_last_erro_msg($conn_id) {
+		if (!isset(self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg])) {
+			return "";
+		}
 		return self::$conninfo[$conn_id][self::CONNINFO_F_erro_msg];
 	}
 

@@ -337,6 +337,7 @@ class Server extends Base implements Driver
                 Swoole\Console::setProcessName($this->getProcessName() . ': manager');
             });
         }
+
         $this->sw->on('Start', array($this, 'onMasterStart'));
         $this->sw->on('Shutdown', array($this, 'onMasterStop'));
         $this->sw->on('ManagerStop', array($this, 'onManagerStop'));
@@ -345,10 +346,16 @@ class Server extends Base implements Driver
         $this->sw->on('Receive', array($this->protocol, 'onReceive'));
         $this->sw->on('Close', array($this->protocol, 'onClose'));
         $this->sw->on('WorkerStop', array($this->protocol, 'onShutdown'));
-        if (is_callable(array($this->protocol, 'onTimer')))
+
+        //swoole-1.8已经移除了onTimer回调函数
+        if ($version[1] < 8)
         {
-            $this->sw->on('Timer', array($this->protocol, 'onTimer'));
+            if (is_callable(array($this->protocol, 'onTimer')))
+            {
+                $this->sw->on('Timer', array($this->protocol, 'onTimer'));
+            }
         }
+
         if (is_callable(array($this->protocol, 'onTask')))
         {
             $this->sw->on('Task', array($this->protocol, 'onTask'));
