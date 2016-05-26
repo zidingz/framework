@@ -95,25 +95,26 @@ class Database
         $this->write_times = 0;
     }
 
-	/**
-	 * 检查连接状态，如果连接断开，则重新连接
-	 */
-	function check_status()
-	{
-		if(!$this->_db->ping())
-		{
-			$this->_db->close();
-			$this->_db->connect();
-		}
-	}
-	/**
-	 * 启动事务处理
-	 * @return bool
-	 */
-	function start()
-	{
-		return $this->query('START TRANSACTION');
-	}
+    /**
+     * 检查连接状态，如果连接断开，则重新连接
+     */
+    function check_status()
+    {
+        if (!$this->_db->ping())
+        {
+            $this->_db->close();
+            $this->_db->connect();
+        }
+    }
+
+    /**
+     * 启动事务处理
+     * @return bool
+     */
+    function start()
+    {
+        return $this->query('START TRANSACTION');
+    }
 
 	/**
 	 * 提交事务处理
@@ -133,11 +134,11 @@ class Database
 		$this->query('ROLLBACK');
 	}
 
-	/**
-	 * 执行一条SQL语句
-	 * @param $sql
+    /**
+     * 执行一条SQL语句
+     * @param $sql
      * @return \Swoole\Database\MySQLiRecord
-	 */
+     */
     public function query($sql)
     {
         if ($this->debug)
@@ -145,8 +146,10 @@ class Database
             echo "$sql<br />\n<hr />";
         }
         $this->read_times += 1;
+
         return $this->_db->query($sql);
     }
+
 	/**
 	 * 插入$data数据库的表$table，$data必须是键值对应的，$key是数据库的字段，$value是对应的值
 	 * @param $data
