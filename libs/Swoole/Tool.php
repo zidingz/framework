@@ -515,4 +515,44 @@ class Tool
         $m = memory_get_usage(true) - $_m;
         echo "cost Time: {$t}ms, Memory=".self::getHumanSize($m)."\n";
     }
+
+    /**
+     * 从Server列表中随机选出一个，使用status配置可以实现上线下线管理，weight(0-100)配置权重
+     * @param array $servers
+     * @return mixed
+     */
+    static function getServer(array $servers)
+    {
+        $weight = 0;
+        //移除不在线的节点
+        foreach ($servers as $k => $svr)
+        {
+            //节点已掉线
+            if (!empty($svr['status']) and $svr['status'] == 'offline')
+            {
+                unset($servers[$k]);
+            }
+            $weight += $svr['weight'];
+        }
+
+        //计算权重并随机选择一台机器
+        $use = rand(0, $weight - 1);
+        $weight = 0;
+        foreach ($servers as $k => $svr)
+        {
+            //默认100权重
+            if (empty($svr['weight']))
+            {
+                $svr['weight'] = 100;
+            }
+            $weight += $svr['weight'];
+            //在权重范围内
+            if ($use < $weight)
+            {
+                return $svr;
+            }
+        }
+        //绝不会到这里
+        return $servers[0];
+    }
 }
