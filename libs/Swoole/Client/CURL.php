@@ -204,7 +204,7 @@ class CURL
 
     protected function execute()
     {
-        if (count($this->reqHeader) > 1)
+        if (count($this->reqHeader) > 0)
         {
             $headers = array();
             foreach($this->reqHeader as $k => $v)
