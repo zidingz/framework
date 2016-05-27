@@ -54,6 +54,11 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         $this->log("Worker[$worker_id] is stop");
     }
 
+    function onShutdown($server)
+    {
+        $this->log("Worker[$worker_id] is stop");
+    }
+
     function onTimer($serv, $interval)
     {
         $this->log("Timer[$interval] call");
