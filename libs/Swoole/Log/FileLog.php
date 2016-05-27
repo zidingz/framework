@@ -12,6 +12,8 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
     protected $fp;
     //是否按日期存储日志
     protected $archive;
+    //是否切割文件
+    protected $cut_file = false;
     //待写入文件的日志队列（缓冲区）
     protected $queue = array();
     //是否记录更详细的信息（目前记多了文件名、行号）
@@ -26,7 +28,7 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
             $file = $config;
             $config = array('file' => $file);
         }
-
+        $this->cut_file = isset($config["cut_file"]) && $config["cut_file"] == true;
         $this->archive = isset($config['date']) && $config['date'] == true;
         $this->verbose = isset($config['verbose']) && $config['verbose'] == true;
         $this->enable_cache = isset($config['enable_cache']) ? (bool) $config['enable_cache'] : true;
@@ -154,18 +156,22 @@ class FileLog extends \Swoole\Log implements \Swoole\IFace\Log
                 $this->fp = $this->openFile($this->log_file);
             }
 
+            //fputs($this->fp, $log_str);
+            if ($this->cut_file && filesize($this->log_file) > 209715200) //200M
+            {
+                if ($this->archive)
+                {
+                    $new_log_file = $this->log_dir.'/'.$this->date.'.log.'.date('His');
+                }
+                else
+                {
+                    $new_log_file = $this->log_file.".".date('YmdHis');
+                }
+                fclose($this->fp);
+                rename($this->log_file, $new_log_file);
+                $this->fp = fopen($this->log_file, 'a+');
+            }
             fputs($this->fp, $log_str);
-
-//            if (filesize($this->log_file) > 209715200) //200M
-//            {
-//                $new_log_file = $this->log_dir.'/'.$this->date.'.log.'.date('His');
-//                fclose($this->fp);
-//                rename($this->log_file, $new_log_file);
-//                $this->fp = fopen($this->log_file, 'a+');
-//                fputs($this->fp, $log_str);
-//            } else {
-//                fputs($this->fp, $log_str);
-//            }
         }
 
         $this->queue = array();
