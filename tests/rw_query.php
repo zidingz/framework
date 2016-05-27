@@ -5,4 +5,5 @@ define('WEBPATH', realpath(__DIR__ . '/..'));
 require WEBPATH . '/libs/lib_config.php';
 
 $php->db->forceMaster = true;
-$php->db->query("select now() as now_t");
+$res = $php->db->query("select now() as now_t");
+debug($res);

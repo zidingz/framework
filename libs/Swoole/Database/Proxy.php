@@ -92,7 +92,6 @@ class Proxy
 
     protected function connect($config)
     {
-        debug($config);
         $db = new Swoole\Database($config);
         $db->connect();
         return $db;
