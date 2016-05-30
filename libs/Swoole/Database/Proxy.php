@@ -85,6 +85,7 @@ class Proxy
         }
         else
         {
+            $this->forceMaster = true;
             $db = $this->getDB(self::DB_MASTER);
         }
         return $db->query($sql);
