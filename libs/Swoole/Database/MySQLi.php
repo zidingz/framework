@@ -63,9 +63,9 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
             $db_config['name'],
             $db_config['port']
         );
-        if (mysqli_connect_errno())
+        if ($this->connect_errno)
         {
-            trigger_error("Mysqli connect failed: " . mysqli_connect_error());
+            trigger_error("mysqli connect to server[$host:{$db_config['port']}] failed: " . mysqli_connect_error(), E_USER_WARNING);
             return false;
         }
         if (!empty($db_config['charset']))
@@ -94,6 +94,10 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
     {
         $msg = $this->error . "<hr />$sql<hr />\n";
         $msg .= "Server: {$this->config['host']}:{$this->config['port']}. <br/>\n";
+        if ($this->connect_errno)
+        {
+            $msg .= "ConnectError[{$this->connect_errno}]: {$this->connect_error}<br/>\n";
+        }
         $msg .= "Message: {$this->error} <br/>\n";
         $msg .= "Errno: {$this->errno}\n";
         return $msg;
