@@ -92,10 +92,10 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
      */
     protected function errorMessage($sql)
     {
-        $msg = $this->error . "<hr />$sql<hr />";
-        $msg .= "Server: {$this->config['host']}:{$this->config['port']}. <br/>";
-        $msg .= "Message: {$this->error} <br/>";
-        $msg .= "Errno: {$this->errno}";
+        $msg = $this->error . "<hr />$sql<hr />\n";
+        $msg .= "Server: {$this->config['host']}:{$this->config['port']}. <br/>\n";
+        $msg .= "Message: {$this->error} <br/>\n";
+        $msg .= "Errno: {$this->errno}\n";
         return $msg;
     }
 
@@ -136,7 +136,7 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
         $result = $this->tryReconnect(array('parent', 'query'), array($sql));
         if (!$result)
         {
-            Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
+            trigger_error(__CLASS__." SQL Error:". $this->errorMessage($sql), E_USER_WARNING);
             return false;
         }
         if (is_bool($result))
