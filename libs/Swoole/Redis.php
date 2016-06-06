@@ -125,6 +125,28 @@ class Redis
         return false;
     }
 
+    static function write($fp, $content)
+    {
+        $length = strlen($content);
+        for ($written = 0; $written < $length; $written += $n)
+        {
+            if ($length - $written >= 8192)
+            {
+                $n = fwrite($fp, substr($content, 8192));
+            }
+            else
+            {
+                $n = fwrite($fp, substr($content, $written));
+            }
+            //写文件失败了
+            if (empty($n))
+            {
+                break;
+            }
+        }
+        return $written;
+    }
+
     /**
      * @param $file
      * @param $dstRedisServer
@@ -172,7 +194,7 @@ class Redis
             {
                 if ($_send)
                 {
-                    if (Stream::write($dstRedis, $_send) === false)
+                    if (self::write($dstRedis, $_send) === false)
                     {
                         die("写入Redis失败. $_send");
                     }
