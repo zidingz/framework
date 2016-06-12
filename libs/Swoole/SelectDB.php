@@ -269,12 +269,15 @@ class SelectDB
      */
     function group($group)
     {
-        if(!empty($group))
+        if (!empty($group))
         {
             self::sql_safe($group);
             $this->group = "group by $group";
         }
-        else $this->group = '';
+        else
+        {
+            $this->group = '';
+        }
     }
 
     /**
@@ -284,10 +287,12 @@ class SelectDB
      */
     function having($having)
     {
-        if (!empty($having)) {
-            self::sql_safe($having);
-            $this->having = "having $having";
-        } else {
+        if (!empty($having))
+        {
+            $this->having = "HAVING $having";
+        }
+        else
+        {
             $this->having = '';
         }
     }
@@ -440,19 +445,25 @@ class SelectDB
     }
 
     /**
-     * 使SQL元素安全
+     * 检查SQL参数是否安全（有特殊字符）
      * @param $sql_sub
-     * @return null
+     * @throws SQLException
      */
     static function sql_safe($sql_sub)
     {
-        if(!preg_match(self::$allow_regx, $sql_sub))
+        if (!preg_match(self::$allow_regx, $sql_sub))
         {
-            echo $sql_sub;
-            if(self::$error_call==='') die('sql block is not safe!');
-            else call_user_func(self::$error_call);
+            if (self::$error_call === '')
+            {
+                throw new SQLException("sql block '{$sql_sub}' is unsafe!");
+            }
+            else
+            {
+                call_user_func(self::$error_call);
+            }
         }
     }
+
     /**
      * 获取组合成的SQL语句字符串
      * @param $ifreturn
@@ -860,4 +871,9 @@ class SelectDB
     {
         return $this->db->getAffectedRows();
     }
+}
+
+class SQLException extends \Exception
+{
+
 }
