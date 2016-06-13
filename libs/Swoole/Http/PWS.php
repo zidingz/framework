@@ -34,7 +34,10 @@ class PWS implements \Swoole\IFace\Http
     function finish($content = null)
     {
         \Swoole::$php->request->finish = 1;
-        if($content) \Swoole::$php->response->body = $content;
+        if ($content)
+        {
+            \Swoole::$php->response->body = $content;
+        }
         throw new Swoole\ResponseException;
     }
 
