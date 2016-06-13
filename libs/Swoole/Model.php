@@ -361,9 +361,15 @@ class Model
 	 */
 	function exists($gets)
 	{
-	    $c = $this->count($gets);
-	    if($c>0) return true;
-	    else return false;
+        $c = $this->count($gets);
+        if ($c > 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
 	}
 
 	/**
@@ -374,7 +380,6 @@ class Model
 	{
 		return $this->db->query('describe '.$this->table)->fetchall();
 	}
-
 	/**
 	 * 自动生成表单
 	 *

@@ -38,8 +38,7 @@ class Session
 
     /**
      * 构造函数
-     * @param $cache \Swoole\Cache
-     * @return NULL
+     * @param $cache IFace\Cache
      */
     public function __construct($cache = null)
     {

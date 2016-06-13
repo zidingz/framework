@@ -15,7 +15,7 @@ class Console
             {
                 unset($arg);
             }
-            if ($arg{0} === '\\' or $arg{0} === '-')
+            elseif ($arg[0] === '\\' or $arg[0] === '-')
             {
                 $return['opt'][] = substr($arg, 1);
             }
