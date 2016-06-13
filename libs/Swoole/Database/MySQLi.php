@@ -108,7 +108,7 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
         $result = false;
         for ($i = 0; $i < 2; $i++)
         {
-            $result = call_user_func_array($call, $params);
+            $result = @call_user_func_array($call, $params);
             if ($result === false)
             {
                 if ($this->errno == 2013 or $this->errno == 2006)
