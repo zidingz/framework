@@ -151,6 +151,35 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
     }
 
     /**
+     * 执行多个SQL语句
+     * @param string $sql 执行的SQL语句
+     * @return MySQLiRecord | false
+     */
+    function multi_query($sql)
+    {
+        $result = $this->tryReconnect(array('parent', 'multi_query'), array($sql));
+        if (!$result) {
+            Swoole\Error::info(__CLASS__ . " SQL Error", $this->errorMessage($sql));
+            return false;
+        }
+
+        $result = call_user_func_array(array('parent', 'use_result'), array());
+        $output = array();
+        while ($row = $result->fetch_assoc()) {
+            $output[] = $row;
+        }
+        $result->free();
+
+        while (call_user_func_array(array('parent', 'more_results'), array()) && call_user_func_array(array('parent', 'next_result'), array())) {
+            $extraResult = call_user_func_array(array('parent', 'use_result'), array());
+            if ($extraResult instanceof \mysqli_result) {
+                $extraResult->free();
+            }
+        }
+        return $output;
+    }
+
+    /**
      * 异步SQL
      * @param $sql
      * @return bool|\mysqli_result
