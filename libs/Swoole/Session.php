@@ -47,6 +47,10 @@ class Session
 
     public function start($readonly = false)
     {
+        if (empty(\Swoole::$php->request))
+        {
+            throw new SessionException("The method must be used when requested.");
+        }
         $this->isStart = true;
         if ($this->use_php_session)
         {
@@ -208,4 +212,9 @@ class Session
         session_start();
         return true;
     }
+}
+
+class SessionException extends \Exception
+{
+
 }
