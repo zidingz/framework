@@ -46,6 +46,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
 
     const DECODE_PHP            = 1;   //使用PHP的serialize打包
     const DECODE_JSON           = 2;   //使用json_encode打包
+    const DECODE_GZIP           = 128; //启用GZIP压缩
 
     protected $appNamespaces    = array(); //应用程序命名空间
 
@@ -182,7 +183,18 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
      */
     static function encode($data, $type = self::DECODE_PHP, $uid = 0, $serid = 0)
     {
-        switch($type)
+        //启用压缩
+        if ($type & self::DECODE_GZIP)
+        {
+            $_type = $type & ~self::DECODE_GZIP;
+            $gzip_compress = true;
+        }
+        else
+        {
+            $gzip_compress = false;
+            $_type = $type;
+        }
+        switch($_type)
         {
             case self::DECODE_JSON:
                 $body = json_encode($data);
@@ -191,6 +203,10 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
             default:
                 $body = serialize($data);
                 break;
+        }
+        if ($gzip_compress)
+        {
+            $body = gzencode($body);
         }
         return pack(SOAServer::HEADER_PACK, strlen($body), $type, $uid, $serid) . $body;
     }
@@ -203,6 +219,11 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
      */
     static function decode($data, $unseralize_type = self::DECODE_PHP)
     {
+        if ($unseralize_type & self::DECODE_GZIP)
+        {
+            $unseralize_type &= ~self::DECODE_GZIP;
+            $data = gzdecode($data);
+        }
         switch ($unseralize_type)
         {
             case self::DECODE_JSON:

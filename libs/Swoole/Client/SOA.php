@@ -36,12 +36,32 @@ class SOA
 
     protected static $_instances = array();
 
+    protected $encode_gzip = false;
+    protected $encode_json = false;
+
     function __construct($id = null)
     {
         $key = empty($id) ? 'default' : $id;
         self::$_instances[$key] = $this;
         $this->haveSwoole = extension_loaded('swoole');
         $this->haveSockets = extension_loaded('sockets');
+    }
+
+    /**
+     * 设置编码类型
+     * @param $json
+     * @param $gzip
+     */
+    function setEncodeType($json, $gzip)
+    {
+        if ($json)
+        {
+            $this->encode_json = true;
+        }
+        if ($gzip)
+        {
+            $this->encode_gzip = true;
+        }
     }
 
     /**
@@ -166,8 +186,14 @@ class SOA
         }
         //请求串号
         $retObj->requestId = self::getRequestId();
+        //打包格式
+        $encodeType = $this->encode_gzip ? SOAServer::DECODE_JSON : SOAServer::DECODE_PHP;
+        if ($this->encode_gzip)
+        {
+            $encodeType |= SOAServer::DECODE_GZIP;
+        }
         //发送失败了
-        if ($retObj->socket->send(SOAServer::encode($retObj->send, SOAServer::DECODE_PHP, 0, $retObj->requestId)) === false)
+        if ($retObj->socket->send(SOAServer::encode($retObj->send, $encodeType, 0, $retObj->requestId)) === false)
         {
             $retObj->code = SOA_Result::ERR_SEND;
             unset($retObj->socket);
