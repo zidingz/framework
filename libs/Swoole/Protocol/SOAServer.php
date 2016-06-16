@@ -133,7 +133,11 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
             self::$clientEnv['_socket'] = $this->server->connection_info($header['fd']);
             $response = $this->call($request, $_header);
             //发送响应
-            $this->server->send($fd, self::encode($response, $_header['type'], $_header['uid'], $_header['serid']));
+            $ret = $this->server->send($fd, self::encode($response, $_header['type'], $_header['uid'], $_header['serid']));
+            if ($ret === false)
+            {
+                trigger_error("SendToClient failed. params=".var_export($request, true)."\nheaders=".var_export($_header, true), E_USER_WARNING);
+            }
             //退出进程
             if (self::$stop)
             {
