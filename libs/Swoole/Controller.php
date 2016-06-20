@@ -104,25 +104,31 @@ class Controller extends Object
 
     function assign($key, $value)
     {
+        // Verify $key is reliable.
+        if(strpos($key, '_swoole') === 0)
+        {
+            return false;
+        }
+
         $this->tpl_var[$key] = $value;
     }
 
     /**
      * render template file, then display it.
-     * @param string $tpl_file
+     * @param string $_swoole_tpl_file
      */
-    function display($tpl_file ='')
+    function display($_swoole_tpl_file ='')
     {
-        if (empty($tpl_file))
+        if (empty($_swoole_tpl_file))
         {
-            $tpl_file = strtolower($this->swoole->env['mvc']['controller']).'/'.strtolower($this->swoole->env['mvc']['view']).'.php';
+            $_swoole_tpl_file = strtolower($this->swoole->env['mvc']['controller']).'/'.strtolower($this->swoole->env['mvc']['view']).'.php';
         }
-        if (!is_file($this->template_dir.$tpl_file))
+        if (!is_file($this->template_dir.$_swoole_tpl_file))
         {
-            Error::info('template error', "template file[".$this->template_dir.$tpl_file."] not found");
+            Error::info('template error', "template file[".$this->template_dir.$_swoole_tpl_file."] not found");
         }
         extract($this->tpl_var);
-        include $this->template_dir.$tpl_file;
+        include $this->template_dir.$_swoole_tpl_file;
     }
 
     /**
