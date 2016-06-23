@@ -160,8 +160,10 @@ class Controller extends Object
         {
             $_trace['SESSION_ID'] = session_id();
         }
-        $_trace['读取数据库'] = $this->swoole->db->read_times . '次';
-        $_trace['写入数据库'] = $this->swoole->db->write_times . '次';
+        if($this->swoole->db instanceof \Swoole\Database) {
+            $_trace['读取数据库'] = $this->swoole->db->read_times . '次';
+            $_trace['写入数据库'] = $this->swoole->db->write_times . '次';
+        }
         $_trace['加载文件数目'] = count($included_files);
         $_trace['PHP执行占用'] = $this->showTime();
         $_trace = array_merge($this->trace,$_trace);
