@@ -312,7 +312,7 @@ class Form
      * @param $name
      * @param $value
      * @param $attrArray
-     * @return unknown_type
+     * @return string
      */
     static function input($name, $value = '', $attrArray = null)
 	{
