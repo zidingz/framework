@@ -501,13 +501,18 @@ class Record implements \ArrayAccess
 
         if (!empty($this->_current_id))
         {
-			$res = $this->db->query("select {$select} from {$this->table} where {$where} ='{$id}' limit 1")->fetch();
-			if (!empty($res))
+			$obj = $this->db->query("select {$select} from {$this->table} where {$where} ='{$id}' limit 1");
+			if (!is_bool($obj))
 			{
-				$this->_data = $res;
-				$this->_current_id = $this->_data[$this->primary];
-				$this->_change = self::STATE_INSERT;
+				$res = $obj->fetch();
+				if (!empty($res))
+				{
+					$this->_data = $res;
+					$this->_current_id = $this->_data[$this->primary];
+					$this->_change = self::STATE_INSERT;
+				}
 			}
+
         }
 	}
 
