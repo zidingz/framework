@@ -555,4 +555,14 @@ class Tool
         //绝不会到这里
         return $servers[0];
     }
+
+    /**
+     * 打印数组
+     * @param $var
+     * @return mixed
+     */
+    function dump($var)
+    {
+        return highlight_string("<?php\n\$array = ".var_export($var, true).";", true);
+    }
 }

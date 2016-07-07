@@ -139,10 +139,11 @@ class Controller extends Object
         $showTime .= ' | 内存占用:' . $runtime['memory'];
         return $showTime;
     }
+
     /**
      * 显示跟踪信息
      * @param $detail
-     * @return unknown_type
+     * @return string
      */
     public function showTrace($detail=false)
     {
@@ -179,10 +180,13 @@ border:				#999 1px solid;
 padding:			20px 20px 12px 20px;
 }
 </style>
-	<div id="content">
-		<fieldset id="querybox" style="margin:5px;">
-		<div style="overflow:auto;height:800px;text-align:left;">
+	<div>
+		<fieldset style="margin:5px;">
+		<div style="overflow:auto;text-align:left;">
 HTMLS;
+        $html .= "<a href='".Tool::url_merge('_show_request', '1')."'>显示请求参数</a> |
+        <a href='".Tool::url_merge('_show_session', '1')."'>显示会话信息</a>
+        <hr/>";
         foreach ($_trace as $key => $info)
         {
             $html .= $key . ' : ' . $info . BL;
@@ -190,13 +194,50 @@ HTMLS;
         if ($detail)
         {
             //输出包含的文件
-            $html .= '加载的文件' . BL;
+            $html .= '加载的文件：' . BL."<pre style='color: #666'>";
             foreach ($included_files as $file)
             {
-                $html .= 'require ' . $file . BL;
+                $html .= $file . "\n";
             }
+            $html .= "</pre>";
         }
-        $html .= "</div></fieldset></div>";
+        $html .= "</div></fieldset>";
+        $html .= "</div>";
+
+        if (!empty($_GET['_show_request']))
+        {
+            $output = '<fieldset style="margin:5px;"><div style="overflow:auto;text-align:left;">';
+            $request = $this->swoole->request;
+            $output .= "<h2>HEADER:</h2>".Tool::dump($request->header);
+            $output .= "<h2>SERVER:</h2>".Tool::dump($request->server);
+            if (!empty($request->files))
+            {
+                $output .= "<h2>FILE:</h2>".Tool::dump($request->files);
+            }
+            if (!empty($request->cookie))
+            {
+                $output .= "<h2>COOKIES:</h2>".Tool::dump($request->cookie);
+            }
+            if (!empty($request->get))
+            {
+                $output .= "<h2>GET:</h2>".Tool::dump($this->swoole->request->get);
+            }
+            if (!empty($request->post))
+            {
+                $output .= "<h2>POST:</h2>".Tool::dump($request->post);
+            }
+
+            $html .= $output."</div></fieldset>";
+        }
+
+        if (!empty($_GET['_show_session']))
+        {
+            $output = '<fieldset style="margin:5px;"><div style="overflow:auto;text-align:left;">';
+            $this->session->start();
+            $output .= "<h2>SESSION:</h2>" . Tool::dump($request->session);
+            $html .= $output."</div></fieldset>";
+        }
+
         return $html;
     }
 
