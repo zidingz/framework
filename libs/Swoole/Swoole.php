@@ -2,7 +2,6 @@
 //加载核心的文件
 require_once __DIR__ . '/Loader.php';
 require_once __DIR__ . '/ModelLoader.php';
-require_once __DIR__ . '/PluginLoader.php';
 
 use Swoole\Exception\NotFound;
 
