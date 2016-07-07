@@ -9,6 +9,7 @@ class Page extends Swoole\Controller
     function index()
     {
         $this->http->header('Content-Type', 'text/html; charset=UTF-8');
+        $this->trace('Hello', 'World');
         return $this->showTrace(true);
     }
 

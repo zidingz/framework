@@ -15,7 +15,7 @@ class Controller extends Object
 
     protected $tpl_var = array();
     protected $template_dir;
-    protected $trace = array();
+    protected $traceInfo = array();
     protected $model;
     protected $config;
 
@@ -41,17 +41,18 @@ class Controller extends Object
      * @param $title
      * @param $value
      */
-    protected function trace($title,$value='')
+    protected function trace($title, $value = '')
     {
-        if(is_array($title))
+        if (is_array($title))
         {
-            $this->trace = array_merge($this->trace,$title);
+            $this->traceInfo = array_merge($this->traceInfo, $title);
         }
         else
         {
-            $this->trace[$title] = $value;
+            $this->traceInfo[$title] = $value;
         }
     }
+
     function fetch($tpl_file ='')
     {
         ob_start();
@@ -165,7 +166,7 @@ class Controller extends Object
         $_trace['写入数据库'] = $this->swoole->db->write_times . '次';
         $_trace['加载文件数目'] = count($included_files);
         $_trace['PHP执行占用'] = $this->showTime();
-        $_trace = array_merge($this->trace,$_trace);
+        $_trace = array_merge($this->traceInfo, $_trace);
 
         // 调用Trace页面模板
         $html = <<<HTMLS
