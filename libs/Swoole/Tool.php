@@ -124,14 +124,15 @@ class Tool
         $responseTime = $requestTime = $_SERVER['REQUEST_TIME'];
         $result = true;
 
-       if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']))
+        if (isset($_SERVER['HTTP_IF_MODIFIED_SINCE']))
         {
             $lastModifiedSince = strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']);
-            if ($lastModifiedSince and $requestTime <= ($lastModifiedSince + $expire))
+            //命中本地缓存
+            if ($lastModifiedSince > $lastModifyTime)
             {
-                \Swoole::$php->http->status(404);
+                \Swoole::$php->http->status(304);
+                $result = false;
             }
-            $result = false;
         }
 
         $headers = array(
