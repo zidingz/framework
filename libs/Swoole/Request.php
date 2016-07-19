@@ -82,9 +82,10 @@ class Request
         $_SERVER['REQUEST_METHOD'] = $this->meta['method'];
         $_SERVER['REQUEST_TIME'] = $this->time;
         $_SERVER['SERVER_PROTOCOL'] = $this->meta['protocol'];
-        $_SERVER['QUERY_STRING'] = $this->meta['query'];
-        $_SERVER['DOCUMENT_ROOT'] = $this->meta['document_root'];
-
+        if (!empty($this->meta['query']))
+        {
+            $_SERVER['QUERY_STRING'] = $this->meta['query'];
+        }
         /**
          * 将HTTP头信息赋值给$_SERVER超全局变量
          */
