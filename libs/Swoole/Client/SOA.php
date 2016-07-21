@@ -179,6 +179,7 @@ class SOA
         $this->beforeRequest($retObj);
 
         $retObj->index = $this->requestIndex ++;
+        connect_to_server:
         if ($this->connectToServer($retObj) === false)
         {
             $retObj->code = SOA_Result::ERR_CONNECT;
@@ -195,6 +196,11 @@ class SOA
         //发送失败了
         if ($retObj->socket->send(SOAServer::encode($retObj->send, $encodeType, 0, $retObj->requestId)) === false)
         {
+            //连接被重置了，重现连接到服务器
+            if ($this->haveSwoole and $retObj->socket->errCode == 104)
+            {
+                goto connect_to_server;
+            }
             $retObj->code = SOA_Result::ERR_SEND;
             unset($retObj->socket);
             return false;
