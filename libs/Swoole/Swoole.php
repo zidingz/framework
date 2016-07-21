@@ -690,6 +690,7 @@ function swoole_urlrouter_mvc(&$uri)
     }
     $array['controller'] = $request[0];
     $array['view'] = $request[1];
+    Swoole\Tool::$url_prefix = '';
     if (isset($request[2]))
     {
         $request[2] = trim($request[2], '/');

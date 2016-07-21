@@ -12,12 +12,12 @@ class Tool
     static public $url_param_join = '&';
     static public $url_prefix = '';
     static public $url_add_end = '';
+
     const DATE_FORMAT_HTTP   = 'D, d-M-Y H:i:s T';
+    const WEEK_TWO = '周';
+    const WEEK_THREE = '星期';
 
     static $number = array('〇','一','二','三','四','五','六','七','八','九');
-
-    static $week_two = '周';
-    static $week_three = '星期';
 
     /**
      * 数字转星期
@@ -35,14 +35,13 @@ class Tool
         {
             $num = Tool::num2han($num + 1);
         }
-
         if ($two)
         {
-            return self::$week_two . $num;
+            return self::WEEK_TWO . $num;
         }
         else
         {
-            return self::$week_three . $num;
+            return self::WEEK_THREE . $num;
         }
     }
 
@@ -73,10 +72,9 @@ class Tool
                 }
                 $files[] = $filename;
             }
-
             sort($files);
+            return $files;
         }
-        $dirs = scandir($dir);
     }
 
     /**
