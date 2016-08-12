@@ -138,10 +138,11 @@ class ExtServer implements Swoole\IFace\Http
         $file = $this->document_root . $req->server['request_uri'];
         $read_file = true;
         $fstat = stat($file);
+
         //过期控制信息
-        if (isset($req->header['If-Modified-Since']))
+        if (isset($req->header['if-modified-since']))
         {
-            $lastModifiedSince = strtotime($req->header['If-Modified-Since']);
+            $lastModifiedSince = strtotime($req->header['if-modified-since']);
             if ($lastModifiedSince and $fstat['mtime'] <= $lastModifiedSince)
             {
                 //不需要读文件了
@@ -173,7 +174,7 @@ class ExtServer implements Swoole\IFace\Http
                 $resp->gzip();
             }
             $resp->header('Content-Type', $mime_type);
-            $resp->end(file_get_contents($this->document_root . $req->server['request_uri']));
+            $resp->sendfile($file);
         }
         else
         {
