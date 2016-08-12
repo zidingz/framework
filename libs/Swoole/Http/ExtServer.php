@@ -62,7 +62,7 @@ class ExtServer implements Swoole\IFace\Http
     {
         $this->finish = true;
         $this->response->write($content);
-        throw new Swoole\ResponseException;
+        throw new Swoole\Exception\Response;
     }
 
     function getRequestBody()
