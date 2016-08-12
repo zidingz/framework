@@ -487,7 +487,7 @@ class Swoole
                 $response->body .= ob_get_contents();
                 ob_end_clean();
             }
-            catch(Swoole\ResponseException $e)
+            catch(Swoole\Exception\Response $e)
             {
                 if ($request->finish != 1)
                 {

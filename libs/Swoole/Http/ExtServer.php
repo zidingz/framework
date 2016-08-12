@@ -203,7 +203,7 @@ class ExtServer implements Swoole\IFace\Http
                 ob_end_clean();
                 $resp->end($echo_output.$body);
             }
-            catch (Swoole\ResponseException $e)
+            catch (Swoole\Exception\Response $e)
             {
                 if ($this->finish != 1)
                 {
