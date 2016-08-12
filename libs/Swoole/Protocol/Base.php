@@ -55,9 +55,9 @@ abstract class Base implements Swoole\IFace\Protocol
         $this->log->info($msg);
     }
 
-    function task($task, $dstWorkerId = -1)
+    function task($task, $dstWorkerId = -1, $callback = null)
     {
-        $this->server->task($task, $dstWorkerId = -1);
+        $this->server->task($task, $dstWorkerId = -1, $callback);
     }
 
     function onStart($server)

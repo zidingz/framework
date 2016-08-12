@@ -21,6 +21,8 @@ class ExtServer implements Swoole\IFace\Http
 
     public $finish;
     public $document_root;
+    public $expire_time = 86400;
+    const DATE_FORMAT_HTTP = 'D, d-M-Y H:i:s T';
 
     protected $mimes;
     protected $types;
@@ -134,21 +136,50 @@ class ExtServer implements Swoole\IFace\Http
     function doStatic(\swoole_http_request $req, \swoole_http_response $resp)
     {
         $file = $this->document_root . $req->server['request_uri'];
-        $extname = Swoole\Upload::getFileExt($file);
-        if (empty($this->types[$extname]))
+        $read_file = true;
+        $fstat = stat($file);
+        //过期控制信息
+        if (isset($req->header['If-Modified-Since']))
         {
-            $mime_type = 'text/html';
+            $lastModifiedSince = strtotime($req->header['If-Modified-Since']);
+            if ($lastModifiedSince and $fstat['mtime'] <= $lastModifiedSince)
+            {
+                //不需要读文件了
+                $read_file = false;
+                $resp->status(304);
+            }
         }
         else
         {
-            $mime_type = $this->types[$extname];
+            $resp->header('Cache-Control', "max-age={$this->expire_time}");
+            $resp->header('Pragma', "max-age={$this->expire_time}");
+            $resp->header('Last-Modified', date(self::DATE_FORMAT_HTTP, $fstat['mtime']));
+            $resp->header('Expires',  "max-age={$this->expire_time}");
         }
-        if (isset(self::$gzip_extname[$extname]))
+
+        if ($read_file)
         {
-            $resp->gzip();
+            $extname = Swoole\Upload::getFileExt($file);
+            if (empty($this->types[$extname]))
+            {
+                $mime_type = 'text/html';
+            }
+            else
+            {
+                $mime_type = $this->types[$extname];
+            }
+            if (isset(self::$gzip_extname[$extname]))
+            {
+                $resp->gzip();
+            }
+            $resp->header('Content-Type', $mime_type);
+            $resp->end(file_get_contents($this->document_root . $req->server['request_uri']));
         }
-        $resp->header('Content-Type', $mime_type);
-        $resp->end(file_get_contents($this->document_root . $req->server['request_uri']));
+        else
+        {
+            $resp->end();
+        }
+        return true;
     }
 
     function onRequest(\swoole_http_request $req, \swoole_http_response $resp)
