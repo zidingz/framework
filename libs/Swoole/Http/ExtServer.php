@@ -169,10 +169,6 @@ class ExtServer implements Swoole\IFace\Http
             {
                 $mime_type = $this->types[$extname];
             }
-            if (isset(self::$gzip_extname[$extname]))
-            {
-                $resp->gzip();
-            }
             $resp->header('Content-Type', $mime_type);
             $resp->sendfile($file);
         }
