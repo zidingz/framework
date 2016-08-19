@@ -9,7 +9,7 @@ class Event
     /**
      * @var IFace\Queue
      */
-	protected $_queue;
+    protected $_queue;
     protected $_handles = array();
 
     /**
@@ -162,7 +162,7 @@ class Event
 
         \swoole_process::signal(SIGCHLD, function() {
             while(true) {
-                $exitProcess = \swoole_process::wait();
+                $exitProcess = \swoole_process::wait(false);
                 if ($exitProcess)
                 {
                     foreach ($this->_workers as $k => $p)
