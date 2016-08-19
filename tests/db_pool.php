@@ -4,22 +4,23 @@ define('WEBPATH', realpath(__DIR__ . '/..'));
 //包含框架入口文件
 require WEBPATH . '/libs/lib_config.php';
 
-$pool = new \Swoole\Async\Pool(100);
+$config = array(
+    'host' => '127.0.0.1',
+    'user' => 'root',
+    'password' => 'root',
+    'database' => 'test',
+);
 
-$pool->create(function () use ($pool)
+$pool = new \Swoole\Async\Pool($config, 100);
+
+$pool->create(function () use ($pool, $config)
 {
     $db = new swoole_mysql;
-    $server = array(
-        'host' => '127.0.0.1',
-        'user' => 'root',
-        'password' => 'root',
-        'database' => 'test',
-    );
     $db->on('close', function ($db) use ($pool)
     {
         $pool->remove($db);
     });
-    return $db->connect($server, function ($db, $result) use ($pool)
+    return $db->connect($config, function ($db, $result) use ($pool)
     {
         $pool->join($db);
     });
