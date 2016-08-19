@@ -13,7 +13,13 @@ class Redis
 
     public static $prefix = "autoinc_key:";
 
-    static function getIncreaseId($appKey, $init_id = 1000)
+    /**
+     * 获取自增ID
+     * @param $appKey
+     * @param int $init_id
+     * @return bool|int
+     */
+    static function getIncreaseId($appKey, $init_id = 1)
     {
         if (empty($appKey))
         {

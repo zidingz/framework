@@ -292,7 +292,7 @@ class Pager
 	 */
 	function _get_text($str)
 	{
-		return $this->format_left.$str.$this->format_right;
+        return $this->format_left . $str . $this->format_right;
 	}
 
 	/**

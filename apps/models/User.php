@@ -9,4 +9,13 @@ class User extends Swoole\Model
      * @var string
      */
     public $table = 'users';
+
+    function test()
+    {
+        $a = model('Test');
+        var_dump($a);
+        $key = '1234';
+        $this->swoole->cache->delete($key);
+        $this->db->getAffectedRows();
+    }
 }

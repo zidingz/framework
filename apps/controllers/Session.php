@@ -15,6 +15,6 @@ class Session extends Swoole\Controller
     {
         //使用此函数代替PHP的session_start
         $this->session->start();
-        echo $_SESSION['test'];
+        var_dump($_SESSION);
     }
 }
