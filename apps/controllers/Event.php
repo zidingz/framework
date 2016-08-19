@@ -7,10 +7,8 @@ class Event extends Swoole\Controller
 {
     function test()
     {
-        $res = $this->event->dispatch("App\\Test::hello", "hello world");
-        if ($res)
-        {
-            echo "dispatch success\n";
-        }
+        echo "event trigger\n";
+        $res = $this->event->trigger("hello", array(Swoole\Redis::getIncreaseId('queue'), "hello world", __DIR__));
+        echo "event trigger\n";
     }
 }

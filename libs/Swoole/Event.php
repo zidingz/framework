@@ -1,8 +1,6 @@
 <?php
 namespace Swoole;
 
-use Swoole\Network\Server;
-
 class Event
 {
     /**
@@ -30,66 +28,86 @@ class Event
     }
 
     /**
-     * 投递事件
+     * 处理器
+     * @param $type
+     * @param $data
+     * @return mixed
+     */
+    protected function _execute($type, $data)
+    {
+        if (!isset($this->_handles[$type]))
+        {
+            $handlers = array();
+            $path = \Swoole::$app_path.'/events/'.$type.'.php';
+            if (is_file($path))
+            {
+                $_conf = include $path;
+                if ($_conf and isset($_conf['handlers']) and is_array($_conf['handlers']))
+                {
+                    foreach ($_conf['handlers'] as $h)
+                    {
+                        if (class_exists($h))
+                        {
+                            $object = new $h;
+                            if ($object instanceof IFace\EventHandler)
+                            {
+                                $handlers[] = $object;
+                                continue;
+                            }
+                        }
+                        trigger_error("invalid event handler[$type|$h]", E_USER_WARNING);
+                    }
+                }
+            }
+            $this->_handles[$type] = $handlers;
+        }
+
+        foreach($this->_handles[$type] as $handler)
+        {
+            /**
+             * @var  $handler  IFace\EventHandler
+             */
+            $handler->trigger($type, $data);
+        }
+        return true;
+    }
+
+    /**
+     * 触发事件
+     * @param $type
+     * @param $data
      * @return mixed
      * @throws Exception\NotFound
      */
-	function dispatch()
-	{
-        $_args = func_get_args();
-        $function = $_args[0];
-		/**
-		 * 同步，直接在引发事件时处理
+    function trigger($type, $data)
+    {
+        /**
+         * 同步，直接在引发事件时处理
          */
-        if (!$this->async)
+        if ($this->async)
         {
-            if (!is_callable($function))
-            {
-                throw new Exception\NotFound("function $function not found.");
-            }
-            return call_user_func_array($function, array_slice($_args, 1));
+            return $this->_queue->push(array('type' => $type, 'data' => $data));
         }
         /**
          * 异步，将事件压入队列
          */
         else
         {
-            return $this->_queue->push($_args);
+            return $this->_execute($type, $data);
         }
-	}
+    }
 
     /**
      * 运行工作进程
      */
 	function runWorker($worker_num = 1)
     {
-        if (empty($this->config['logger']))
-        {
-            $logger = new Log\EchoLog(array('display' => true));
-        }
-        else
-        {
-            /**
-             * Swoole\Log
-             */
-            $logger = \Swoole::$php->log($this->config['logger']);
-        }
-
         while (true)
         {
             $event = $this->_queue->pop();
             if ($event)
             {
-                $function = $event[0];
-                if (!is_callable($function))
-                {
-                    $logger->info('function [' . $function . '] not found.');
-                }
-                else
-                {
-                    $params = array_slice($event, 1);
-                    call_user_func_array($function, $params);
-                }
+                $this->_execute($event['type'], $event['data']);
             }
             else
             {

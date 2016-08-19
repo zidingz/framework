@@ -1,7 +1,6 @@
 <?php
 $event['master'] = array(
-    'type' => Swoole\Queue\MsgQ::class,
+    'type' => Swoole\Queue\Redis::class,
     'async' => true,
-    ''
 );
 return $event;
