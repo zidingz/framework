@@ -34,15 +34,19 @@ class Pool
 
     protected $createFunction;
 
+    protected $config;
+
     /**
      * @param int $poolSize
+     * @param array $config
      * @throws \Exception
      */
-    public function __construct($poolSize = 100)
+    public function __construct($config = array(), $poolSize = 100)
     {
         $this->poolSize = $poolSize;
         $this->taskQueue = new \SplQueue();
         $this->idlePool = new \SplQueue();
+        $this->config = $config;
     }
 
     /**
