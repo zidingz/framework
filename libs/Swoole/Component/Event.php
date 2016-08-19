@@ -1,5 +1,8 @@
 <?php
-namespace Swoole;
+namespace Swoole\Component;
+
+use Swoole\Exception;
+use Swoole\IFace;
 
 class Event
 {
@@ -8,6 +11,13 @@ class Event
      */
 	protected $_queue;
     protected $_handles = array();
+
+    /**
+     * @var \swoole_atomic
+     */
+    protected $_atomic;
+    protected $_workers = array();
+
     protected $config;
     protected $async = false;
 
@@ -97,12 +107,9 @@ class Event
         }
     }
 
-    /**
-     * 运行工作进程
-     */
-	function runWorker($worker_num = 1)
+    function _worker()
     {
-        while (true)
+        while ($this->_atomic->get() == 1)
         {
             $event = $this->_queue->pop();
             if ($event)
@@ -114,5 +121,79 @@ class Event
                 usleep(100000);
             }
         }
-	}
+    }
+
+    /**
+     * @param int $worker_num
+     * @param bool $daemon
+     * @throws Exception\NotFound
+     */
+	function runWorker($worker_num = 1, $daemon = false)
+    {
+        if ($worker_num > 1 or $daemon)
+        {
+            if (!class_exists('\swoole\process'))
+            {
+                throw new Exception\NotFound("require swoole extension");
+            }
+            if ($worker_num < 0 or $worker_num > 1000)
+            {
+                $worker_num = 200;
+            }
+        }
+        else
+        {
+            $this->_worker();
+            return;
+        }
+
+        if ($daemon)
+        {
+            \swoole_process::daemon();
+        }
+
+        $this->_atomic = new \swoole_atomic(1);
+        for ($i = 0; $i < $worker_num; $i++)
+        {
+            $process = new \swoole\process(array($this, '_worker'), false, false);
+            $process->start();
+            $this->_workers[] = $process;
+        }
+
+        \swoole_process::signal(SIGCHLD, function() {
+            while(true) {
+                $exitProcess = \swoole_process::wait();
+                if ($exitProcess)
+                {
+                    foreach ($this->_workers as $k => $p)
+                    {
+                        if ($p->pid == $exitProcess['pid'])
+                        {
+                            if ($this->_atomic->get() == 1)
+                            {
+                                $p->start();
+                            }
+                            else
+                            {
+                                unset($this->_workers[$k]);
+                                if (count($this->_workers) == 0)
+                                {
+                                    swoole_event_exit();
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    break;
+                }
+            }
+        });
+
+        \swoole_process::signal(SIGTERM, function() {
+            //停止运行
+            $this->_atomic->set(0);
+        });
+    }
 }

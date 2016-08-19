@@ -10,7 +10,7 @@ namespace Swoole;
  * @property Client\CoMySQL      $codb
  * @property IFace\Cache         $cache
  * @property Upload              $upload
- * @property Event               $event
+ * @property Component\Event     $event
  * @property Session             $session
  * @property Template            $tpl
  * @property \redis              $redis

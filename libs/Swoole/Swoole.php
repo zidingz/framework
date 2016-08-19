@@ -15,7 +15,7 @@ use Swoole\Exception\NotFound;
  * @property \Swoole\Database    $db
  * @property \Swoole\IFace\Cache $cache
  * @property \Swoole\Upload      $upload
- * @property \Swoole\Event       $event
+ * @property \Swoole\Component\Event       $event
  * @property \Swoole\Session     $session
  * @property \Swoole\Template    $tpl
  * @property \redis              $redis
