@@ -1,4 +1,9 @@
 <?php
+/**
+ * 此工具主要是从Redis的AOF备份文件的数据同步到另外一台Redis机器
+ * 支持热同步，数据复制完毕后，来源Redis如果有写入，仍然会继续同步到新服务器（必须关闭Redis的AOF压缩特性）
+ * 暂时不支持断点续传，请勿强杀此进程
+ */
 define('DEBUG', 'on');
 define('WEBPATH', realpath(__DIR__ . '/..'));
 //包含框架入口文件
