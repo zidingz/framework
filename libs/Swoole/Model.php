@@ -595,6 +595,7 @@ class Record implements \ArrayAccess
 	 */
 	function save()
 	{
+        $this->_save = false;
         if ($this->_change == 0 or $this->_change == 1)
         {
             $ret = $this->db->insert($this->_data, $this->table);
