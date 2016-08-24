@@ -139,9 +139,11 @@ class Swoole
     protected $hooks = array();
     protected $router_function;
 
-    const HOOK_INIT  = 1; //初始化
+    const HOOK_INIT = 1; //初始化
     const HOOK_ROUTE = 2; //URL路由
     const HOOK_CLEAN = 3; //清理
+    const HOOK_BEFORE_ACTION = 4;
+    const HOOK_AFTER_ACTION = 5;
 
     private function __construct()
     {
@@ -303,6 +305,24 @@ class Swoole
     function afterRequest(callable $callback)
     {
         $this->addHook(self::HOOK_CLEAN, $callback);
+    }
+
+    /**
+     * 在Action执行前回调
+     * @param callable $callback
+     */
+    function beforeAction(callable $callback)
+    {
+        $this->addHook(self::HOOK_BEFORE_ACTION, $callback);
+    }
+
+    /**
+     * 在Action执行后回调
+     * @param callable $callback
+     */
+    function afterAction(callable $callback)
+    {
+        $this->addHook(self::HOOK_AFTER_ACTION, $callback);
     }
 
     function __get($lib_name)
@@ -597,9 +617,12 @@ class Swoole
 
         $param = empty($mvc['param']) ? null : $mvc['param'];
         $method = $mvc['view'];
-
-        //doAction
+        //before action
+        $this->callHook(self::HOOK_BEFORE_ACTION);
+        //do action
         $return = $controller->$method($param);
+        //after action
+        $this->callHook(self::HOOK_AFTER_ACTION);
         //保存Session
         if (defined('SWOOLE_SERVER') and $this->session->open and $this->session->readonly === false)
         {
