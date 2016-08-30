@@ -19,7 +19,5 @@ $pool->get("key", function ($redis, $result) use ($pool)
     {
         echo "incr key_hello: ";
         var_dump($result);
-        //必须要释放资源，否则无法被其他重复利用
-        $pool->release($redis);
     });
 });

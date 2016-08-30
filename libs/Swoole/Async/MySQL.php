@@ -18,17 +18,27 @@ class MySQL extends Pool
             $config['port'] = self::DEFAULT_PORT;
         }
         parent::__construct($config, $maxConnection);
-        $this->create(function () use ($config)
+        $this->create(array($this, 'connect'));
+    }
+
+    protected function connect()
+    {
+        $db = new \swoole_mysql;
+        $db->on('close', function ($db)
         {
-            $db = new \swoole_mysql;
-            $db->on('close', function ($db)
-            {
-                $this->remove($db);
-            });
-            return $db->connect($config, function ($db, $result)
+            $this->remove($db);
+        });
+        return $db->connect($this->config, function ($db, $result)
+        {
+            if ($result)
             {
                 $this->join($db);
-            });
+            }
+            else
+            {
+                $this->failure();
+                trigger_error("connect to mysql server[{$this->config['host']}:{$this->config['port']}] failed. Error: {$db->connect_error}[{$db->connect_errno}].");
+            }
         });
     }
 

@@ -30,9 +30,17 @@ class Redis extends Pool
             $this->remove($redis);
         });
 
-        return $redis->connect($this->config['host'], $this->config['port'], function ($redis)
+        return $redis->connect($this->config['host'], $this->config['port'], function ($redis, $result)
         {
-            $this->join($redis);
+            if ($result)
+            {
+                $this->join($redis);
+            }
+            else
+            {
+                $this->failure();
+                trigger_error("connect to redis server[{$this->config['host']}:{$this->config['port']}] failed. Error: {$redis->errMsg}[{$redis->errCode}].");
+            }
         });
     }
 
@@ -41,6 +49,8 @@ class Redis extends Pool
         return $this->request(function (\swoole_redis $redis) use ($call, $params)
         {
             call_user_func_array(array($redis, $call), $params);
+            //必须要释放资源，否则无法被其他重复利用
+            $this->release($redis);
         });
     }
 }

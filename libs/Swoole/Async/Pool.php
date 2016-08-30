@@ -19,6 +19,9 @@ class Pool
      */
     protected $resourcePool = array();
 
+    protected $resourceNum = 0;
+    protected $failureCount = 0;
+
     /**
      * @var \SplQueue
      */
@@ -59,6 +62,15 @@ class Pool
     }
 
     /**
+     * 失败计数
+     */
+    function failure()
+    {
+        $this->resourceNum--;
+        $this->failureCount++;
+    }
+
+    /**
      * @param $callback
      */
     function create($callback)
@@ -96,6 +108,7 @@ class Pool
             $this->idlePool->enqueue($_resource);
         }
         unset($rid);
+        $this->resourceNum--;
         return true;
     }
 
@@ -114,9 +127,10 @@ class Pool
             $this->doTask();
         }
         //没有可用的资源, 创建新的连接
-        elseif (count($this->resourcePool) < $this->poolSize)
+        elseif (count($this->resourcePool) < $this->poolSize and $this->resourceNum < $this->poolSize)
         {
             call_user_func($this->createFunction);
+            $this->resourceNum++;
         }
     }
 
