@@ -18,7 +18,7 @@ $pool = new Swoole\Async\MySQL($config, 20);
 //$sql2 = "update userinfo set name='rango' where id = 16";
 $sql3 = "show tables";
 
-for ($i = 0; $i < 30; $i++)
+for ($i = 0; $i < 200; $i++)
 {
     $pool->query($sql3, function (swoole_mysql $mysqli, $result) use ($i)
     {
@@ -34,7 +34,7 @@ for ($i = 0; $i < 30; $i++)
         {
             //var_dump($result);
         }
-       // echo "$i\t" . str_repeat('-', 120) . "\n";
+        echo "$i\t" . str_repeat('-', 120) . "\n";
         //usleep(10000);
     });
 }

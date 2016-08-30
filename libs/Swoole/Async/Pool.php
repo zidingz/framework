@@ -79,6 +79,15 @@ class Pool
     }
 
     /**
+     * 修改连接池尺寸
+     * @param $newSize
+     */
+    function setPoolSize($newSize)
+    {
+        $this->poolSize = $newSize;
+    }
+
+    /**
      * 移除资源
      * @param $resource
      * @return bool
