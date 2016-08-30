@@ -13,8 +13,6 @@ class Pool
      */
     protected $poolSize;
 
-    protected $resourceNum;
-
     /**
      * idle connection
      * @var array $resourcePool
@@ -97,8 +95,6 @@ class Pool
         {
             $this->idlePool->enqueue($_resource);
         }
-
-        $this->resourceNum--;
         unset($rid);
         return true;
     }
@@ -112,19 +108,15 @@ class Pool
     {
         //入队列
         $this->taskQueue->enqueue($callback);
-        //没有可用的资源, 创建新的连接
-        if (count($this->resourcePool) < $this->poolSize and $this->resourceNum < $this->poolSize)
-        {
-            $r = call_user_func($this->createFunction);
-            if ($r)
-            {
-                $this->resourceNum++;
-            }
-        }
         //有可用资源
-        else if (count($this->idlePool) > 0)
+        if (count($this->idlePool) > 0)
         {
             $this->doTask();
+        }
+        //没有可用的资源, 创建新的连接
+        elseif (count($this->resourcePool) < $this->poolSize)
+        {
+            call_user_func($this->createFunction);
         }
     }
 
