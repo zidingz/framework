@@ -64,6 +64,11 @@ class Storage
         }
     }
 
+    function exists($key)
+    {
+        return is_file($this->getFile($key));
+    }
+
     function scan($prefix)
     {
         $dir = $this->baseDir . '/' . str_replace(self::$separator, '/', trim($prefix, self::$separator));
