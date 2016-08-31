@@ -59,7 +59,15 @@ class Tool
     {
         if (function_exists('scandir'))
         {
-            return scandir($dir);
+            $files = scandir($dir);
+            foreach ($files as $key => $value)
+            {
+                if ($value == '.' or $value == '..')
+                {
+                    unset($files[$key]);
+                }
+            }
+            return array_values($files);
         }
         else
         {
