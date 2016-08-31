@@ -56,6 +56,10 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
         {
             $db_config['name'] = $db_config['dbname'];
         }
+        elseif (isset($db_config['database']))
+        {
+            $db_config['name'] = $db_config['database'];
+        }
         parent::connect(
             $host,
             $db_config['user'],

@@ -5,23 +5,25 @@ use Swoole;
 
 /**
  * MySQL数据库封装类
- *
- * @package SwooleExtend
- * @author  Tianfeng.Han
- *
+ * @package Swoole\Database
+ * @author  Chunhao.Yan
  */
-class CLMySQL implements \Swoole\IDatabase {
-	public $debug = false;
+class CLMySQL implements Swoole\IDatabase
+{
+    public $debug = false;
 	public $conn = null;
 	public $config, $error = '';
+
 	const DEFAULT_PORT = 9701;
 
-	function __construct($db_config) {
-		if (empty($db_config['port'])) {
-			$db_config['port'] = self::DEFAULT_PORT;
-		}
-		$this->config = $db_config;
-	}
+    function __construct($db_config)
+    {
+        if (empty($db_config['port']))
+        {
+            $db_config['port'] = self::DEFAULT_PORT;
+        }
+        $this->config = $db_config;
+    }
 
 	/**
 	 * 连接数据库
@@ -93,10 +95,10 @@ class CLMySQL implements \Swoole\IDatabase {
 		return Swoole\Client\CLMySQL::insert_id($this->conn);
 	}
 
-	function quote($value) {
-		return mysql_escape_string($value);
-		#return addslashes($value);
-	}
+    function quote($value)
+    {
+        return mysql_escape_string($value);
+    }
 
 	/**
 	 * 检查数据库连接,是否有效，无效则重新建立
