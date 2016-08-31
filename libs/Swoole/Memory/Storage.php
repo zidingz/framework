@@ -22,11 +22,11 @@ class Storage
         }
     }
 
-    protected function getFile($key)
+    protected function getFile($key, $createDir = false)
     {
         $file = $this->baseDir . '/' . str_replace(self::$separator, '/', trim($key, self::$separator));
         $dir = dirname($file);
-        if (!is_dir($dir))
+        if ($createDir and !is_dir($dir))
         {
             Syscall::mkdir($dir, $this->mode, true);
         }
@@ -53,7 +53,7 @@ class Storage
 
     function set($key, $value)
     {
-        $file = $this->getFile($key);
+        $file = $this->getFile($key, true);
         if (file_put_contents($file, serialize($value), LOCK_EX) === false)
         {
             return false;
