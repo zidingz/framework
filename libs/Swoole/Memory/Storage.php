@@ -40,7 +40,7 @@ class Storage
         {
             return false;
         }
-        $res = file_get_contents($file, LOCK_SH);
+        $res = Tool::readFile($file);
         if ($res)
         {
             return unserialize($res);

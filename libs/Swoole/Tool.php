@@ -96,6 +96,33 @@ class Tool
     }
 
     /**
+     * 加锁读取文件
+     * @param $file
+     * @param bool $exclusive
+     * @return bool|string
+     */
+    static function readFile($file, $exclusive = false)
+    {
+        $fp = fopen($file, 'r');
+        if (!$fp)
+        {
+            return false;
+        }
+        $lockType = $exclusive ? LOCK_EX : LOCK_SH;
+        if (flock($fp, $lockType) === false)
+        {
+            fclose($fp);
+        }
+        $content = '';
+        while(!feof($fp))
+        {
+            $content .= fread($fp, 8192);
+        }
+        flock($fp, LOCK_UN);
+        return $content;
+    }
+
+    /**
      * 获取字符串最后一位
      * @param $string
      * @return mixed
