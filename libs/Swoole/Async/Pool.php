@@ -99,7 +99,6 @@ class Pool
         {
             return false;
         }
-
         //重建IdlePool
         $tmpPool = array();
         while(count($this->idlePool) > 0)
@@ -111,12 +110,12 @@ class Pool
             }
             $tmpPool[] = $_resource;
         }
-        //添加到空闲队列
         foreach($tmpPool as $_resource)
         {
             $this->idlePool->enqueue($_resource);
         }
-        unset($rid);
+        //从resourcePool中删除
+        unset($this->resourcePool[$rid]);
         $this->resourceNum--;
         return true;
     }
