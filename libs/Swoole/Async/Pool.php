@@ -99,21 +99,6 @@ class Pool
         {
             return false;
         }
-        //重建IdlePool
-        $tmpPool = array();
-        while(count($this->idlePool) > 0)
-        {
-            $_resource = $this->idlePool->dequeue();
-            if (spl_object_hash($_resource) == $rid)
-            {
-                continue;
-            }
-            $tmpPool[] = $_resource;
-        }
-        foreach($tmpPool as $_resource)
-        {
-            $this->idlePool->enqueue($_resource);
-        }
         //从resourcePool中删除
         unset($this->resourcePool[$rid]);
         $this->resourceNum--;
@@ -158,7 +143,29 @@ class Pool
 
     protected function doTask()
     {
-        $resource = $this->idlePool->dequeue();
+        $resource = null;
+        //从空闲队列中取出可用的资源
+        while (count($this->idlePool) > 0)
+        {
+            $_resource = $this->idlePool->dequeue();
+            $rid = spl_object_hash($_resource);
+            //资源已经不可用了，连接已关闭
+            if (!isset($this->resourcePool[$rid]))
+            {
+                continue;
+            }
+            else
+            {
+                //找到可用连接
+                $resource = $_resource;
+                break;
+            }
+        }
+        //没有可用连接，继续等待
+        if (!$resource)
+        {
+            return;
+        }
         $callback = $this->taskQueue->dequeue();
         call_user_func($callback, $resource);
     }
