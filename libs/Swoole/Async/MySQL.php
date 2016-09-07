@@ -53,4 +53,28 @@ class MySQL extends Pool
             });
         });
     }
+
+    function isFree()
+    {
+        return $this->taskQueue->count() == 0 and $this->idlePool->count() == count($this->resourcePool);
+    }
+
+    /**
+     * 关闭连接池
+     */
+    function close()
+    {
+        foreach ($this->resourcePool as $conn)
+        {
+            /**
+             * @var $conn \swoole_mysql
+             */
+            $conn->close();
+        }
+    }
+
+    function __destruct()
+    {
+        $this->close();
+    }
 }
