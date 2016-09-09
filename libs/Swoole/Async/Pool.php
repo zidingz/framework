@@ -164,8 +164,11 @@ class Pool
         //没有可用连接，继续等待
         if (!$resource)
         {
-            call_user_func($this->createFunction);
-            $this->resourceNum++;
+            if (count($this->resourcePool) == 0)
+            {
+                call_user_func($this->createFunction);
+                $this->resourceNum++;
+            }
             return;
         }
         $callback = $this->taskQueue->dequeue();
