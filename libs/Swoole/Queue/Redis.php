@@ -6,10 +6,7 @@ namespace Swoole\Queue;
  */
 class Redis implements \Swoole\IFace\Queue
 {
-    /**
-     * @var \redis
-     */
-    protected $redis;
+    protected $redis_factory_key;
     protected $key = 'swoole:queue';
 
     function __construct($config)
@@ -18,7 +15,7 @@ class Redis implements \Swoole\IFace\Queue
         {
             $config['id'] = 'master';
         }
-        $this->redis = \Swoole::$php->redis($config['id']);
+        $this->redis_factory_key = $config['id'];
         if (!empty($config['key']))
         {
             $this->key = $config['key'];
@@ -31,7 +28,7 @@ class Redis implements \Swoole\IFace\Queue
      */
     function pop()
     {
-        $ret = $this->redis->lPop($this->key);
+        $ret = \Swoole::$php->redis($this->redis_factory_key)->lPop($this->key);
         if ($ret)
         {
             return unserialize($ret);
@@ -49,6 +46,6 @@ class Redis implements \Swoole\IFace\Queue
      */
     function push($data)
     {
-        return $this->redis->rPush($this->key, serialize($data));
+        return \Swoole::$php->redis($this->redis_factory_key)->lPush($this->key, serialize($data));
     }
 }
