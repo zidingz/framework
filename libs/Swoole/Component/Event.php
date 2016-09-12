@@ -92,14 +92,14 @@ class Event
     function trigger($type, $data)
     {
         /**
-         * 同步，直接在引发事件时处理
+         * 异步，将事件压入队列
          */
         if ($this->async)
         {
             return $this->_queue->push(array('type' => $type, 'data' => $data));
         }
         /**
-         * 异步，将事件压入队列
+         * 同步，直接在引发事件时处理
          */
         else
         {
