@@ -1,7 +1,9 @@
 <?php
 namespace Swoole;
+
 class Config extends \ArrayObject
 {
+    protected $config;
     protected $config_path;
     public $dir_num = 0;
     static $debug = false;
@@ -13,14 +15,14 @@ class Config extends \ArrayObject
         self::$active = true;
     }
 
-	function offsetGet($index)
-	{
-		if(!isset($this->config[$index]))
-		{
-			$this->load($index);
-		}
-		return isset($this->config[$index])?$this->config[$index]:false;
-	}
+    function offsetGet($index)
+    {
+        if (!isset($this->config[$index]))
+        {
+            $this->load($index);
+        }
+        return isset($this->config[$index]) ? $this->config[$index] : false;
+    }
 
 	function load($index)
 	{
@@ -46,18 +48,18 @@ class Config extends \ArrayObject
         }
 	}
 
-	function offsetSet($index, $newval)
-	{
+    function offsetSet($index, $newval)
+    {
         $this->config[$index] = $newval;
-	}
+    }
 
-	function offsetUnset($index)
-	{
+    function offsetUnset($index)
+    {
         unset($this->config[$index]);
-	}
+    }
 
-	function offsetExists($index)
-	{
-		return isset($this->config[$index]);
-	}
+    function offsetExists($index)
+    {
+        return isset($this->config[$index]);
+    }
 }
