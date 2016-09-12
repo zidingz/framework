@@ -143,6 +143,7 @@ class Event
         }
         else
         {
+            $this->_atomic = new \swoole_atomic(1);
             $this->_worker();
             return;
         }
