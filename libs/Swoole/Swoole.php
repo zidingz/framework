@@ -96,6 +96,7 @@ class Swoole
         'url' => true,
         'log' => true,
         'codb' => true,
+        'event' => true,
     );
 
     static $default_controller = array('controller' => 'page', 'view' => 'index');
