@@ -30,19 +30,26 @@ class Console
     /**
      * 改变进程的用户ID
      * @param $user
+     * @return bool
      */
     static function changeUser($user)
     {
         if (!function_exists('posix_getpwnam'))
         {
             trigger_error(__METHOD__ . ": require posix extension.");
-            return;
+
+            return false;
         }
         $user = posix_getpwnam($user);
         if ($user)
         {
             posix_setuid($user['uid']);
             posix_setgid($user['gid']);
+            return true;
+        }
+        else
+        {
+            return false;
         }
     }
 
