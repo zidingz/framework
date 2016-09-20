@@ -82,7 +82,7 @@ class Auth
     {
         if (empty($set))
         {
-            $set = array(self::$lastlogin => date('Y-m-d H:i:s'), self::$lastip => Client::getIP());
+            $set = array(self::$lastlogin => date('Y-m-d H:i:s'), self::$lastip => Request::getClientIP());
         }
         return $this->db->update($this->user['id'], $set, $this->login_table);
     }
@@ -164,10 +164,9 @@ class Auth
         }
         return false;
     }
+
     /**
      * 自动登录，如果自动登录则在本地记住密码
-     * @param $user
-     * @return unknown_type
      */
     function autoLogin()
     {
