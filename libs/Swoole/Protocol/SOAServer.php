@@ -270,6 +270,35 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
     }
 
     /**
+     * 验证IP
+     * @param $ip
+     * @return bool
+     */
+    protected function verifyIp($ip)
+    {
+        return isset($this->ipWhiteList[$ip]);
+    }
+
+    /**
+     * 验证用户名密码
+     * @param $user
+     * @param $password
+     * @return bool
+     */
+    protected function verifyUser($user, $password)
+    {
+        if (!isset($this->userList[$user]))
+        {
+            return false;
+        }
+        if ($this->userList[$user] != $password)
+        {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * 调用远程函数
      * @param $request
      * @return array
@@ -283,7 +312,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         //验证客户端IP是否被允许访问
         if ($this->verifyIp)
         {
-            if (!isset($this->ipWhiteList[self::$clientEnv['_socket']['remote_ip']]))
+            if (!$this->verifyIp(self::$clientEnv['_socket']['remote_ip']))
             {
                 return array('errno' => self::ERR_ACCESS_DENY);
             }
@@ -296,11 +325,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
                 fail:
                 return array('errno' => self::ERR_USER);
             }
-            if (!isset($this->userList[self::$clientEnv['user']]))
-            {
-                goto fail;
-            }
-            if ($this->userList[self::$clientEnv['user']] != self::$clientEnv['password'])
+            if (!$this->verifyUser(self::$clientEnv['user'], self::$clientEnv['password']))
             {
                 goto fail;
             }
