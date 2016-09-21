@@ -3,6 +3,8 @@ define('DEBUG', 'on');
 define('WEBPATH', realpath(__DIR__ . '/../'));
 require dirname(__DIR__) . '/libs/lib_config.php';
 
+use  Swoole\Protocol\SOAServer;
+
 
 //设置PID文件的存储路径
 Swoole\Network\Server::setPidFile(__DIR__ . '/app_server.pid');
@@ -12,7 +14,7 @@ Swoole\Network\Server::setPidFile(__DIR__ . '/app_server.pid');
  */
 Swoole\Network\Server::start(function ()
 {
-    $AppSvr = new Swoole\Protocol\SOAServer;
+    $AppSvr = new SOAServer;
     $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
 
     /**
@@ -20,6 +22,16 @@ Swoole\Network\Server::start(function ()
      * 默认使用 apps/classes
      */
     $AppSvr->addNameSpace('BL', __DIR__ . '/class');
+    /**
+     * IP白名单设置
+     */
+    $AppSvr->addAllowIP('127.0.0.1');
+    $AppSvr->addAllowIP('127.0.0.2');
+
+    /**
+     * 设置用户名密码
+     */
+    $AppSvr->addAllowUser('chelun', 'chelun@123456');
 
     Swoole\Error::$echo_html = false;
     $server = Swoole\Network\Server::autoCreate('0.0.0.0', 8888);

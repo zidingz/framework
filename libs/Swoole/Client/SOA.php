@@ -39,6 +39,9 @@ class SOA
     protected $encode_gzip = false;
     protected $encode_json = false;
 
+    protected $user;
+    protected $password;
+
     function __construct($id = null)
     {
         $key = empty($id) ? 'default' : $id;
@@ -236,6 +239,12 @@ class SOA
     public function putEnv($k, $v)
     {
         $this->env[$k] = $v;
+    }
+
+    function auth($user, $password)
+    {
+        $this->putEnv('user', $user);
+        $this->putEnv('password', $password);
     }
 
     /**
