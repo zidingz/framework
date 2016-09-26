@@ -191,7 +191,7 @@ class SOA
         //请求串号
         $retObj->requestId = self::getRequestId();
         //打包格式
-        $encodeType = $this->encode_gzip ? SOAServer::DECODE_JSON : SOAServer::DECODE_PHP;
+        $encodeType = $this->encode_json ? SOAServer::DECODE_JSON : SOAServer::DECODE_PHP;
         if ($this->encode_gzip)
         {
             $encodeType |= SOAServer::DECODE_GZIP;
