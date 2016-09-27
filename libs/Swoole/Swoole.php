@@ -291,6 +291,22 @@ class Swoole
     }
 
     /**
+     * 清理钩子程序
+     * @param $type
+     */
+    function clearHook($type = 0)
+    {
+        if ($type == 0)
+        {
+            $this->hooks = array();
+        }
+        else
+        {
+            $this->hooks[$type] = array();
+        }
+    }
+
+    /**
      * 在请求之前执行一个函数
      * @param callable $callback
      */
@@ -602,8 +618,11 @@ class Swoole
 
         do_action:
 
-        $this->request = new \Swoole\Request();
-        $this->request->initWithLamp();
+        if (empty($this->request))
+        {
+            $this->request = new \Swoole\Request();
+            $this->request->initWithLamp();
+        }
 
         //服务器模式下，尝试重载入代码
         if (defined('SWOOLE_SERVER'))
@@ -669,6 +688,7 @@ class Swoole
 function swoole_urlrouter_rewrite(&$uri)
 {
     $rewrite = Swoole::$php->config['rewrite'];
+    $request = Swoole::$php->request;
 
     if (empty($rewrite) or !is_array($rewrite))
     {
@@ -687,10 +707,11 @@ function swoole_urlrouter_rewrite(&$uri)
                 {
                     if (isset($match[$k + 1]))
                     {
-                        $_GET[$v] = $match[$k + 1];
+                        $request->get[$v] = $match[$k + 1];
                     }
                 }
             }
+            $_GET = $request->get;
             return $rule['mvc'];
         }
     }
@@ -699,8 +720,9 @@ function swoole_urlrouter_rewrite(&$uri)
 
 function swoole_urlrouter_mvc(&$uri)
 {
+    $request = Swoole::$php->request;
     $array = Swoole::$default_controller;
-    if (!empty($_GET["c"]))
+    if (!empty($request->get["c"]))
     {
         $array['controller'] = $_GET["c"];
     }
@@ -708,31 +730,32 @@ function swoole_urlrouter_mvc(&$uri)
     {
         $array['view'] = $_GET["v"];
     }
-    $request = explode('/', $uri, 3);
-    if (count($request) < 2)
+    $request_uri = explode('/', $uri, 3);
+    if (count($request_uri) < 2)
     {
         return $array;
     }
-    $array['controller'] = $request[0];
-    $array['view'] = $request[1];
+    $array['controller'] = $request_uri[0];
+    $array['view'] = $request_uri[1];
     Swoole\Tool::$url_prefix = '';
-    if (isset($request[2]))
+    if (isset($request_uri[2]))
     {
-        $request[2] = trim($request[2], '/');
-        $_id = str_replace('.html', '', $request[2]);
+        $request_uri[2] = trim($request_uri[2], '/');
+        $_id = str_replace('.html', '', $request_uri[2]);
         if (is_numeric($_id))
         {
-            $_GET['id'] = $_id;
+            $request->get['id'] = $_id;
         }
         else
         {
             Swoole\Tool::$url_key_join = '-';
             Swoole\Tool::$url_param_join = '-';
             Swoole\Tool::$url_add_end = '.html';
-            Swoole\Tool::$url_prefix = WEBROOT . "/{$request[0]}/$request[1]/";
-            Swoole\Tool::url_parse_into($request[2], $_GET);
+            Swoole\Tool::$url_prefix = WEBROOT . "/{$request_uri[0]}/$request_uri[1]/";
+            Swoole\Tool::url_parse_into($request_uri[2], $_GET);
         }
-        $_REQUEST = array_merge($_REQUEST, $_GET);
+        $_REQUEST = $request->request = array_merge($request->request, $request->get);
+        $_GET = $request->get;
     }
     return $array;
 }

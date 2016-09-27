@@ -222,14 +222,32 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
          * @var $request Swoole\Request
          */
         $request = $this->requests[$client_id];
+
+        $request->fd = $client_id;
+
+        /**
+         * Socket连接信息
+         */
 	    $info = $serv->connection_info($client_id);
+        $request->server['SWOOLE_CONNECTION_INFO'] = $info;
         $request->remote_ip = $info['remote_ip'];
         $request->remote_port = $info['remote_port'];
-	    $_SERVER['SWOOLE_CONNECTION_INFO'] = $info;
+        /**
+         * Server变量
+         */
+        $request->server['REQUEST_URI'] = $request->meta['uri'];
+        $request->server['REMOTE_ADDR'] = $request->remote_ip;
+        $request->server['REMOTE_PORT'] = $request->remote_port;
+        $request->server['REQUEST_METHOD'] = $request->meta['method'];
+        $request->server['REQUEST_TIME'] = $request->time;
+        $request->server['SERVER_PROTOCOL'] = $request->meta['protocol'];
+        if (!empty($request->meta['query']))
+        {
+            $_SERVER['QUERY_STRING'] = $request->meta['query'];
+        }
+        $request->setGlobal();
         $this->parseRequest($request);
-        $request->fd = $client_id;
         $this->currentRequest = $request;
-
         //处理请求，产生response对象
         $response = $this->onRequest($request);
         if ($response and $response instanceof Swoole\Response)
@@ -448,7 +466,6 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
      * 静态请求
      * @param $request
      * @param $response
-     * @return unknown_type
      */
     function processStatic($request, Swoole\Response $response)
     {
@@ -497,16 +514,13 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
      * 动态请求
      * @param $request
      * @param $response
-     * @return unknown_type
      */
     function processDynamic(Swoole\Request $request, Swoole\Response $response)
     {
         $path = $this->document_root . '/' . $request->meta['path'];
         if (is_file($path))
         {
-            $request->setGlobal();
             $response->head['Content-Type'] = 'text/html';
-
             ob_start();
             try
             {

@@ -8,13 +8,6 @@ class Page extends Swoole\Controller
     function __construct($swoole)
     {
         parent::__construct($swoole);
-        $this->swoole->beforeAction(function() {
-            echo "hello start\n";
-        });
-
-        $this->swoole->afterAction(function() {
-            echo "hello end\n";
-        });
     }
 
     //hello world

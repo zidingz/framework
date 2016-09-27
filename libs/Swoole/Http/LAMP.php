@@ -1,7 +1,9 @@
 <?php
 namespace Swoole\Http;
 
-class LAMP implements \Swoole\IFace\Http
+use Swoole\IFace\Http;
+
+class LAMP implements Http
 {
     function header($k,$v)
     {

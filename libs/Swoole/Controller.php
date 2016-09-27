@@ -156,6 +156,7 @@ class Controller extends Object
         {
             $_trace['请求脚本'] = $this->request->server['SCRIPT_NAME'];
         }
+
         $_trace['请求方法'] = $this->swoole->env['mvc']['controller'].'/'.$this->swoole->env['mvc']['view'];
         $_trace['USER_AGENT'] = $this->request->server['HTTP_USER_AGENT'];
         $_trace['HTTP版本'] = $this->request->server['SERVER_PROTOCOL'];
