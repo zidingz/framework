@@ -106,14 +106,14 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
                 $request = new Swoole\Request;
                 //GET没有body
                 list($header, $request->body) = explode(self::HTTP_EOF, $http_data, 2);
-                $request->head = $this->parser->parseHeader($header);
+                $request->header = $this->parser->parseHeader($header);
                 //使用head[0]保存额外的信息
-                $request->meta = $request->head[0];
-                unset($request->head[0]);
+                $request->meta = $request->header[0];
+                unset($request->header[0]);
                 //保存请求
                 $this->requests[$client_id] = $request;
                 //解析失败
-                if ($request->head == false)
+                if ($request->header == false)
                 {
                     $this->log("parseHeader failed. header=".$header);
                     return false;
@@ -273,7 +273,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
             $this->parser->parseBody($request);
         }
         //解析Cookies
-        if (!empty($request->head['Cookie']))
+        if (!empty($request->header['Cookie']))
         {
             $this->parser->parseCookie($request);
         }
@@ -294,7 +294,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         if (!isset($response->head['Connection']))
         {
             //keepalive
-            if ($this->keepalive and (isset($request->head['Connection']) and strtolower($request->head['Connection']) == 'keep-alive'))
+            if ($this->keepalive and (isset($request->header['Connection']) and strtolower($request->header['Connection']) == 'keep-alive'))
             {
                 $response->head['KeepAlive'] = 'on';
                 $response->head['Connection'] = 'keep-alive';

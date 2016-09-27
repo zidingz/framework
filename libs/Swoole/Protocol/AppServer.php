@@ -2,8 +2,6 @@
 namespace Swoole\Protocol;
 use Swoole;
 
-require_once LIBPATH . '/function/cli.php';
-
 class AppServerException extends \Exception
 {
 

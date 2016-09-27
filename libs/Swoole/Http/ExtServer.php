@@ -75,62 +75,33 @@ class ExtServer implements Swoole\IFace\Http
         $this->response->cookie($name, $value, $expire, $path, $domain, $secure, $httponly);
     }
 
-    function setGlobal()
+    function assign(Swoole\Request $request)
     {
         if (isset($this->request->get))
         {
-            $_GET = $this->request->get;
-        }
-        else
-        {
-            $_GET = array();
+            $request->get = $this->request->get;
         }
         if (isset($this->request->post))
         {
-            $_POST = $this->request->post;
-        }
-        else
-        {
-            $_POST = array();
+            $request->post = $this->request->post;
         }
         if (isset($this->request->files))
         {
-            $_FILES = $this->request->files;
-        }
-        else
-        {
-            $_FILES = array();
+            $request->files = $this->request->files;
         }
         if (isset($this->request->cookie))
         {
-            $_COOKIE = $this->request->cookie;
-        }
-        else
-        {
-            $_COOKIE = array();
+            $request->cookie = $this->request->cookie;
         }
         if (isset($this->request->server))
         {
             foreach($this->request->server as $key => $value)
             {
-                $_SERVER[strtoupper($key)] = $value;
+                $request->server[strtoupper($key)] = $value;
             }
+            $request->remote_ip = $this->request->server['remote_addr'];
         }
-        else
-        {
-            $_SERVER = array();
-        }
-        $_REQUEST = array_merge($_GET, $_POST, $_COOKIE);
-        $_SERVER['REQUEST_URI'] = $this->request->server['request_uri'];
-        /**
-         * 将HTTP头信息赋值给$_SERVER超全局变量
-         */
-        foreach($this->request->header as $key => $value)
-        {
-            $_key = 'HTTP_'.strtoupper(str_replace('-', '_', $key));
-            $_SERVER[$_key] = $value;
-        }
-        $_SERVER['REMOTE_ADDR'] = $this->request->server['remote_addr'];
+        $request->setGlobal();
     }
 
     function doStatic(\swoole_http_request $req, \swoole_http_response $resp)
@@ -189,9 +160,11 @@ class ExtServer implements Swoole\IFace\Http
 
         $this->request = $req;
         $this->response = $resp;
-        $this->setGlobal();
 
         $php = Swoole::getInstance();
+        $php->request = new Swoole\Request();
+        $php->response = new Swoole\Response();
+        $this->assign($php->request);
         try
         {
             try

@@ -341,6 +341,7 @@ class Swoole
      * 加载内置的Swoole模块
      * @param $module
      * @param $key
+     * @throws NotFound
      * @return mixed
      */
     protected function loadModule($module, $key = 'master')

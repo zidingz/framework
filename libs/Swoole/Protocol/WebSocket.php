@@ -50,12 +50,12 @@ abstract class WebSocket extends HttpServer
      */
     public function doHandshake(Swoole\Request $request,  Swoole\Response $response)
     {
-        if (!isset($request->head['Sec-WebSocket-Key']))
+        if (!isset($request->header['Sec-WebSocket-Key']))
         {
             $this->log('Bad protocol implementation: it is not RFC6455.');
             return false;
         }
-        $key = $request->head['Sec-WebSocket-Key'];
+        $key = $request->header['Sec-WebSocket-Key'];
         if (0 === preg_match('#^[+/0-9A-Za-z]{21}[AQgw]==$#', $key) || 16 !== strlen(base64_decode($key)))
         {
             $this->log('Header Sec-WebSocket-Key: $key is illegal.');
@@ -187,7 +187,7 @@ abstract class WebSocket extends HttpServer
     {
         if ($request->isWebSocket())
         {
-            $conn = array('header' => $request->head, 'time' => time());
+            $conn = array('header' => $request->header, 'time' => time());
             $this->connections[$request->fd] = $conn;
 
             if (count($this->connections) > $this->max_connect)

@@ -82,7 +82,10 @@ class Auth
     {
         if (empty($set))
         {
-            $set = array(self::$lastlogin => date('Y-m-d H:i:s'), self::$lastip => Request::getClientIP());
+            $set = array(
+                self::$lastlogin => date('Y-m-d H:i:s'),
+                self::$lastip => \Swoole::$php->request->getClientIP()
+            );
         }
         return $this->db->update($this->user['id'], $set, $this->login_table);
     }

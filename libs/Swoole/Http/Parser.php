@@ -110,7 +110,7 @@ class Parser
      */
     function parseCookie($request)
     {
-        $request->cookie = self::parseParams($request->head['Cookie']);
+        $request->cookie = self::parseParams($request->header['Cookie']);
     }
 
     /**

@@ -30,7 +30,7 @@ class Request
 
     public $get = array();
     public $post = array();
-    public $file = array();
+    public $files = array();
     public $cookie = array();
     public $session = array();
     public $request = array();
@@ -41,7 +41,7 @@ class Request
      */
     public $attrs;
 
-    public $head = array();
+    public $header = array();
     public $body;
     public $meta = array();
 
@@ -54,26 +54,12 @@ class Request
      */
     function setGlobal()
     {
-        if ($this->get)
-        {
-            $_GET = $this->get;
-        }
-        if ($this->post)
-        {
-            $_POST = $this->post;
-        }
-        if ($this->file)
-        {
-            $_FILES = $this->file;
-        }
-        if ($this->cookie)
-        {
-            $_COOKIE = $this->cookie;
-        }
-        if ($this->server)
-        {
-            $_SERVER = $this->server;
-        }
+        $_GET = $this->get;
+        $_POST = $this->post;
+        $_FILES = $this->files;
+        $_COOKIE = $this->cookie;
+        $_SERVER = $this->server;
+
         $this->request = $_REQUEST = array_merge($this->get, $this->post, $this->cookie);
 
         $_SERVER['REQUEST_URI'] = $this->meta['uri'];
@@ -89,7 +75,7 @@ class Request
         /**
          * 将HTTP头信息赋值给$_SERVER超全局变量
          */
-        foreach ($this->head as $key => $value)
+        foreach ($this->header as $key => $value)
         {
             $_key = 'HTTP_' . strtoupper(str_replace('-', '_', $key));
             $_SERVER[$_key] = $value;
@@ -115,7 +101,7 @@ class Request
 
     function isWebSocket()
     {
-        return isset($this->head['Upgrade']) && strtolower($this->head['Upgrade']) == 'websocket';
+        return isset($this->header['Upgrade']) && strtolower($this->header['Upgrade']) == 'websocket';
     }
 
     /**
@@ -142,19 +128,19 @@ class Request
      * 获取客户端IP
      * @return string
      */
-    static function getClientIP()
+    function getClientIP()
     {
-        if (isset($_SERVER["HTTP_CLIENT_IP"]) and strcasecmp($_SERVER["HTTP_CLIENT_IP"], "unknown"))
+        if (isset($this->server["HTTP_CLIENT_IP"]) and strcasecmp($this->server["HTTP_CLIENT_IP"], "unknown"))
         {
-            return $_SERVER["HTTP_CLIENT_IP"];
+            return $this->server["HTTP_CLIENT_IP"];
         }
-        if (isset($_SERVER["HTTP_X_FORWARDED_FOR"]) and strcasecmp($_SERVER["HTTP_X_FORWARDED_FOR"], "unknown"))
+        if (isset($this->server["HTTP_X_FORWARDED_FOR"]) and strcasecmp($this->server["HTTP_X_FORWARDED_FOR"], "unknown"))
         {
-            return $_SERVER["HTTP_X_FORWARDED_FOR"];
+            return $this->server["HTTP_X_FORWARDED_FOR"];
         }
-        if (isset($_SERVER["REMOTE_ADDR"]))
+        if (isset($this->server["REMOTE_ADDR"]))
         {
-            return $_SERVER["REMOTE_ADDR"];
+            return $this->server["REMOTE_ADDR"];
         }
         return "";
     }
@@ -163,9 +149,9 @@ class Request
      * 获取客户端浏览器信息
      * @return string
      */
-    static function getBrowser()
+    function getBrowser()
     {
-        $sys = $_SERVER['HTTP_USER_AGENT'];
+        $sys = $this->server['HTTP_USER_AGENT'];
         if (stripos($sys, "Firefox/") > 0)
         {
             preg_match("/Firefox\/([^;)]+)+/i", $sys, $b);
@@ -220,10 +206,9 @@ class Request
      * 获取客户端操作系统信息
      * @return string
      */
-    static function getOS()
+    function getOS()
     {
-        $agent = $_SERVER['HTTP_USER_AGENT'];
-
+        $agent = $this->server['HTTP_USER_AGENT'];
         if (preg_match('/win/i', $agent) && strpos($agent, '95'))
         {
             $os = 'Windows 95';
