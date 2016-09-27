@@ -143,10 +143,9 @@ class Controller extends Object
 
     /**
      * 显示跟踪信息
-     * @param $detail
      * @return string
      */
-    public function showTrace($detail=false)
+    public function showTrace()
     {
         $_trace =   array();
         $included_files = get_included_files();
@@ -166,7 +165,8 @@ class Controller extends Object
         {
             $_trace['SESSION_ID'] = session_id();
         }
-        if($this->swoole->db instanceof \Swoole\Database) {
+        if ($this->swoole->db instanceof \Swoole\Database)
+        {
             $_trace['读取数据库'] = $this->swoole->db->read_times . '次';
             $_trace['写入数据库'] = $this->swoole->db->write_times . '次';
         }
@@ -192,13 +192,14 @@ padding:			20px 20px 12px 20px;
 		<div style="overflow:auto;text-align:left;">
 HTMLS;
         $html .= "<a href='".Tool::url_merge('_show_request', '1')."'>显示请求参数</a> |
-        <a href='".Tool::url_merge('_show_session', '1')."'>显示会话信息</a>
+        <a href='".Tool::url_merge('_show_session', '1')."'>显示会话信息</a> |
+        <a href='".Tool::url_merge('_show_files', '1')."'>显示加载的PHP文件</a>
         <hr/>";
         foreach ($_trace as $key => $info)
         {
             $html .= $key . ' : ' . $info . BL;
         }
-        if ($detail)
+        if (!empty($this->request->get['_show_files']))
         {
             //输出包含的文件
             $html .= '加载的文件：' . BL."<pre style='color: #666'>";
@@ -211,7 +212,7 @@ HTMLS;
         $html .= "</div></fieldset>";
         $html .= "</div>";
 
-        if (!empty($_GET['_show_request']))
+        if (!empty($this->request->get['_show_request']))
         {
             $output = '<fieldset style="margin:5px;"><div style="overflow:auto;text-align:left;">';
             $request = $this->swoole->request;
@@ -237,7 +238,7 @@ HTMLS;
             $html .= $output."</div></fieldset>";
         }
 
-        if (!empty($_GET['_show_session']))
+        if (!empty($this->request->get['_show_session']))
         {
             $output = '<fieldset style="margin:5px;"><div style="overflow:auto;text-align:left;">';
             $this->session->start();

@@ -75,6 +75,10 @@ class ExtServer implements Swoole\IFace\Http
         $this->response->cookie($name, $value, $expire, $path, $domain, $secure, $httponly);
     }
 
+    /**
+     * 将swoole扩展产生的请求对象数据赋值给框架的Request对象
+     * @param Swoole\Request $request
+     */
     function assign(Swoole\Request $request)
     {
         if (isset($this->request->get))
@@ -101,6 +105,7 @@ class ExtServer implements Swoole\IFace\Http
             }
             $request->remote_ip = $this->request->server['remote_addr'];
         }
+        $request->header = $this->request->header;
         $request->setGlobal();
     }
 
