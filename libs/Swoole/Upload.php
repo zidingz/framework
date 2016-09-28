@@ -101,7 +101,11 @@ class Upload
         }
         else
         {
-            return rename($tmpfile, $newfile);
+            if (rename($tmpfile, $newfile) === false)
+            {
+                return false;
+            }
+            return chmod($newfile, 0666);
         }
     }
 
