@@ -84,6 +84,11 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         unset($this->requests[$fd], $this->buffer_header[$fd]);
     }
 
+    /**
+     * @param $client_id
+     * @param $http_data
+     * @return bool|Swoole\Request
+     */
     function checkHeader($client_id, $http_data)
     {
         //新的连接
@@ -129,18 +134,22 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         return $request;
     }
 
-    function checkPost($request)
+    /**
+     * @param Swoole\Request $request
+     * @return int
+     */
+    function checkPost(Swoole\Request $request)
     {
-        if (isset($request->head['Content-Length']))
+        if (isset($request->header['Content-Length']))
         {
             //超过最大尺寸
-            if (intval($request->head['Content-Length']) > $this->config['server']['post_maxsize'])
+            if (intval($request->header['Content-Length']) > $this->config['server']['post_maxsize'])
             {
                 $this->log("checkPost failed. post_data is too long.");
                 return self::ST_ERROR;
             }
             //不完整，继续等待数据
-            if (intval($request->head['Content-Length']) > strlen($request->body))
+            if (intval($request->header['Content-Length']) > strlen($request->body))
             {
                 return self::ST_WAIT;
             }
