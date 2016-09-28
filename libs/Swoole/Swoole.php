@@ -724,11 +724,11 @@ function swoole_urlrouter_mvc(&$uri)
     $array = Swoole::$default_controller;
     if (!empty($request->get["c"]))
     {
-        $array['controller'] = $_GET["c"];
+        $array['controller'] = $request->get["c"];
     }
-    if (!empty($_GET["v"]))
+    if (!empty($request->get["v"]))
     {
-        $array['view'] = $_GET["v"];
+        $array['view'] = $request->get["v"];
     }
     $request_uri = explode('/', $uri, 3);
     if (count($request_uri) < 2)
@@ -752,7 +752,7 @@ function swoole_urlrouter_mvc(&$uri)
             Swoole\Tool::$url_param_join = '-';
             Swoole\Tool::$url_add_end = '.html';
             Swoole\Tool::$url_prefix = WEBROOT . "/{$request_uri[0]}/$request_uri[1]/";
-            Swoole\Tool::url_parse_into($request_uri[2], $_GET);
+            Swoole\Tool::url_parse_into($request_uri[2], $request->get);
         }
         $_REQUEST = $request->request = array_merge($request->request, $request->get);
         $_GET = $request->get;
