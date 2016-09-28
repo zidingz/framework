@@ -43,6 +43,11 @@ class AppServer extends HttpServer
         });
     }
 
+    /**
+     * 处理请求
+     * @param Swoole\Request $request
+     * @return Swoole\Response
+     */
     function onRequest(Swoole\Request $request)
     {
         return Swoole::getInstance()->handlerServer($request);

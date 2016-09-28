@@ -360,7 +360,9 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     {
         $response->setHttpStatus($code);
         $response->head['Content-Type'] = 'text/html';
-        $response->body = Swoole\Error::info(Swoole\Response::$HTTP_HEADERS[$code], "<p>$content</p><hr><address>" . self::SOFTWARE . " at {$this->server->host} Port {$this->server->port}</address>");
+        $response->body = Swoole\Error::info(Swoole\Response::$HTTP_HEADERS[$code],
+            "<p>$content</p><hr><address>" . self::SOFTWARE . " at {$this->server->host}" .
+            " Port {$this->server->port}</address>");
     }
 
     /**
@@ -451,8 +453,11 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
 
     /**
      * 过滤请求，阻止静止访问的目录，处理静态文件
+     * @param Swoole\Request $request
+     * @param Swoole\Response $response
+     * @return bool
      */
-    function doStaticRequest($request, $response)
+    function doStaticRequest(Swoole\Request $request, Swoole\Response $response)
     {
         $path = explode('/', trim($request->meta['path'], '/'));
         //扩展名
@@ -472,11 +477,12 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     }
 
     /**
-     * 静态请求
-     * @param $request
-     * @param $response
+     * 处理静态请求
+     * @param Swoole\Request $request
+     * @param Swoole\Response $response
+     * @return bool
      */
-    function processStatic($request, Swoole\Response $response)
+    function processStatic(Swoole\Request $request, Swoole\Response $response)
     {
         $path = $this->document_root . '/' . $request->meta['path'];
         if (is_file($path))
@@ -487,9 +493,9 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
                 $expire = intval($this->config['server']['expire_time']);
                 $fstat = stat($path);
                 //过期控制信息
-                if (isset($request->head['If-Modified-Since']))
+                if (isset($request->header['If-Modified-Since']))
                 {
-                    $lastModifiedSince = strtotime($request->head['If-Modified-Since']);
+                    $lastModifiedSince = strtotime($request->header['If-Modified-Since']);
                     if ($lastModifiedSince and $fstat['mtime'] <= $lastModifiedSince)
                     {
                         //不需要读文件了
@@ -520,9 +526,9 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     }
 
     /**
-     * 动态请求
-     * @param $request
-     * @param $response
+     * 处理动态请求
+     * @param Swoole\Request $request
+     * @param Swoole\Response $response
      */
     function processDynamic(Swoole\Request $request, Swoole\Response $response)
     {
