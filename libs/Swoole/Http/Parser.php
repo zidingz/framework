@@ -152,7 +152,7 @@ class Parser
                 file_put_contents($tmp_file, $file);
                 if (!isset($meta['name'])) $meta['name'] = 'file';
                 $request->files[$meta['name']] = array('name' => $meta['filename'],
-                    'type' => $head['Content-Type'],
+                    'type' => $header['Content-Type'],
                     'size' => strlen($file),
                     'error' => UPLOAD_ERR_OK,
                     'tmp_name' => $tmp_file);
