@@ -1,6 +1,8 @@
 <?php
 namespace Swoole\Http;
 
+use Swoole;
+
 /**
  * Class ExtParser
  * 使用pecl_http扩展
@@ -89,16 +91,20 @@ class Parser
         return $params;
     }
 
-    function parseBody($request)
+    /**
+     * 解析Body
+     * @param $request Swoole\Request
+     */
+    function parseBody(Swoole\Request $request)
     {
-        $cd = strstr($request->head['Content-Type'], 'boundary');
-        if (isset($request->head['Content-Type']) and $cd !== false)
+        $cd = strstr($request->header['Content-Type'], 'boundary');
+        if (isset($request->header['Content-Type']) and $cd !== false)
         {
             $this->parseFormData($request, $cd);
         }
         else
         {
-            if (substr($request->head['Content-Type'], 0, 33) == 'application/x-www-form-urlencoded')
+            if (substr($request->header['Content-Type'], 0, 33) == 'application/x-www-form-urlencoded')
             {
                 parse_str($request->body, $request->post);
             }
@@ -106,9 +112,9 @@ class Parser
     }
     /**
      * 解析Cookies
-     * @param $request \Swoole\Request
+     * @param $request Swoole\Request
      */
-    function parseCookie($request)
+    function parseCookie(Swoole\Request $request)
     {
         $request->cookie = self::parseParams($request->header['Cookie']);
     }
@@ -116,11 +122,11 @@ class Parser
     /**
      * 解析form_data格式文件
      * @param $part
-     * @param $request
+     * @param $request Swoole\Request
      * @param $cd
      * @return unknown_type
      */
-    static function parseFormData($request, $cd)
+    static function parseFormData(Swoole\Request $request, $cd)
     {
         $cd = '--' . str_replace('boundary=', '', $cd);
         $form = explode($cd, rtrim($request->body, "-")); //去掉末尾的--
@@ -128,9 +134,9 @@ class Parser
         {
             if ($f === '') continue;
             $parts = explode("\r\n\r\n", trim($f));
-            $head = self::parseHeaderLine($parts[0]);
-            if (!isset($head['Content-Disposition'])) continue;
-            $meta = self::parseParams($head['Content-Disposition']);
+            $header = self::parseHeaderLine($parts[0]);
+            if (!isset($header['Content-Disposition'])) continue;
+            $meta = self::parseParams($header['Content-Disposition']);
             //filename字段表示它是一个文件
             if (!isset($meta['filename']))
             {
@@ -145,7 +151,7 @@ class Parser
                 $tmp_file = tempnam('/tmp', 'sw');
                 file_put_contents($tmp_file, $file);
                 if (!isset($meta['name'])) $meta['name'] = 'file';
-                $request->file[$meta['name']] = array('name' => $meta['filename'],
+                $request->files[$meta['name']] = array('name' => $meta['filename'],
                     'type' => $head['Content-Type'],
                     'size' => strlen($file),
                     'error' => UPLOAD_ERR_OK,
