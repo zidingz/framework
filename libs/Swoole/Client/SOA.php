@@ -131,7 +131,21 @@ class SOA
                     'package_body_offset' => SOAServer::HEADER_SIZE,
                     'package_length_offset' => 0,
                 ));
-                $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
+                /**
+                 * 尝试重连一次
+                 */
+                for ($i = 0; $i < 2; $i++)
+                {
+                    $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
+                    if ($ret === false and ($socket->errCode == 114 or $socket->errCode == 115))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
                 $socketFd = $socket->sock;
             }
             //基于sockets扩展
@@ -241,6 +255,21 @@ class SOA
         $this->env[$k] = $v;
     }
 
+
+    /**
+     * 设置超时时间，包括连接超时和接收超时
+     * @param $timeout
+     */
+    function setTimeout($timeout)
+    {
+        $this->timeout = $timeout;
+    }
+
+    /**
+     * 设置用户名和密码
+     * @param $user
+     * @param $password
+     */
     function auth($user, $password)
     {
         $this->putEnv('user', $user);
