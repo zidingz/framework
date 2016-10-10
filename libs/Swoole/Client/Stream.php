@@ -24,6 +24,12 @@ class Stream
         $this->tcp = $tcp;
     }
 
+    /**
+     * @param $host
+     * @param $port
+     * @param float $timeout
+     * @return bool
+     */
     function connect($host, $port, $timeout = 0.1)
     {
         $uri = ($this->tcp ? 'tcp' : 'udp') . "://{$host}:{$port}";
@@ -33,12 +39,25 @@ class Stream
             return false;
         }
         $this->connected = true;
-        $t_sec = (int)$timeout;
-        $t_usec = (int)(($timeout - $t_sec) * 1000 * 1000);
-        stream_set_timeout($this->fp, $t_sec, $t_usec);
+
         return true;
     }
 
+    /**
+     * @param float $timeout
+     * @return bool
+     */
+    function setTimeout($timeout)
+    {
+        $t_sec = (int)$timeout;
+        $t_usec = (int)(($timeout - $t_sec) * 1000 * 1000);
+
+        return stream_set_timeout($this->fp, $t_sec, $t_usec);
+    }
+
+    /**
+     * @return string
+     */
     function recv()
     {
         return fread($this->fp, 8192);
@@ -72,6 +91,9 @@ class Stream
         return $written;
     }
 
+    /**
+     * @return mixed
+     */
     function getSocket()
     {
         return $this->fp;
@@ -79,12 +101,14 @@ class Stream
 
     /**
      * 关闭socket连接
+     * @return bool
      */
     function close()
     {
         if ($this->fp)
         {
-            fclose($this->fp);
+            return fclose($this->fp);
         }
+        return false;
     }
 }

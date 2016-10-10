@@ -54,18 +54,27 @@ class TCP extends Socket
      * 接收数据
      * @param int $length 接收数据的长度
      * @param bool $waitall 等待接收到全部数据后再返回，注意这里超过包长度会阻塞住
+     * @return string | bool
      */
-    function recv($length = 65535, $waitall = 0)
+    function recv($length = 65535, $waitall = false)
     {
-        if ($waitall) $waitall = MSG_WAITALL;
-        $ret = socket_recv($this->sock, $data, $length, $waitall);
+        $flags = 0;
+        if ($waitall)
+        {
+            $flags = MSG_WAITALL;
+        }
 
-        if ($ret === false) {
+        $ret = socket_recv($this->sock, $data, $length, $flags);
+        if ($ret === false)
+        {
             $this->set_error();
             //重试一次，这里为防止意外，不使用递归循环
-            if ($this->errCode == 4) {
+            if ($this->errCode == 4)
+            {
                 socket_recv($this->sock, $data, $length, $waitall);
-            } else {
+            }
+            else
+            {
                 return false;
             }
         }
@@ -79,6 +88,7 @@ class TCP extends Socket
      * @param string $host 服务器地址
      * @param int $port 服务器地址
      * @param float $timeout 超时默认值，连接，发送，接收都使用此设置
+     * @return bool
      */
     function connect($host, $port, $timeout = 0.1, $nonblock = false)
     {
@@ -102,7 +112,7 @@ class TCP extends Socket
         $this->set_timeout($timeout, $timeout);
         $this->setopt(SO_REUSEADDR, 1);
         //非阻塞模式下connect将立即返回
-        if($nonblock)
+        if ($nonblock)
         {
             socket_set_nonblock($this->sock);
             @socket_connect($this->sock, $this->host, $this->port);
@@ -126,7 +136,7 @@ class TCP extends Socket
             }
         }
         $this->set_error();
-        trigger_error("connect server[{$this->host}:{$this->port}] fail.errno={$this->errCode}|{$this->errMsg}");
+        trigger_error("connect server[{$this->host}:{$this->port}] fail. Error: {$this->errMsg}[{$this->errCode}].");
         return false;
     }
 
