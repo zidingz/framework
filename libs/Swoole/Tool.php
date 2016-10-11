@@ -595,7 +595,7 @@ class Tool
      * @param $var
      * @return mixed
      */
-    function dump($var)
+    static function dump($var)
     {
         return highlight_string("<?php\n\$array = ".var_export($var, true).";", true);
     }
