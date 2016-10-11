@@ -565,6 +565,12 @@ class Swoole
      */
     function runMVC()
     {
+        if (empty($this->request))
+        {
+            $this->request = new \Swoole\Request();
+            $this->request->initWithLamp();
+        }
+
         $mvc = call_user_func($this->router_function);
         if ($mvc === false)
         {
@@ -617,12 +623,6 @@ class Swoole
         return Swoole\Error::info('MVC Error', "Controller <b>{$mvc['controller']}</b>[{$controller_path}] not exist!");
 
         do_action:
-
-        if (empty($this->request))
-        {
-            $this->request = new \Swoole\Request();
-            $this->request->initWithLamp();
-        }
 
         //服务器模式下，尝试重载入代码
         if (defined('SWOOLE_SERVER'))
