@@ -139,6 +139,8 @@ class SOA
                     $ret = $socket->connect($svr['host'], $svr['port'], $this->timeout);
                     if ($ret === false and ($socket->errCode == 114 or $socket->errCode == 115))
                     {
+                        //强制关闭，重连
+                        $socket->close(true);
                         continue;
                     }
                     else

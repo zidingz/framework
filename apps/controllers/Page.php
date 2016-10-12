@@ -20,7 +20,7 @@ class Page extends Swoole\Controller
 
     function detail()
     {
-        var_dump($_GET);
+        var_dump($this->request->get);
     }
 
     //数据库测试
