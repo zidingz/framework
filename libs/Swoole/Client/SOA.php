@@ -30,6 +30,7 @@ class SOA
     protected $haveSockets = false;
 
     const OK = 0;
+    const VERSION = 1001;
 
     protected static $_instances = array();
 

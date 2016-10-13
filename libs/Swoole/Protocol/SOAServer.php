@@ -140,7 +140,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
                 self::$clientEnv = $request['env'];
             }
             //socket信息
-            self::$clientEnv['_socket'] = $this->server->connection_info($header['fd']);
+            self::$clientEnv['_socket'] = $this->server->connection_info($_header['fd']);
             $response = $this->call($request, $_header);
             //发送响应
             $ret = $this->server->send($fd, self::encode($response, $_header['type'], $_header['uid'], $_header['serid']));
