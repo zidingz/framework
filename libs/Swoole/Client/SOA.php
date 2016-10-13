@@ -1,6 +1,8 @@
 <?php
 namespace Swoole\Client;
+use Swoole\Exception\InvalidParam;
 use Swoole\Protocol\SOAServer;
+use Swoole\Tool;
 
 class SOA
 {
@@ -10,11 +12,6 @@ class SOA
      */
     protected $servers = array();
 
-    /**
-     * 当前选择的Server
-     * @var int
-     */
-    protected $currentServerId;
     protected $requestIndex = 0;
 
     protected $env = array();
@@ -320,11 +317,50 @@ class SOA
     {
         if (isset($servers['host']))
         {
+            self::formatServerConfig($servers);
             $this->servers[] = $servers;
         }
         else
         {
-            $this->servers = array_merge($this->servers, $servers);
+            //兼容老的写法
+            foreach ($servers as $svr)
+            {
+                // 127.0.0.1:8001 的写法
+                if (is_string($svr))
+                {
+                    list($config['host'], $config['port']) = explode(':', $svr);
+                }
+                else
+                {
+                    $config = $svr;
+                }
+                self::formatServerConfig($config);
+                $this->servers[] = $config;
+            }
+        }
+    }
+
+    /**
+     * @param $config
+     * @throws InvalidParam
+     */
+    static protected function formatServerConfig(&$config)
+    {
+        if (empty($config['host']))
+        {
+            throw new InvalidParam("require 'host' option.");
+        }
+        if (empty($config['port']))
+        {
+            throw new InvalidParam("require 'port' option.");
+        }
+        if (empty($config['status']))
+        {
+            $config['status'] = 'online';
+        }
+        if (empty($config['weight']))
+        {
+            $config['weight'] = 100;
         }
     }
 
@@ -334,6 +370,10 @@ class SOA
      */
     function setServers(array $servers)
     {
+        foreach($servers as &$svr)
+        {
+            self::formatServerConfig($svr);
+        }
         $this->servers = $servers;
     }
 
@@ -348,22 +388,26 @@ class SOA
         {
             throw new \Exception("servers config empty.");
         }
-        //随机选择1个Server
-        $this->currentServerId = array_rand($this->servers);
-        $_svr = $this->servers[$this->currentServerId];
-        $svr = array('host' => '', 'port' => 0);
-        list($svr['host'], $svr['port']) = explode(':', $_svr, 2);
-        return $svr;
+        return Tool::getServer($this->servers);
     }
 
     /**
      * 连接服务器失败了
      * @param $svr
+     * @return bool
      */
     function onConnectServerFailed($svr)
     {
-        //从Server列表中移除
-        unset($this->servers[$this->currentServerId]);
+        foreach($this->servers as $k => $v)
+        {
+            if ($v['host'] == $svr['host'] and $v['port'] == $svr['port'])
+            {
+                //从Server列表中移除
+                unset($this->servers[$k]);
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

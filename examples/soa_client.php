@@ -8,7 +8,14 @@ $client->setEncodeType(false, true);
 $client->putEnv('app', 'test');
 $client->putEnv('appKey', 'test1234');
 $client->auth('chelun', 'chelun@123456');
-$client->addServers(array('127.0.0.1:8888'));
+
+//$client->addServers(array(
+//    array('host' => '127.0.0.1', 'port' => 8888),
+//));
+//$client->addServers(array(
+//    '127.0.0.1:8888',
+//));
+$client->addServers(array('host' => '127.0.0.1', 'port' => 8888));
 
 $ret2 = $client->task("BL\\Test::test1", ["hello"]);
 var_dump($ret2->getResult(), $ret2->code);
