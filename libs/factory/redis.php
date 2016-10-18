@@ -22,5 +22,5 @@ if (empty($config['timeout']))
     $config['timeout'] = 0.5;
 }
 
-$redis = new \Swoole\Redis($config);
+$redis = new Swoole\Component\Redis($config);
 return $redis;

@@ -13,7 +13,7 @@ namespace Swoole;
  * @property Component\Event     $event
  * @property Session             $session
  * @property Template            $tpl
- * @property \redis              $redis
+ * @property \Redis              $redis
  * @property \MongoClient        $mongo
  * @property Config              $config
  * @property Http\PWS            $http

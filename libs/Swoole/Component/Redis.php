@@ -1,14 +1,22 @@
 <?php
-namespace Swoole;
+namespace Swoole\Component;
 use Swoole;
 
+/**
+ * Class Redis
+ * @package Swoole\Component
+ */
 class Redis
 {
     const READ_LINE_NUMBER = 0;
     const READ_LENGTH = 1;
     const READ_DATA = 2;
 
-    public $_redis;
+    /**
+     * @var \Redis
+     */
+    protected $_redis;
+
     public $config;
 
     public static $prefix = "autoinc_key:";
@@ -19,7 +27,7 @@ class Redis
      * @param int $init_id
      * @return bool|int
      */
-    static function getIncreaseId($appKey, $init_id = 1)
+    function getIncreaseId($appKey, $init_id = 1)
     {
         if (empty($appKey))
         {
@@ -27,28 +35,28 @@ class Redis
         }
         $main_key = self::$prefix . $appKey;
         //已存在 就加1
-        if (\Swoole::$php->redis->exists($main_key))
+        if ($this->_redis->exists($main_key))
         {
-            $inc = \Swoole::$php->redis->incr($main_key);
+            $inc = $this->_redis->incr($main_key);
             if (empty($inc))
             {
-                \Swoole::$php->log->put("redis::incr() failed. Error: ".\Swoole::$php->redis->getLastError());
+                \Swoole::$php->log->put("redis::incr() failed. Error: ".$this->_redis->getLastError());
                 return false;
             }
             return $inc;
         }
         //上面的if条件返回false,可能是有错误，或者key不存在，这里要判断下
-        else if(\Swoole::$php->redis->getLastError())
+        else if($this->_redis->getLastError())
         {
             return false;
         }
         //这才是说明key不存在，需要初始化
         else
         {
-            $init = \Swoole::$php->redis->set($main_key, $init_id);
+            $init = $this->_redis->set($main_key, $init_id);
             if ($init == false)
             {
-                \Swoole::$php->log->put("redis::set() failed. Error: ".\Swoole::$php->redis->getLastError());
+                \Swoole::$php->log->put("redis::set() failed. Error: ".$this->_redis->getLastError());
                 return false;
             }
             else
