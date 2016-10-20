@@ -34,7 +34,7 @@ class SOA
     /**
      * 版本号
      */
-    const VERSION = 1002;
+    const VERSION = 1003;
 
     protected static $_instances = array();
 
@@ -438,6 +438,19 @@ class SOA
         return $retObj;
     }
 
+    /**
+     * 侦测服务器是否存活
+     */
+    function ping()
+    {
+        return $this->task('PING')->getResult() === 'PONG';
+    }
+
+    /**
+     * 使用sockets扩展
+     * @param $timeout
+     * @return int
+     */
     protected function recvWaitWithSockets($timeout)
     {
         $st = microtime(true);
@@ -825,7 +838,7 @@ class SOA_Result
 
     function getResult($timeout = 0.5)
     {
-        if ($this->code == self::ERR_NO_READY)
+        if ($this->code == self::ERR_RECV)
         {
             $this->soa_client->wait($timeout);
         }

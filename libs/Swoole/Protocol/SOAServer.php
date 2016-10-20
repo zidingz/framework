@@ -330,6 +330,13 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
                 goto fail;
             }
         }
+        /**
+         * 侦测服务器是否存活
+         */
+        if ($request['call'] === 'PING')
+        {
+            return array('errno' => 0, 'data' => 'PONG');
+        }
         //函数不存在
         if (!is_callable($request['call']))
         {
