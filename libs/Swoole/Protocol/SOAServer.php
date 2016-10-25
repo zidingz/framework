@@ -8,6 +8,11 @@ use Swoole;
  */
 class SOAServer extends Base implements Swoole\IFace\Protocol
 {
+    /**
+     * 版本号
+     */
+    const VERSION = 1003;
+
     protected $_buffer  = array(); //buffer区
     protected $_headers = array(); //保存头
 
@@ -309,6 +314,13 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         {
             return array('errno' => self::ERR_PARAMS);
         }
+        /**
+         * 侦测服务器是否存活
+         */
+        if ($request['call'] === 'PING')
+        {
+            return array('errno' => 0, 'data' => 'PONG');
+        }
         //验证客户端IP是否被允许访问
         if ($this->verifyIp)
         {
@@ -329,13 +341,6 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
             {
                 goto fail;
             }
-        }
-        /**
-         * 侦测服务器是否存活
-         */
-        if ($request['call'] === 'PING')
-        {
-            return array('errno' => 0, 'data' => 'PONG');
         }
         //函数不存在
         if (!is_callable($request['call']))
