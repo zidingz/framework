@@ -10,6 +10,7 @@ use Swoole\Exception\InvalidParam;
  * float, double
  * char[n], uchar[n] 注意C语言存在内存对齐问题
  * @package Swoole\Memory
+ * @author Tianfeng.Han (Rango)
  */
 abstract class Struct
 {

@@ -33,13 +33,19 @@ class AStruct extends Swoole\Memory\Struct
 }
 
 $a = new AStruct(false);
-$str = $a->pack(array(
-    13,
-    'hello',
-    999.9,
-    888.8,
-    99999,
-));
+$n = 1000000;
+$s = microtime(true);
+for ($i = 0; $i < $n; $i++)
+{
+    $str = $a->pack(array(
+        13,
+        'hello',
+        999.9,
+        888.8,
+        99999,
+    ));
+}
+echo "$n pack, cost time ".(microtime(true) - $s)."s\n";
 
 file_put_contents('test.bin', $str);exit;
 
