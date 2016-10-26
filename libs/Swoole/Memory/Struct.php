@@ -8,11 +8,12 @@ use Swoole\Exception\InvalidParam;
  * 目前支持的类型：
  * int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, long, ulong
  * float, double
- * char[n], uchar[n]
+ * char[n], uchar[n] 注意C语言存在内存对齐问题
  * @package Swoole\Memory
  */
 abstract class Struct
 {
+    protected $size = 0;
     protected $fileds = array();
     protected $is32bit;
 
@@ -23,6 +24,10 @@ abstract class Struct
 
     const REGX = '#@\w+\s+([a-z0-9\[\]]+)\s+#i';
 
+    /**
+     * @param bool $convertBigEndian
+     * @throws InvalidParam
+     */
     function __construct($convertBigEndian = true)
     {
         $this->is32bit = (PHP_INT_SIZE === 4);
@@ -33,9 +38,19 @@ abstract class Struct
         {
             if (preg_match(self::REGX, $p->getDocComment(), $match))
             {
-                $this->fileds[] = $this->parseFieldType($match[1]);
+                $field = $this->parseFieldType($match[1]);
+                $this->fileds[] =$field;
+                $this->size += $field->size;
             }
         }
+    }
+
+    /**
+     * @return int
+     */
+    function size()
+    {
+        return $this->size;
     }
 
     /**
@@ -92,6 +107,12 @@ abstract class Struct
         return new Field($type, $size, $signed);
     }
 
+    /**
+     * 打包数据
+     * @param array $data
+     * @return string
+     * @throws InvalidParam
+     */
     function pack(array $data)
     {
         if (count($data) != count($this->fileds))
@@ -169,6 +190,11 @@ abstract class Struct
         return $_binStr;
     }
 
+    /**
+     * 解包数据
+     * @param $str
+     * @return array
+     */
     function unpack($str)
     {
         $data = array();
