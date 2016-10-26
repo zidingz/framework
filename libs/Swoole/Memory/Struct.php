@@ -17,13 +17,15 @@ abstract class Struct
     protected $size = 0;
     protected $fileds = array();
     protected $is32bit;
+    protected $class;
 
     /**
      * 主机字节序或者网络字节序
      */
     protected $convertBigEndian;
 
-    const REGX = '#@\w+\s+([a-z0-9\[\]]+)\s+#i';
+    const REGX_FIELDTYPE = '#@fieldtype\s+([a-z0-9]+(\[[a-z0-9_\\\]+\])?)\s+#i';
+    const REGX_FILEINFO = '#\[([a-z0-9_\\\]+)\]#i';
 
     /**
      * @param bool $convertBigEndian
@@ -33,16 +35,18 @@ abstract class Struct
     {
         $this->is32bit = (PHP_INT_SIZE === 4);
         $this->convertBigEndian = $convertBigEndian;
-        $rClass = new \ReflectionClass(get_class($this));
+        $this->class = get_class($this);
+        $rClass = new \ReflectionClass($this->class);
         $props = $rClass->getProperties(\ReflectionProperty::IS_PUBLIC);
         foreach ($props as $p)
         {
-            if (preg_match(self::REGX, $p->getDocComment(), $match))
+            if (preg_match(self::REGX_FIELDTYPE, $p->getDocComment(), $match))
             {
                 $field = $this->parseFieldType($match[1]);
-                $this->fileds[] =$field;
+                $this->fileds[] = $field;
                 $this->size += $field->size;
             }
+            else{debug(self::REGX_FIELDTYPE, "\n", $p->getDocComment());}
         }
     }
 
@@ -62,8 +66,10 @@ abstract class Struct
     protected function parseFieldType($fieldType)
     {
         $signed = false;
+        $struct = null;
+
         start_switch:
-        switch ($fieldType[0])
+        switch (strtolower($fieldType[0]))
         {
             case 'u':
                 $signed = true;
@@ -101,11 +107,37 @@ abstract class Struct
                 $size = intval(substr($fieldType, 5));
                 $type = Field::CHAR;
                 break;
+
+            /**
+             * 嵌套结构体
+             */
+            case 's':
+                if (preg_match(self::REGX_FILEINFO, $fieldType, $match))
+                {
+                    $class = '\\'.$match[1];
+                    /**
+                     * @var $struct Struct
+                     */
+                    $struct = new $class;
+                    $type = Field::STRUCT;
+                    $size = $struct->size();
+                }
+                else
+                {
+                    throw new InvalidParam("require struct class name.");
+                }
+                break;
             default:
                 throw new InvalidParam("invalid field type [{$fieldType[0]}].");
         }
 
-        return new Field($type, $size, $signed);
+        $field = new Field();
+        $field->size = $size;
+        $field->signed = $signed;
+        $field->type = $type;
+        $field->struct = $struct;
+        $field->fieldType = $fieldType;
+        return $field;
     }
 
     /**
@@ -118,7 +150,7 @@ abstract class Struct
     {
         if (count($data) != count($this->fileds))
         {
-            throw new InvalidParam("invalid data.");
+            throw new InvalidParam("{$this->class}: invalid data.");
         }
 
         $_binStr = '';
@@ -182,6 +214,17 @@ abstract class Struct
                         throw new InvalidParam("string is too long.");
                     }
                     $_binStr .=  pack('a' . ($field->size - 1) . 'x', $data[$k]);;
+                    break;
+                /**
+                 * 结构体类型
+                 */
+                case Field::STRUCT:
+                    //参数必须为数组，个数必须与结构体的字段数量一致
+                    if (!is_array($data[$k]) or count($data[$k]) != count($field->struct->fileds))
+                    {
+                        throw new InvalidParam("struct size invalid.");
+                    }
+                    $_binStr .= $field->struct->pack($data[$k]);
                     break;
                 default:
                     break;
@@ -256,6 +299,9 @@ abstract class Struct
                     list(, $tmp) = unpack('a' . $field->size, $str);
                     $data[$k] = rtrim($tmp, "\0");
                     break;
+                case Field::STRUCT:
+                    $data[$k] = $field->struct->unpack($str);
+                    break;
                 default:
                     break;
             }
@@ -270,15 +316,15 @@ class Field
     public $type;
     public $size;
     public $signed;
+    public $fieldType;
+
+    /**
+     * @var Struct
+     */
+    public $struct;
 
     const INT = 1;
     const FLOAT = 2;
     const CHAR = 3;
-
-    function __construct($type, $size, $signed)
-    {
-        $this->type = $type;
-        $this->size = $size;
-        $this->signed = $signed;
-    }
+    const STRUCT = 4;
 }
