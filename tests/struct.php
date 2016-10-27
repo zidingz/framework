@@ -50,18 +50,18 @@ class AStruct extends Swoole\Memory\Struct
     public $count;
 }
 
-$a = new AStruct(false);
+$a = new AStruct(false, true);
 $n = 1;
 $s = microtime(true);
 for ($i = 0; $i < $n; $i++)
 {
     $str = $a->pack(array(
-        13,
-        'hello',
-        999.9,
-        888.8,
-        array('redis', 5566,),
-        99999,
+        'id' => 13,
+        'data' => 'hello world',
+        'price' => 999.9,
+        'price2' => 888.8,
+        'b' => array('key' => 'redis', 'num' => 5566,),
+        'count' => 99999,
     ));
 }
 echo "$n pack, cost time ".(microtime(true) - $s)."s\n";
