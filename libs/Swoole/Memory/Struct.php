@@ -4,11 +4,12 @@ namespace Swoole\Memory;
 use Swoole\Exception\InvalidParam;
 
 /**
- * C语言struct操作封装类
+ * C语言struct操作封装类，注意C语言存在内存对齐问题，编译C程序使用 pack(1)
+ * 子类的属性增加注释 [@fieldtype $type]，请注意不能开启opcache的注释过滤功能，否则将无法解析
  * 目前支持的类型：
  * int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, long, ulong
  * float, double
- * char[n], uchar[n] 注意C语言存在内存对齐问题
+ * char[n], uchar[n]
  * @package Swoole\Memory
  * @author Tianfeng.Han (Rango)
  */
