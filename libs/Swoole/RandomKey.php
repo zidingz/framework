@@ -5,7 +5,12 @@ class RandomKey
 {
     static function getChineseCharacter()
     {
-        $unidec = rand(19968, 24869);
+        static $characters = null;
+        if (!$characters)
+        {
+            $characters = require LIBPATH.'/data/chinese_characters.php';
+        }
+        $unidec = $characters[array_rand($characters, 1)];
         $unichr = '&#' . $unidec . ';';
         $zhcnchr = mb_convert_encoding($unichr, "UTF-8", "HTML-ENTITIES");
         return $zhcnchr;
@@ -14,28 +19,30 @@ class RandomKey
     /**
      * 随机生成一个字符串
      * @param $length
-     * @param $number
-     * @param $not_o0
+     * @param bool $number 只添加数字
+     * @param array $ignore 忽略某些字符串
      * @return string
      */
-    static function string($length = 8, $number = true, $not_o0 = false)
+    static function string($length = 8, $number = true, $ignore = array('0', 'o', 'l', '1', 'i'))
     {
         $strings = 'ABCDEFGHIJKLOMNOPQRSTUVWXYZ';  //字符池
         $numbers = '0123456789';                    //数字池
-        if ($not_o0)
+        if ($ignore and is_array($ignore))
         {
-            $strings = str_replace('O', '', $strings);
-            $numbers = str_replace('0', '', $numbers);
+            $strings = str_replace($ignore, '', $strings);
+            $numbers = str_replace($ignore, '', $numbers);
         }
-        $pattern = $strings . $number;
+
+        $pattern = $strings . $numbers;
         $max = strlen($pattern) - 1;
         $key = '';
         for ($i = 0; $i < $length; $i++)
         {
-            $key .= $pattern{mt_rand(0, $max)};    //生成php随机数
+            $key .= $pattern[mt_rand(0, $max)];    //生成php随机数
         }
         return $key;
     }
+
     /**
      * 按ID计算散列
      * @param $uid
