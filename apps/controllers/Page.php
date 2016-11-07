@@ -94,7 +94,12 @@ class Page extends Swoole\Controller
     {
         $this->session->start();
         $this->http->header('Content-Type', 'image/jpeg');
-        Swoole\Image::verifycode_gd();
+        $verifyCode = Swoole\Image::verifycode_chinese('/usr/share/fonts/truetype/wqy/wqy-microhei.ttc');
+//        debug($verifyCode);
+//        $verifyCode = Swoole\Image::verifycode_gd();
+//        $verifyCode = Swoole\Image::verifycode_imagick();
+        $_SESSION['vcode'] = $verifyCode['code'];
+        return $verifyCode['image'];
     }
 
     //class autoload
