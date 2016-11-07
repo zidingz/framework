@@ -160,8 +160,9 @@ class Form
      * $self 设置为true，option的值等于$value
      * $attrArray html标签的熟悉  就是这个select的属性标签 例如  class="x1"
      * $add_help 增加一个值为空的 请选择 项
+	 * $force　强类型判断
      */
-    static function select($name, $option, $default = null, $self = null, $attrArray = null, $add_help = true)
+    static function select($name, $option, $default = null, $self = null, $attrArray = null, $add_help = true, $force = false)
 	{
 		$htmlStr = "<select name=\"$name\" id=\"$name\"";
 		$htmlStr .= self::input_attr($attrArray) . ">\n";
@@ -177,9 +178,12 @@ class Form
             if ($self) {
                 $key = $value;
             }
-            if ($key == $default) {
+
+            if (!$force and $key == $default) {
                 $htmlStr .= "<option value=\"{$key}\" selected=\"selected\">{$value}</option>\n";
-            } else {
+            } elseif ($force and $key === $default) {
+				$htmlStr .= "<option value=\"{$key}\" selected=\"selected\">{$value}</option>\n";
+			} else {
                 $htmlStr .= "<option value=\"{$key}\">{$value}</option>\n";
             }
         }
