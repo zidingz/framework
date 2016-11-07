@@ -152,7 +152,7 @@ class Upload
         }
 
         //上传的最终绝对路径，如果不存在则创建目录
-        $path = $base_dir . $sub_dir;
+        $path = rtrim($base_dir, '/') . '/' . ltrim($sub_dir, '/');
         if (!is_dir($path))
         {
             if (mkdir($path, 0777, true) === false)
@@ -214,8 +214,8 @@ class Upload
             $this->error_code = 4;
             return false;
         }
-        $save_filename = $path . "/" . $filename;
 
+        $save_filename = rtrim($path) . '/' . ltrim($filename);
     	//写入文件
         if (self::moveUploadFile($_FILES[$name]['tmp_name'], $save_filename))
         {

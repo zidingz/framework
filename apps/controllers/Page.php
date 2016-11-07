@@ -179,7 +179,7 @@ class Page extends Swoole\Controller
         }
         else
         {
-            echo "Bad Request\n";
+            $this->display();
         }
     }
 
