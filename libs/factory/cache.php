@@ -1,6 +1,7 @@
 <?php
-if (Swoole::$php->factory_key == 'master' and empty(\Swoole::$php->config['cache']['master']))
+$configs = \Swoole::$php->config['cache'];
+if (empty($configs[\Swoole::$php->factory_key]))
 {
-    Swoole::$php->config['cache']['master'] = array('type' => 'FileCache', 'cache_dir' => WEBPATH . '/cache/filecache');
+    throw new Swoole\Exception\Factory("cache->".\Swoole::$php->factory_key." is not found.");
 }
 return Swoole\Factory::getCache(Swoole::$php->factory_key);
