@@ -11,8 +11,24 @@ class Config extends \ArrayObject
 
     function setPath($dir)
     {
+        $dir = realpath($dir);
+        if ($dir === false)
+        {
+            error:
+            trigger_error("config dir[$dir] not exists.", E_USER_WARNING);
+            return false;
+        }
+        if (!is_dir($dir))
+        {
+            goto error;
+        }
+        if (in_array($dir, $this->config_path))
+        {
+            return false;
+        }
         $this->config_path[] = $dir;
         self::$active = true;
+        return true;
     }
 
     function offsetGet($index)
