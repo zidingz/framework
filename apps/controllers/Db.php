@@ -43,10 +43,13 @@ class Db extends Swoole\Controller
          * 打印数组
          */
         var_dump($user->get());
+
+        $user->attach(new \App\Observer\ModelUpdate());
+
         /**
          * 修改mobile 为 13800008888
          */
-        $user->mobile = '13800008888';
+        $user->mobile = '18948735886';
         $user->save();
 
         //删除此条记录

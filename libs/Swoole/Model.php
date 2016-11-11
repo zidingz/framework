@@ -1,6 +1,8 @@
 <?php
 namespace Swoole;
 
+use Swoole\Component\Observer;
+
 /**
  * Model类，ORM基础类，提供对某个数据库表的接口
  * @author Tianfeng Han
@@ -454,9 +456,10 @@ class Model
  * @package SwooleSystem
  * @subpackage Model
  */
-class Record implements \ArrayAccess
+class Record extends Observer implements \ArrayAccess
 {
     protected $_data = array();
+    protected $_original_data = null;
     protected $_update = array();
     protected $_change = 0;
     protected $_save = false;
@@ -507,14 +510,14 @@ class Record implements \ArrayAccess
 				$res = $obj->fetch();
 				if (!empty($res))
 				{
-					$this->_data = $res;
-					$this->_current_id = $this->_data[$this->primary];
-					$this->_change = self::STATE_INSERT;
+                    $this->_original_data = $this->_data = $res;
+                    $this->_current_id = $this->_data[$this->primary];
+                    $this->_change = self::STATE_INSERT;
 				}
 			}
-
         }
 	}
+
 
 	/**
 	 * 是否存在
@@ -528,7 +531,7 @@ class Record implements \ArrayAccess
 	/**
 	 * 将关联数组压入object中，赋值给各个字段
 	 * @param $data
-	 * @return unknown_type
+	 * @return void
 	 */
 	function put($data)
 	{
@@ -546,12 +549,21 @@ class Record implements \ArrayAccess
 
 	/**
 	 * 获取数据数组
-	 * @return mixed
+	 * @return array
 	 */
 	function get()
 	{
 		return $this->_data;
 	}
+
+    /**
+     * 获取原始数据
+     * @return null | array
+     */
+    function getOriginalData()
+    {
+        return $this->_original_data;
+    }
 
 	/**
 	 * 获取属性
@@ -591,15 +603,14 @@ class Record implements \ArrayAccess
 	 * 保存对象数据到数据库
 	 * 如果是空白的记录，保存则会Insert到数据库
 	 * 如果是已存在的记录，保持则会update，修改过的值，如果没有任何值被修改，则不执行SQL
-	 * @return unknown_type
+	 * @return bool
 	 */
 	function save()
-	{
+    {
         $this->_save = false;
         if ($this->_change == 0 or $this->_change == 1)
         {
-            $ret = $this->db->insert($this->_data, $this->table);
-            if ($ret === false)
+            if ($this->db->insert($this->_data, $this->table) === false)
             {
                 return false;
             }
@@ -611,8 +622,12 @@ class Record implements \ArrayAccess
         {
             $update = $this->_update;
             unset($update[$this->primary]);
-            return $this->db->update($this->_current_id, $update, $this->table, $this->primary);
+            if ($this->db->update($this->_current_id, $update, $this->table, $this->primary) === false)
+            {
+                return false;
+            }
         }
+        $this->notify();
         return true;
 	}
 
