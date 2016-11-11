@@ -39,6 +39,10 @@ abstract class Observer implements \SplSubject
      */
     public function notify()
     {
+        if ($this->_observers == null)
+        {
+            return;
+        }
         foreach ($this->_observers as $observer)
         {
             /**
