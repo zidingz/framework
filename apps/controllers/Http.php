@@ -15,6 +15,11 @@ class Http extends Swoole\Controller
         throw new \Exception("except");
     }
 
+    function goto_baidu()
+    {
+        $this->request->redirect("http://www.baidu.com/");
+    }
+
     function header()
     {
         //发送Http状态码，如500, 404等等
