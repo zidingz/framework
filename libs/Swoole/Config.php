@@ -11,13 +11,14 @@ class Config extends \ArrayObject
 
     function setPath($dir)
     {
-        $dir = realpath($dir);
-        if ($dir === false)
+        $_dir = realpath($dir);
+        if ($_dir === false)
         {
             error:
             trigger_error("config dir[$dir] not exists.", E_USER_WARNING);
             return false;
         }
+        $dir = $_dir;
         if (!is_dir($dir))
         {
             goto error;
