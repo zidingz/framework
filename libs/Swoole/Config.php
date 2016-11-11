@@ -15,7 +15,10 @@ class Config extends \ArrayObject
         if ($_dir === false)
         {
             error:
-            trigger_error("config dir[$dir] not exists.", E_USER_WARNING);
+            if (self::$debug)
+            {
+                trigger_error("config dir[$dir] not exists.", E_USER_WARNING);
+            }
             return false;
         }
         $dir = $_dir;
@@ -25,6 +28,10 @@ class Config extends \ArrayObject
         }
         if (in_array($dir, $this->config_path))
         {
+            if (self::$debug)
+            {
+                trigger_error("config path[$dir] is already added.", E_USER_WARNING);
+            }
             return false;
         }
         $this->config_path[] = $dir;
