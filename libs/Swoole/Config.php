@@ -4,7 +4,7 @@ namespace Swoole;
 class Config extends \ArrayObject
 {
     protected $config;
-    protected $config_path;
+    protected $config_path = array();
     public $dir_num = 0;
     static $debug = false;
     static $active = false;
