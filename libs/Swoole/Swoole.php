@@ -550,14 +550,14 @@ class Swoole
     {
         define('SWOOLE_SERVER', true);
         $this->ext_http_server = $this->http = new Swoole\Http\ExtServer();
-        $server = new swoole_http_server($host, $port);
-        $server->set($config);
+        Swoole\Network\Server::$useSwooleHttpServer = true;
+        $server = new Swoole\Network\Server($host, $port);
         if (!empty($config['document_root']))
         {
             $this->ext_http_server->document_root = trim($config['document_root']);
         }
-        $server->on('Request', array($this->http, 'onRequest'));
-        $server->start();
+        $server->setProtocol($this->http);
+        $server->run($config);
     }
 
     /**

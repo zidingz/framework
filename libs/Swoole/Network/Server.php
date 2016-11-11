@@ -15,6 +15,7 @@ class Server extends Base implements Driver
     protected static $beforeReloadCallback;
 
     static $swooleMode;
+    static $useSwooleHttpServer = false;
     static $optionKit;
     static $pidFile;
 
@@ -229,7 +230,15 @@ class Server extends Base implements Driver
             self::$swooleMode = SWOOLE_PROCESS;
         }
 
-        $this->sw = new \swoole_server($host, $port, self::$swooleMode, $flag);
+        if (self::$useSwooleHttpServer)
+        {
+            $this->sw = new \swoole_http_server($host, $port, self::$swooleMode, $flag);
+        }
+        else
+        {
+            $this->sw = new \swoole_server($host, $port, self::$swooleMode, $flag);
+        }
+
         $this->host = $host;
         $this->port = $port;
         Swoole\Error::$stop = false;
@@ -342,11 +351,27 @@ class Server extends Base implements Driver
         $this->sw->on('Shutdown', array($this, 'onMasterStop'));
         $this->sw->on('ManagerStop', array($this, 'onManagerStop'));
         $this->sw->on('WorkerStart', array($this, 'onWorkerStart'));
-        $this->sw->on('Connect', array($this->protocol, 'onConnect'));
-        $this->sw->on('Receive', array($this->protocol, 'onReceive'));
-        $this->sw->on('Close', array($this->protocol, 'onClose'));
-        $this->sw->on('WorkerStop', array($this->protocol, 'onShutdown'));
 
+        if (is_callable(array($this->protocol, 'onTimer')))
+        {
+            $this->sw->on('Connect', array($this->protocol, 'onConnect'));
+        }
+        if (is_callable(array($this->protocol, 'onTimer')))
+        {
+            $this->sw->on('Close', array($this->protocol, 'onClose'));
+        }
+        if (self::$useSwooleHttpServer)
+        {
+            $this->sw->on('Request', array($this->protocol, 'onRequest'));
+        }
+        else
+        {
+            $this->sw->on('Receive', array($this->protocol, 'onReceive'));
+        }
+        if (is_callable(array($this->protocol, 'WorkerStop')))
+        {
+            $this->sw->on('WorkerStop', array($this->protocol, 'WorkerStop'));
+        }
         //swoole-1.8已经移除了onTimer回调函数
         if ($version[1] < 8)
         {
@@ -372,6 +397,22 @@ class Server extends Base implements Driver
     function close($client_id)
     {
         return $this->sw->close($client_id);
+    }
+
+    /**
+     * @param $protocol
+     * @throws \Exception
+     */
+    function setProtocol($protocol)
+    {
+        if (self::$useSwooleHttpServer)
+        {
+            $this->protocol = $protocol;
+        }
+        else
+        {
+            parent::setProtocol($protocol);
+        }
     }
 
     function send($client_id, $data)
