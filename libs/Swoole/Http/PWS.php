@@ -7,7 +7,7 @@ use Swoole;
  * Class Http_LAMP
  * @package Swoole
  */
-class PWS implements \Swoole\IFace\Http
+class PWS implements Swoole\IFace\Http
 {
     function header($k, $v)
     {

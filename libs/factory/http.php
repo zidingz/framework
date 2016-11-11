@@ -5,7 +5,7 @@ if (defined('SWOOLE_SERVER'))
 }
 elseif (defined('SWOOLE_HTTP_SERVER'))
 {
-    $http = new Swoole\Http\ExtServer();
+    $http = Swoole::$php->ext_http_server;
 }
 else
 {

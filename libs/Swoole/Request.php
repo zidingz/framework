@@ -97,21 +97,19 @@ class Request
     /**
      * 跳转网址
      * @param $url
-     * @return unknown_type
      */
-    public static function redirect($url,$mode=302)
+    public function redirect($url, $mode = 302)
     {
-        Http::redirect($url, $mode);
-        return;
+        \Swoole::$php->http->redirect($url, $mode);
     }
+
     /**
      * 发送下载声明
-     * @return unknown_type
      */
-    static function download($mime,$filename)
+    function download($mime, $filename)
     {
-        header("Content-type: $mime");
-        header("Content-Disposition: attachment; filename=$filename");
+        \Swoole::$php->http->header('Content-type', $mime);
+        \Swoole::$php->http->header('Content-Disposition', "attachment; filename=$filename");
     }
 
     /**

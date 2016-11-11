@@ -62,7 +62,7 @@ class Swoole
     /**
      * @var Swoole\Http\ExtServer
      */
-    protected $ext_http_server;
+    public $ext_http_server;
 
     /**
      * 可使用的组件
@@ -549,6 +549,7 @@ class Swoole
     function runHttpServer($host = '0.0.0.0', $port = 9501, $config = array())
     {
         define('SWOOLE_SERVER', true);
+        define('SWOOLE_HTTP_SERVER', true);
         $this->ext_http_server = $this->http = new Swoole\Http\ExtServer($config);
         Swoole\Network\Server::$useSwooleHttpServer = true;
         $server = new Swoole\Network\Server($host, $port);
