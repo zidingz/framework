@@ -13,9 +13,8 @@ Swoole\Network\Server::start(function ()
 {
     $config = array(
         'document_root' => WEBPATH,
-        'worker_num' => 100,
-        'max_request' => 5000,
         'log_file' => '/tmp/swoole.log',
+        'charset' => 'UTF-8',
     );
     Swoole::$php->runHttpServer('0.0.0.0', 9501, $config);
 });

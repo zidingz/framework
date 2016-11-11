@@ -5,3 +5,4 @@
 /examples/websocket.log
 /logs/
 *.pid
+/uploads

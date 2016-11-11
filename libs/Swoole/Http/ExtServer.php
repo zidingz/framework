@@ -21,19 +21,31 @@ class ExtServer implements Swoole\IFace\Http
 
     public $finish;
     public $document_root;
+    public $charest = 'utf-8';
     public $expire_time = 86400;
     const DATE_FORMAT_HTTP = 'D, d-M-Y H:i:s T';
 
     protected $mimes;
     protected $types;
+    protected $config;
 
     static $gzip_extname = array('js' => true, 'css' => true, 'html' => true, 'txt' => true);
 
-    function __construct()
+    function __construct($config)
     {
         $mimes = require LIBPATH . '/data/mimes.php';
         $this->mimes = $mimes;
         $this->types = array_flip($mimes);
+
+        if (!empty($config['document_root']))
+        {
+            $this->document_root = trim($config['document_root']);
+        }
+        if (!empty($config['charset']))
+        {
+            $this->charset = trim($config['charset']);
+        }
+        $this->config = $config;
     }
 
     function header($k, $v)
@@ -139,7 +151,7 @@ class ExtServer implements Swoole\IFace\Http
             $extname = Swoole\Upload::getFileExt($file);
             if (empty($this->types[$extname]))
             {
-                $mime_type = 'text/html';
+                $mime_type = 'text/html; charset='.$this->charest;
             }
             else
             {

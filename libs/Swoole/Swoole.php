@@ -549,13 +549,9 @@ class Swoole
     function runHttpServer($host = '0.0.0.0', $port = 9501, $config = array())
     {
         define('SWOOLE_SERVER', true);
-        $this->ext_http_server = $this->http = new Swoole\Http\ExtServer();
+        $this->ext_http_server = $this->http = new Swoole\Http\ExtServer($config);
         Swoole\Network\Server::$useSwooleHttpServer = true;
         $server = new Swoole\Network\Server($host, $port);
-        if (!empty($config['document_root']))
-        {
-            $this->ext_http_server->document_root = trim($config['document_root']);
-        }
         $server->setProtocol($this->http);
         $server->run($config);
     }
