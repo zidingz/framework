@@ -472,9 +472,9 @@ class Record extends Observer implements \ArrayAccess
     public $primary = "id";
     public $table = "";
 
-
     public $_current_id = 0;
     public $_currend_key;
+    public $_delete = false;
 
     const STATE_EMPTY  = 0;
     const STATE_INSERT = 1;
@@ -631,12 +631,17 @@ class Record extends Observer implements \ArrayAccess
         return true;
 	}
 
-	function update()
-	{
+    function update()
+    {
         $update = $this->_data;
         unset($update[$this->primary]);
-        return $this->db->update($this->_current_id, $this->_update, $this->table, $this->primary);
-	}
+        if ($this->db->update($this->_current_id, $this->_update, $this->table, $this->primary) === false)
+        {
+            return false;
+        }
+        $this->notify();
+        return true;
+    }
 
     function __destruct()
     {
@@ -646,14 +651,20 @@ class Record extends Observer implements \ArrayAccess
         }
     }
 
-	/**
-	 * 删除数据库中的此条记录
-	 * @return unknown_type
-	 */
-	function delete()
-	{
-		$this->db->delete($this->_current_id,$this->table,$this->primary);
-	}
+    /**
+     * 删除数据库中的此条记录
+     * @return bool
+     */
+    function delete()
+    {
+        if ($this->db->delete($this->_current_id, $this->table, $this->primary) === false)
+        {
+            return false;
+        }
+        $this->_delete = true;
+        $this->notify();
+        return true;
+    }
 
 	function offsetExists($key)
 	{
