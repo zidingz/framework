@@ -6,7 +6,7 @@ use Swoole;
  * Class Server
  * @package Swoole\Network
  */
-class SOAServer extends Base implements Swoole\IFace\Protocol
+class RPCServer extends Base implements Swoole\IFace\Protocol
 {
     /**
      * 版本号
@@ -222,7 +222,7 @@ class SOAServer extends Base implements Swoole\IFace\Protocol
         {
             $body = gzencode($body);
         }
-        return pack(SOAServer::HEADER_PACK, strlen($body), $type, $uid, $serid) . $body;
+        return pack(RPCServer::HEADER_PACK, strlen($body), $type, $uid, $serid) . $body;
     }
 
     /**

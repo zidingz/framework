@@ -1,10 +1,10 @@
 <?php
 namespace Swoole\Client;
 use Swoole\Exception\InvalidParam;
-use Swoole\Protocol\SOAServer;
+use Swoole\Protocol\RPCServer;
 use Swoole\Tool;
 
-class SOA
+class RPC
 {
     /**
      * Server的实例列表
@@ -72,7 +72,7 @@ class SOA
     /**
      * 获取SOA服务实例
      * @param $id
-     * @return SOA
+     * @return RPC
      */
     static function getInstance($id = null)
     {
@@ -130,7 +130,7 @@ class SOA
                     'open_length_check' => true,
                     'package_max_length' => $this->packet_maxlen,
                     'package_length_type' => 'N',
-                    'package_body_offset' => SOAServer::HEADER_SIZE,
+                    'package_body_offset' => RPCServer::HEADER_SIZE,
                     'package_length_offset' => 0,
                 ));
                 /**
@@ -209,13 +209,13 @@ class SOA
         //请求串号
         $retObj->requestId = self::getRequestId();
         //打包格式
-        $encodeType = $this->encode_json ? SOAServer::DECODE_JSON : SOAServer::DECODE_PHP;
+        $encodeType = $this->encode_json ? RPCServer::DECODE_JSON : RPCServer::DECODE_PHP;
         if ($this->encode_gzip)
         {
-            $encodeType |= SOAServer::DECODE_GZIP;
+            $encodeType |= RPCServer::DECODE_GZIP;
         }
         //发送失败了
-        if ($retObj->socket->send(SOAServer::encode($retObj->send, $encodeType, 0, $retObj->requestId)) === false)
+        if ($retObj->socket->send(RPCServer::encode($retObj->send, $encodeType, 0, $retObj->requestId)) === false)
         {
             //连接被重置了，重现连接到服务器
             if ($this->haveSwoole and $retObj->socket->errCode == 104)
@@ -501,7 +501,7 @@ class SOA
                     if (!isset($buffer[$id]))
                     {
                         //这里仅使用了length和type，uid,serid未使用
-                        $header[$id] = unpack(SOAServer::HEADER_STRUCT, substr($data, 0, SOAServer::HEADER_SIZE));
+                        $header[$id] = unpack(RPCServer::HEADER_STRUCT, substr($data, 0, RPCServer::HEADER_SIZE));
                         //错误的包头
                         if ($header[$id] === false or $header[$id]['length'] <= 0)
                         {
@@ -516,7 +516,7 @@ class SOA
                             unset($this->waitList[$id]);
                             continue;
                         }
-                        $buffer[$id] = substr($data, SOAServer::HEADER_SIZE);
+                        $buffer[$id] = substr($data, RPCServer::HEADER_SIZE);
                     }
                     else
                     {
@@ -532,7 +532,7 @@ class SOA
                             continue;
                         }
                         //成功处理
-                        $this->finish(SOAServer::decode($buffer[$id], $header[$id]['type']), $retObj);
+                        $this->finish(RPCServer::decode($buffer[$id], $header[$id]['type']), $retObj);
                         $success_num++;
                     }
                     //继续等待数据
@@ -610,7 +610,7 @@ class SOA
                     }
                     else
                     {
-                        $header = unpack(SOAServer::HEADER_STRUCT, substr($data, 0, SOAServer::HEADER_SIZE));
+                        $header = unpack(RPCServer::HEADER_STRUCT, substr($data, 0, RPCServer::HEADER_SIZE));
                         //串号不一致，丢弃结果
                         if ($header['serid'] != $retObj->requestId)
                         {
@@ -618,7 +618,7 @@ class SOA
                             continue;
                         }
                         //成功处理
-                        $this->finish(SOAServer::decode(substr($data, SOAServer::HEADER_SIZE), $header['type']), $retObj);
+                        $this->finish(RPCServer::decode(substr($data, RPCServer::HEADER_SIZE), $header['type']), $retObj);
                         $success_num++;
                     }
                 }
@@ -709,7 +709,7 @@ class SOA
                     if (!isset($buffer[$id]))
                     {
                         //这里仅使用了length和type，uid,serid未使用
-                        $header[$id] = unpack(SOAServer::HEADER_STRUCT, substr($data, 0, SOAServer::HEADER_SIZE));
+                        $header[$id] = unpack(RPCServer::HEADER_STRUCT, substr($data, 0, RPCServer::HEADER_SIZE));
                         //错误的包头
                         if ($header[$id] === false or $header[$id]['length'] <= 0)
                         {
@@ -724,7 +724,7 @@ class SOA
                             unset($this->waitList[$id]);
                             continue;
                         }
-                        $buffer[$id] = substr($data, SOAServer::HEADER_SIZE);
+                        $buffer[$id] = substr($data, RPCServer::HEADER_SIZE);
                     }
                     else
                     {
@@ -740,7 +740,7 @@ class SOA
                             continue;
                         }
                         //成功处理
-                        $this->finish(SOAServer::decode($buffer[$id], $header[$id]['type']), $retObj);
+                        $this->finish(RPCServer::decode($buffer[$id], $header[$id]['type']), $retObj);
                         $success_num++;
                     }
                     //继续等待数据
@@ -813,7 +813,7 @@ class SOA_Result
     public $server_port;
 
     /**
-     * @var SOA
+     * @var RPC
      */
     protected $soa_client;
 
