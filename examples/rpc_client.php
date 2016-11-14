@@ -3,7 +3,7 @@ define('DEBUG', 'on');
 define('WEBPATH', dirname(__DIR__));
 require __DIR__ . '/../libs/lib_config.php';
 
-$client = Swoole\Client\SOA::getInstance();
+$client = Swoole\Client\RPC::getInstance();
 //$client->setEncodeType(false, true);
 $client->putEnv('app', 'test');
 $client->putEnv('appKey', 'test1234');

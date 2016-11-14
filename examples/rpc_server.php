@@ -3,7 +3,7 @@ define('DEBUG', 'on');
 define('WEBPATH', realpath(__DIR__ . '/../'));
 require dirname(__DIR__) . '/libs/lib_config.php';
 
-use  Swoole\Protocol\SOAServer;
+use  Swoole\Protocol\RPCServer;
 
 
 //设置PID文件的存储路径
@@ -14,7 +14,7 @@ Swoole\Network\Server::setPidFile(__DIR__ . '/app_server.pid');
  */
 Swoole\Network\Server::start(function ()
 {
-    $AppSvr = new SOAServer;
+    $AppSvr = new RPCServer;
     $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
 
     /**
@@ -46,7 +46,7 @@ Swoole\Network\Server::start(function ()
             'open_length_check' => 1,
             'package_max_length' => $AppSvr->packet_maxlen,
             'package_length_type' => 'N',
-            'package_body_offset' => \Swoole\Protocol\SOAServer::HEADER_SIZE,
+            'package_body_offset' => \Swoole\Protocol\RPCServer::HEADER_SIZE,
             'package_length_offset' => 0,
         )
     );
