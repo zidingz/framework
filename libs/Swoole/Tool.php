@@ -599,4 +599,35 @@ class Tool
     {
         return highlight_string("<?php\n\$array = ".var_export($var, true).";", true);
     }
+
+    /**
+     * @param array $arr
+     */
+    static function arrayUnique(array &$arr)
+    {
+        $map = array();
+        foreach ($arr as $k => $v)
+        {
+            if (is_object($v))
+            {
+                $hash = spl_object_hash($v);
+            }
+            elseif (is_resource($v))
+            {
+                $hash = intval($v);
+            }
+            else
+            {
+                $hash = $v;
+            }
+            if (isset($map[$hash]))
+            {
+                unset($arr[$k]);
+            }
+            else
+            {
+                $map[$hash] = true;
+            }
+        }
+    }
 }

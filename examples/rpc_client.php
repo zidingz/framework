@@ -15,13 +15,7 @@ $client->auth('chelun', 'chelun@123456');
 //$client->addServers(array(
 //    '127.0.0.1:8888',
 //));
-$client->addServers(array('host' => '127.0.0.1', 'port' => 8889));
-
-var_dump($client->ping());exit;
-
-$ret2 = $client->task("BL\\Test::test1", ["hello"]);
-var_dump($ret2->getResult(), $ret2->code);
-exit;
+$client->addServers(array('host' => '127.0.0.1', 'port' => 8888));
 
 $s = microtime(true);
 $ok = $err = 0;

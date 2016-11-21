@@ -3,7 +3,7 @@ namespace Swoole\Protocol;
 
 use Swoole;
 /**
- * Class Server
+ * RPC服务器
  * @package Swoole\Network
  */
 class RPCServer extends Base implements Swoole\IFace\Protocol
@@ -11,7 +11,7 @@ class RPCServer extends Base implements Swoole\IFace\Protocol
     /**
      * 版本号
      */
-    const VERSION = 1004;
+    const VERSION = 1005;
 
     protected $_buffer  = array(); //buffer区
     protected $_headers = array(); //保存头
@@ -52,6 +52,7 @@ class RPCServer extends Base implements Swoole\IFace\Protocol
 
     const DECODE_PHP            = 1;   //使用PHP的serialize打包
     const DECODE_JSON           = 2;   //使用json_encode打包
+    const DECODE_MSGPACK        = 3;   //使用msgpack打包
     const DECODE_GZIP           = 128; //启用GZIP压缩
 
     const ALLOW_IP              = 1;

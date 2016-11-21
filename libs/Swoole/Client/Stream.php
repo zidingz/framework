@@ -56,11 +56,33 @@ class Stream
     }
 
     /**
+     * 接收数据
+     * @param $length
      * @return string
      */
-    function recv()
+    function recv($length)
     {
-        return fread($this->fp, 8192);
+        $content = '';
+        $readn = $length;
+
+        while ($readn > 0)
+        {
+            if ($readn > 8192)
+            {
+                $tmp = fread($this->fp, 8192);
+            }
+            else
+            {
+                $tmp = fread($this->fp, $readn);
+            }
+            if (empty($tmp))
+            {
+                break;
+            }
+            $content .= $tmp;
+            $readn -= strlen($tmp);
+        }
+        return $content;
     }
 
     /**

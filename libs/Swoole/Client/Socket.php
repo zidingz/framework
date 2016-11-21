@@ -1,25 +1,31 @@
 <?php
 namespace Swoole\Client;
-    /**
-     * Example:
-     * $client = new Swoole\Network\ClientTCP; //Swoole\Network\ClientUDP or Swoole\Network\ClientTCP
-     * if($client->connect('127.0.0.1', 80, 0.5)) //Host,Port,Timeout
-     * {
-     *     $client->send("GET / HTTP/1.1\r\n\r\n");
-     *     echo $client->recv();
-     * }
-     * else
-     * {
-     *     echo $client->code;
-     *     echo $client->msg;
-     * }
-     */
 
 /**
+
+ */
+
+/**
+ * Example:
+ * -----------------------------------------------------------------------------------------------
+ * $client = new Swoole\Client\TCP; //Swoole\Client\UDP or Swoole\Client\TCP
+ * if($client->connect('127.0.0.1', 80, 0.5)) //Host,Port,Timeout
+ * {
+ *     $client->send("GET / HTTP/1.1\r\n\r\n");
+ *     echo $client->recv();
+ * }
+ * else
+ * {
+ *     echo $client->code;
+ *     echo $client->msg;
+ * }
  * 网络客户端封装基类
  */
 abstract class Socket
 {
+    /**
+     * @var resource
+     */
     protected $sock;
     protected $timeout_send;
     protected $timeout_recv;
@@ -32,7 +38,7 @@ abstract class Socket
     public $port; //Server Port
 
     const ERR_RECV_TIMEOUT = 11; //接收数据超时，server端在规定的时间内没回包
-    const ERR_INPROGRESS   = 115; //正在处理中
+    const ERR_INPROGRESS = 115; //正在处理中
 
     /**
      * 错误信息赋值
@@ -43,6 +49,7 @@ abstract class Socket
         $this->errMsg = socket_strerror($this->errCode);
         socket_clear_error($this->sock);
     }
+
     /**
      * 设置超时
      * @param float $recv_timeout 接收超时
@@ -56,12 +63,19 @@ abstract class Socket
         $this->timeout_recv = $timeout_recv;
         $this->timeout_send = $timeout_send;
 
-        $_timeout_recv = array('sec' => $_timeout_recv_sec, 'usec' => (int)(($timeout_recv - $_timeout_recv_sec) * 1000 * 1000));
-        $_timeout_send = array('sec' => $_timeout_send_sec, 'usec' => (int)(($timeout_send - $_timeout_send_sec) * 1000 * 1000));
+        $_timeout_recv = array(
+            'sec' => $_timeout_recv_sec,
+            'usec' => (int)(($timeout_recv - $_timeout_recv_sec) * 1000 * 1000)
+        );
+        $_timeout_send = array(
+            'sec' => $_timeout_send_sec,
+            'usec' => (int)(($timeout_send - $_timeout_send_sec) * 1000 * 1000)
+        );
 
         $this->setopt(SO_RCVTIMEO, $_timeout_recv);
         $this->setopt(SO_SNDTIMEO, $_timeout_send);
     }
+
     /**
      * 设置socket参数
      */
@@ -93,6 +107,7 @@ abstract class Socket
         $this->setopt(SO_SNDBUF, $sendbuf_size);
         $this->setopt(SO_RCVBUF, $recvbuf_size);
     }
+
     /**
      * 析构函数
      */
