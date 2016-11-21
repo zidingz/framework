@@ -60,8 +60,8 @@ class RPC
     {
         $key = empty($id) ? 'default' : $id;
         self::$_instances[$key] = $this;
-//        $this->haveSwoole = extension_loaded('swoole');
-//        $this->haveSockets = extension_loaded('sockets');
+        $this->haveSwoole = extension_loaded('swoole');
+        $this->haveSockets = extension_loaded('sockets');
     }
 
     /**
