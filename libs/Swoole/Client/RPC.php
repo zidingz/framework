@@ -34,7 +34,7 @@ class RPC
     /**
      * 版本号
      */
-    const VERSION = 1003;
+    const VERSION = 1004;
 
     protected static $_instances = array();
 

@@ -11,7 +11,7 @@ class RPCServer extends Base implements Swoole\IFace\Protocol
     /**
      * 版本号
      */
-    const VERSION = 1003;
+    const VERSION = 1004;
 
     protected $_buffer  = array(); //buffer区
     protected $_headers = array(); //保存头
