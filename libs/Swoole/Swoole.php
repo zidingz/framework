@@ -613,35 +613,30 @@ class Swoole
 
 		$this->env['mvc'] = $mvc;
 
+        //控制器名称
         $controller_name = ucwords($mvc['controller']);
-
-        if (isset($mvc['directory']))
+        //控制器文件目录
+        if (self::$controller_path)
         {
-            $directory = ucwords($mvc['directory']);
-            //使用命名空间，文件名必须大写
-            $controller_class = '\\App\\Controller\\' . $directory . '\\' . $controller_name;
-            if (self::$controller_path)
-            {
-                $controller_path = self::$controller_path . '/' . $directory . '/' . $controller_name . '.php';
-            }
-            else
-            {
-                $controller_path = self::$app_path . '/controllers/' . $directory . '/' . $controller_name . '.php';
-            }
+            $controller_dir = self::$controller_path;
         }
         else
         {
-            //使用命名空间，文件名必须大写
-            $controller_class = '\\App\\Controller\\' . $controller_name;
-            if (self::$controller_path)
-            {
-                $controller_path = self::$controller_path . '/' . $controller_name . '.php';
-            }
-            else
-            {
-                $controller_path = self::$app_path . '/controllers/' . $controller_name . '.php';
-            }
+            $controller_dir = self::$app_path . '/controllers';
         }
+        //子目录
+        if (isset($mvc['directory']))
+        {
+            $directory = ucwords($mvc['directory']);
+            $controller_class = '\\App\\Controller\\' . $directory . '\\' . $controller_name;
+            $controller_dir .= '/' . $directory;
+        }
+        else
+        {
+            $controller_class = '\\App\\Controller\\' . $controller_name;
+        }
+        //控制器代码文件
+        $controller_file = $controller_dir . '/' . $controller_name . '.php';
 
         if (class_exists($controller_class, false))
         {
@@ -649,23 +644,23 @@ class Swoole
         }
         else
         {
-            if (is_file($controller_path))
+            if (is_file($controller_file))
             {
-                require_once $controller_path;
+                require_once $controller_file;
                 goto do_action;
             }
         }
 
         //file not found
         $this->http->status(404);
-        return Swoole\Error::info('MVC Error', "Controller <b>{$mvc['controller']}</b>[{$controller_path}] not exist!");
+        return Swoole\Error::info('MVC Error', "Controller <b>{$mvc['controller']}</b>[{$controller_file}] not exist!");
 
         do_action:
 
         //服务器模式下，尝试重载入代码
         if (defined('SWOOLE_SERVER'))
         {
-            $this->reloadController($mvc, $controller_path);
+            $this->reloadController($mvc, $controller_file);
         }
         $controller = new $controller_class($this);
         if (!method_exists($controller, $mvc['view']))
