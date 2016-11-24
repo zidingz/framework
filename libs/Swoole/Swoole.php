@@ -604,26 +604,42 @@ class Swoole
         {
         	return Swoole\Error::info('MVC Error!',"view[{$mvc['view']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
         }
-        //check app name
-        if (isset($mvc['app']) and !preg_match('/^[a-z0-9_]+$/i',$mvc['app']))
+        //directory
+        if (isset($mvc['directory']) and !preg_match('/^[a-z0-9_]+$/i', $mvc['directory']))
         {
-        	return Swoole\Error::info('MVC Error!',"app[{$mvc['app']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
+            return Swoole\Error::info('MVC Error!',"directory[{$mvc['view']}] incorrect. Regx: /^[a-z0-9_]+$/i");
         }
+
 		$this->env['mvc'] = $mvc;
 
-        //使用命名空间，文件名必须大写
-        $controller_class = '\\App\\Controller\\' . ucwords($mvc['controller']);
-        if (!empty($mvc['controller_path']))
+        $controller_name = ucwords($mvc['controller']);
+
+        if (isset($mvc['directory']))
         {
-            $controller_path = self::$controller_path . '/' . $mvc['controller_path'] . '/' . ucwords($mvc['controller']) . '.php';
-        }
-        elseif (self::$controller_path)
-        {
-            $controller_path = self::$controller_path . '/' . ucwords($mvc['controller']) . '.php';
+            $directory = ucwords($mvc['directory']);
+            //使用命名空间，文件名必须大写
+            $controller_class = '\\App\\Controller\\' . $directory . '\\' . $controller_name;
+            if (self::$controller_path)
+            {
+                $controller_path = self::$controller_path . '/' . $controller_name . '.php';
+            }
+            else
+            {
+                $controller_path = self::$app_path . '/controllers/' . $controller_name . '.php';
+            }
         }
         else
         {
-            $controller_path = self::$app_path . '/controllers/' . ucwords($mvc['controller']) . '.php';
+            //使用命名空间，文件名必须大写
+            $controller_class = '\\App\\Controller\\' . $controller_name;
+            if (self::$controller_path)
+            {
+                $controller_path = self::$controller_path . '/' . $controller_name . '.php';
+            }
+            else
+            {
+                $controller_path = self::$app_path . '/controllers/' . $controller_name . '.php';
+            }
         }
 
         if (class_exists($controller_class, false))
