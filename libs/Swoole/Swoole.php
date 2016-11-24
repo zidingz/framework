@@ -432,10 +432,11 @@ class Swoole
     /**
      * 添加路由器
      * @param \Swoole\IFace\Router $router
+     * @param $prepend bool
      */
     function addRouter(Swoole\IFace\Router $router, $prepend = false)
     {
-        $this->addHook(Swoole::HOOK_ROUTE, array($router, 'handle'));
+        $this->addHook(Swoole::HOOK_ROUTE, array($router, 'handle'), $prepend);
     }
 
     /**
