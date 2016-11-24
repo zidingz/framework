@@ -178,10 +178,10 @@ class Swoole
         $this->config = new Swoole\Config;
         $this->config->setPath(self::$app_path . '/configs');
 
-        //路由钩子，URLRewrite
-        $this->addHook(Swoole::HOOK_ROUTE, 'swoole_urlrouter_rewrite');
-        //mvc
-        $this->addHook(Swoole::HOOK_ROUTE, 'swoole_urlrouter_mvc');
+        //添加默认路由器
+        $this->addRouter(new Swoole\Router\Rewrite());
+        $this->addRouter(new Swoole\Router\MVC);
+
         //设置路由函数
         $this->router(array($this, 'urlRoute'));
     }
@@ -285,9 +285,16 @@ class Swoole
      * @param $type
      * @param $func
      */
-    function addHook($type, $func)
+    function addHook($type, $func, $prepend = false)
     {
-        $this->hooks[$type][] = $func;
+        if ($prepend)
+        {
+            array_unshift($this->hooks[$type], $func);
+        }
+        else
+        {
+            $this->hooks[$type][] = $func;
+        }
     }
 
     /**
@@ -423,6 +430,15 @@ class Swoole
     }
 
     /**
+     * 添加路由器
+     * @param \Swoole\IFace\Router $router
+     */
+    function addRouter(Swoole\IFace\Router $router, $prepend = false)
+    {
+        $this->addHook(Swoole::HOOK_ROUTE, array($router, 'handle'));
+    }
+
+    /**
      * 设置路由器
      * @param $function
      */
@@ -431,7 +447,11 @@ class Swoole
         $this->router_function = $function;
     }
 
-    function urlRoute()
+    /**
+     * URL路由
+     * @return array|bool
+     */
+    protected function urlRoute()
     {
         if (empty($this->hooks[self::HOOK_ROUTE]))
         {
@@ -444,21 +464,21 @@ class Swoole
         {
             $uri = $_SERVER['REQUEST_URI'];
         }
-        $uri = trim($uri, '/');
 
+        $uri = trim($uri, '/');
         $mvc = array();
 
         //URL Router
-        foreach($this->hooks[self::HOOK_ROUTE] as $hook)
+        foreach ($this->hooks[self::HOOK_ROUTE] as $hook)
         {
-            if(!is_callable($hook))
+            if (!is_callable($hook))
             {
                 trigger_error("SwooleFramework: hook function[$hook] is not callable.");
                 continue;
             }
             $mvc = $hook($uri);
             //命中
-            if($mvc !== false)
+            if ($mvc !== false)
             {
                 break;
             }
@@ -684,79 +704,4 @@ class Swoole
             }
         }
     }
-}
-
-function swoole_urlrouter_rewrite(&$uri)
-{
-    $rewrite = Swoole::$php->config['rewrite'];
-    $request = Swoole::$php->request;
-
-    if (empty($rewrite) or !is_array($rewrite))
-    {
-        return false;
-    }
-    $match = array();
-    $uri_for_regx = '/'.$uri;
-    foreach($rewrite as $rule)
-    {
-        if (preg_match('#'.$rule['regx'].'#i', $uri_for_regx, $match))
-        {
-            if (isset($rule['get']))
-            {
-                $p = explode(',', $rule['get']);
-                foreach ($p as $k => $v)
-                {
-                    if (isset($match[$k + 1]))
-                    {
-                        $request->get[$v] = $match[$k + 1];
-                    }
-                }
-            }
-            $_GET = $request->get;
-            return $rule['mvc'];
-        }
-    }
-    return false;
-}
-
-function swoole_urlrouter_mvc(&$uri)
-{
-    $request = Swoole::$php->request;
-    $array = Swoole::$default_controller;
-    if (!empty($request->get["c"]))
-    {
-        $array['controller'] = $request->get["c"];
-    }
-    if (!empty($request->get["v"]))
-    {
-        $array['view'] = $request->get["v"];
-    }
-    $request_uri = explode('/', $uri, 3);
-    if (count($request_uri) < 2)
-    {
-        return $array;
-    }
-    $array['controller'] = $request_uri[0];
-    $array['view'] = $request_uri[1];
-    Swoole\Tool::$url_prefix = '';
-    if (isset($request_uri[2]))
-    {
-        $request_uri[2] = trim($request_uri[2], '/');
-        $_id = str_replace('.html', '', $request_uri[2]);
-        if (is_numeric($_id))
-        {
-            $request->get['id'] = $_id;
-        }
-        else
-        {
-            Swoole\Tool::$url_key_join = '-';
-            Swoole\Tool::$url_param_join = '-';
-            Swoole\Tool::$url_add_end = '.html';
-            Swoole\Tool::$url_prefix = WEBROOT . "/{$request_uri[0]}/$request_uri[1]/";
-            Swoole\Tool::url_parse_into($request_uri[2], $request->get);
-        }
-        $_REQUEST = $request->request = array_merge($request->request, $request->get);
-        $_GET = $request->get;
-    }
-    return $array;
 }
