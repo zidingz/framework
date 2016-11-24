@@ -592,8 +592,12 @@ class Swoole
 		$this->env['mvc'] = $mvc;
 
         //使用命名空间，文件名必须大写
-        $controller_class = '\\App\\Controller\\'.ucwords($mvc['controller']);
-        if (self::$controller_path)
+        $controller_class = '\\App\\Controller\\' . ucwords($mvc['controller']);
+        if (!empty($mvc['controller_path']))
+        {
+            $controller_path = self::$controller_path . '/' . $mvc['controller_path'] . '/' . ucwords($mvc['controller']) . '.php';
+        }
+        elseif (self::$controller_path)
         {
             $controller_path = self::$controller_path . '/' . ucwords($mvc['controller']) . '.php';
         }

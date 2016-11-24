@@ -57,7 +57,7 @@ class ModelLoader
         }
         else
         {
-            $model_file = \Swoole::$app_path . '/models/' . $model_name . '.php';
+            $model_file = \Swoole::$app_path . '/models/' . str_replace('\\', '/', $model_name) . '.php';
             if (!is_file($model_file))
             {
                 throw new Error("The model [<b>$model_name</b>] does not exist.");

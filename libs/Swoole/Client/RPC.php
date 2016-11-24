@@ -17,7 +17,7 @@ class RPC
     /**
      * 版本号
      */
-    const VERSION = 1004;
+    const VERSION = 1005;
 
     /**
      * Server的实例列表
