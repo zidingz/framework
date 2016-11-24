@@ -621,11 +621,11 @@ class Swoole
             $controller_class = '\\App\\Controller\\' . $directory . '\\' . $controller_name;
             if (self::$controller_path)
             {
-                $controller_path = self::$controller_path . '/' . $controller_name . '.php';
+                $controller_path = self::$controller_path . '/' . $directory . '/' . $controller_name . '.php';
             }
             else
             {
-                $controller_path = self::$app_path . '/controllers/' . $controller_name . '.php';
+                $controller_path = self::$app_path . '/controllers/' . $directory . '/' . $controller_name . '.php';
             }
         }
         else
