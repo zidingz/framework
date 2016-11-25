@@ -570,13 +570,9 @@ class RPC
         $st = microtime(true);
         $success_num = 0;
 
-        while (true)
+        while (count($this->waitList) > 0)
         {
             $write = $error = $read = array();
-            if (empty($this->waitList))
-            {
-                break;
-            }
             foreach ($this->waitList as $obj)
             {
                 /**
