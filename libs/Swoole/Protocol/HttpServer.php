@@ -341,9 +341,27 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         //压缩
         if ($this->gzip)
         {
-            $response->head['Content-Encoding'] = 'deflate';
-            $response->body = gzdeflate($response->body, $this->config['server']['gzip_level']);
+            if (!empty($request->header['Accept-Encoding']))
+            {
+                //gzip
+                if (strpos($request->header['Accept-Encoding'], 'gzip') !== false)
+                {
+                    $response->head['Content-Encoding'] = 'gzip';
+                    $response->body = gzencode($response->body, $this->config['server']['gzip_level']);
+                }
+                //deflate
+                elseif (strpos($request->header['Accept-Encoding'], 'deflate') !== false)
+                {
+                    $response->head['Content-Encoding'] = 'deflate';
+                    $response->body = gzdeflate($response->body, $this->config['server']['gzip_level']);
+                }
+                else
+                {
+                    $this->log("Unsupported compression type : {$request->header['Accept-Encoding']}.");
+                }
+            }
         }
+
         $out = $response->getHeader().$response->body;
         $ret = $this->server->send($request->fd, $out);
         $this->afterResponse($request, $response);
