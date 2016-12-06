@@ -26,7 +26,20 @@ class WebSocket extends Swoole\Client\WebSocket
             throw new \Exception('no message event callback.');
         }
 
-        $this->socket = new \swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_ASYNC);
+        $type = SWOOLE_TCP;
+        if ($this->ssl)
+        {
+            $type |= SWOOLE_SSL;
+        }
+
+        $this->socket = new \swoole_client($type, SWOOLE_SOCK_ASYNC);
+        if ($this->ssl_key_file)
+        {
+            $this->socket->set(array(
+                'ssl_key_file' => $this->ssl_key_file,
+                'ssl_cert_file' => $this->ssl_cert_file
+            ));
+        }
 
         $this->socket->on("connect", array($this, 'onConnect'));
         $this->socket->on("receive", array($this, 'onReceive'));

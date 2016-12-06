@@ -34,6 +34,9 @@ class WebSocket
      */
     protected $connected = false;
     protected $handshake = false;
+    protected $ssl = false;
+    protected $ssl_key_file;
+    protected $ssl_cert_file;
 
     protected $haveSwooleEncoder = false;
 
@@ -63,6 +66,22 @@ class WebSocket
     }
 
     /**
+     * @param string $keyFile
+     * @param string $certFile
+     * @throws Swoole\Http\WebSocketException
+     */
+    function enableCrypto($keyFile = '', $certFile = '')
+    {
+        if (!extension_loaded('swoole'))
+        {
+            throw new Swoole\Http\WebSocketException("require swoole extension.");
+        }
+        $this->ssl = true;
+        $this->ssl_key_file = $keyFile;
+        $this->ssl_cert_file = $certFile;
+    }
+
+    /**
      * Disconnect on destruct
      */
     function __destruct()
@@ -82,7 +101,19 @@ class WebSocket
     {
         if (extension_loaded('swoole'))
         {
-            $this->socket = new \swoole_client(SWOOLE_SOCK_TCP);
+            $type = SWOOLE_TCP;
+            if ($this->ssl)
+            {
+                $type |= SWOOLE_SSL;
+            }
+            $this->socket = new \swoole_client($type);
+            if ($this->ssl_key_file)
+            {
+                $this->socket->set(array(
+                    'ssl_key_file' => $this->ssl_key_file,
+                    'ssl_cert_file' => $this->ssl_cert_file
+                ));
+            }
         }
         else
         {
