@@ -19,7 +19,6 @@ class ExtServer implements Swoole\IFace\Http
      */
     public $response;
 
-    public $finish;
     public $document_root;
     public $charest = 'utf-8';
     public $expire_time = 86400;
@@ -72,7 +71,6 @@ class ExtServer implements Swoole\IFace\Http
 
     function finish($content = '')
     {
-        $this->finish = true;
         throw new Swoole\Exception\Response($content);
     }
 
@@ -194,11 +192,7 @@ class ExtServer implements Swoole\IFace\Http
             }
             catch (Swoole\Exception\Response $e)
             {
-                if ($this->finish != 1)
-                {
-                    $resp->status(500);
-                    $resp->end($e->getMessage());
-                }
+                $resp->end($e->getMessage());
             }
         }
         catch (\Exception $e)
