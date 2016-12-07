@@ -70,14 +70,10 @@ class ExtServer implements Swoole\IFace\Http
         $this->response->header('Location', $url);
     }
 
-    function finish($content = null)
+    function finish($content = '')
     {
         $this->finish = true;
-        if ($content)
-        {
-            $this->response->write($content);
-        }
-        throw new Swoole\Exception\Response;
+        throw new Swoole\Exception\Response($content);
     }
 
     function getRequestBody()
