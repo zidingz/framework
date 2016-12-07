@@ -73,7 +73,10 @@ class ExtServer implements Swoole\IFace\Http
     function finish($content = null)
     {
         $this->finish = true;
-        $this->response->write($content);
+        if ($content)
+        {
+            $this->response->write($content);
+        }
         throw new Swoole\Exception\Response;
     }
 

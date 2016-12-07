@@ -23,6 +23,13 @@ class Memcache implements Swoole\IFace\Cache
 
     function __construct($config)
     {
+        /**
+         * 没有memcache扩展，PHP7
+         */
+        if (!extension_loaded('memcache') and extension_loaded('memcached'))
+        {
+            $config['use_memcached'] = true;
+        }
         if (empty($config['use_memcached']))
         {
             $this->cache = new \Memcache;
