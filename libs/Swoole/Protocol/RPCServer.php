@@ -349,7 +349,8 @@ class RPCServer extends Base implements Swoole\IFace\Protocol
             return array('errno' => self::ERR_NOFUNC);
         }
         $ret = call_user_func_array($request['call'], $request['params']);
-        if ($ret === false)
+        //禁止接口返回NULL，客户端得到NULL时认为RPC调用失败
+        if ($ret === NULL)
         {
             return array('errno' => self::ERR_CALL);
         }
