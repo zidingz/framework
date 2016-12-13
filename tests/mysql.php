@@ -6,13 +6,13 @@ require WEBPATH . '/libs/lib_config.php';
 
 $config = array(
     'type' => Swoole\Database::TYPE_MYSQLi,
-    'host' => '10.10.2.38',
+    'host' => '127.0.0.1',
     'user' => 'root',
     'password' => 'root',
-    'database' => 'chelun',
+    'database' => 'test',
 );
 
 $db = new \Swoole\Database($config);
 $db->connect();
-$res = $db->query("select * from test22");
+$res = $db->query("select * from test");
 var_dump($res);
