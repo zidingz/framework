@@ -356,7 +356,7 @@ class Server extends Base implements Driver
         {
             $this->sw->on('Connect', array($this->protocol, 'onConnect'));
         }
-        if (is_callable(array($this->protocol, 'onTimer')))
+        if (is_callable(array($this->protocol, 'onClose')))
         {
             $this->sw->on('Close', array($this->protocol, 'onClose'));
         }
