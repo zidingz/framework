@@ -352,7 +352,7 @@ class Server extends Base implements Driver
         $this->sw->on('ManagerStop', array($this, 'onManagerStop'));
         $this->sw->on('WorkerStart', array($this, 'onWorkerStart'));
 
-        if (is_callable(array($this->protocol, 'onTimer')))
+        if (is_callable(array($this->protocol, 'onConnect')))
         {
             $this->sw->on('Connect', array($this->protocol, 'onConnect'));
         }
