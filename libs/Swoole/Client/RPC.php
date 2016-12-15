@@ -207,12 +207,11 @@ class RPC
         {
             $svr = $this->getServer();
             $socket = $this->getConnection($svr['host'], $svr['port']);
-            //连接被拒绝，证明服务器已经挂了
+            //连接失败，服务器节点不可用
             //TODO 如果连接失败，需要上报机器存活状态
-            if ($socket === false and $socket->errCode == 111)
+            if ($socket === false)
             {
                 $this->onConnectServerFailed($svr);
-                unset($socket);
             }
             else
             {
