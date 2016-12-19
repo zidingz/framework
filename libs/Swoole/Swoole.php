@@ -673,8 +673,18 @@ class Swoole
         $method = $mvc['view'];
         //before action
         $this->callHook(self::HOOK_BEFORE_ACTION);
+        //magic method
+        if (method_exists($controller, '__beforeAction'))
+        {
+            call_user_func(array($controller, '__beforeAction'));
+        }
         //do action
         $return = $controller->$method($param);
+        //magic method
+        if (method_exists($controller, '__afterAction'))
+        {
+            call_user_func(array($controller, '__afterAction'));
+        }
         //after action
         $this->callHook(self::HOOK_AFTER_ACTION);
         //保存Session
