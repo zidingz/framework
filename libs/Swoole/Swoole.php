@@ -284,6 +284,7 @@ class Swoole
      * 增加钩子函数
      * @param $type
      * @param $func
+     * @param $prepend bool
      */
     function addHook($type, $func, $prepend = false)
     {
@@ -674,14 +675,14 @@ class Swoole
         //before action
         $this->callHook(self::HOOK_BEFORE_ACTION);
         //magic method
-        if (method_exists($controller, '__beforeAction'))
+        if (is_callable(array($controller, '__beforeAction')))
         {
             call_user_func(array($controller, '__beforeAction'));
         }
         //do action
         $return = $controller->$method($param);
         //magic method
-        if (method_exists($controller, '__afterAction'))
+        if (is_callable(array($controller, '__afterAction')))
         {
             call_user_func(array($controller, '__afterAction'));
         }
