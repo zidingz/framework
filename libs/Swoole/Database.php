@@ -59,6 +59,8 @@ class Database
      */
     public $db_apt = null;
 
+    protected $lastSql = '';
+
 	const TYPE_MYSQL   = 1;
 	const TYPE_MYSQLi  = 2;
 	const TYPE_PDO     = 3;
@@ -146,7 +148,7 @@ class Database
             echo "$sql<br />\n<hr />";
         }
         $this->read_times += 1;
-
+        $this->lastSql = $sql;
         return $this->_db->query($sql);
     }
 
@@ -218,6 +220,15 @@ class Database
         $this->db_apt->from($table);
         $this->db_apt->where("$primary='$id'");
         return $this->db_apt->getone();
+    }
+
+    /**
+     * 获取最近一次执行的SQL语句
+     * @return string
+     */
+    function getSql()
+    {
+        return $this->lastSql;
     }
 
     /**
