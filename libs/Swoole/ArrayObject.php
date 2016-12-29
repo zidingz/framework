@@ -75,7 +75,7 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
 
     function join($str)
     {
-        return new String(implode($str, $this->array));
+        return new StringObject(implode($str, $this->array));
     }
 
     function insert($offset, $val)

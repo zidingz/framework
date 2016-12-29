@@ -1,7 +1,7 @@
 <?php
 namespace Swoole;
 
-class String
+class StringObject
 {
     protected $string;
 
@@ -32,12 +32,12 @@ class String
 
     function lower()
     {
-        return new String(strtolower($this->string));
+        return new StringObject(strtolower($this->string));
     }
 
     function upper()
     {
-        return new String(strtoupper($this->string));
+        return new StringObject(strtoupper($this->string));
     }
 
     function len()
@@ -47,12 +47,12 @@ class String
 
     function substr($offset, $length = null)
     {
-        return new String(substr($this->string, $offset, $length));
+        return new StringObject(substr($this->string, $offset, $length));
     }
 
     function replace($search, $replace, &$count = null)
     {
-        return new String(str_replace($search, $replace, $this->string, $count));
+        return new StringObject(str_replace($search, $replace, $this->string, $count));
     }
 
     function  startWith($needle)
