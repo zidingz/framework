@@ -684,7 +684,7 @@ class Swoole
         //magic method
         if (method_exists($controller, '__afterAction'))
         {
-            call_user_func(array($controller, '__afterAction', $return));
+            call_user_func(array($controller, '__afterAction'), $return);
         }
         //after action
         $this->callHook(self::HOOK_AFTER_ACTION);
