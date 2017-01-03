@@ -115,6 +115,10 @@ class Database
      */
     function start()
     {
+        if ($this->query('set autocommit = 0') === false)
+        {
+            return false;
+        }
         return $this->query('START TRANSACTION');
     }
 
@@ -124,6 +128,10 @@ class Database
 	 */
 	function commit()
 	{
+        if ($this->query('set autocommit = 1') === false)
+        {
+            return false;
+        }
 		return $this->query('COMMIT');
 	}
 
@@ -133,7 +141,11 @@ class Database
 	 */
 	function rollback()
 	{
-		$this->query('ROLLBACK');
+        if ($this->query('set autocommit = 1') === false)
+        {
+            return false;
+        }
+		return $this->query('ROLLBACK');
 	}
 
     /**
