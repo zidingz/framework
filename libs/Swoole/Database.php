@@ -128,11 +128,12 @@ class Database
 	 */
 	function commit()
 	{
-        if ($this->query('set autocommit = 1') === false)
+        if ($this->query('COMMIT') === false)
         {
             return false;
         }
-		return $this->query('COMMIT');
+        $this->query('set autocommit = 1');
+        return true;
 	}
 
 	/**
@@ -141,11 +142,12 @@ class Database
 	 */
 	function rollback()
 	{
-        if ($this->query('set autocommit = 1') === false)
+        if ($this->query('ROLLBACK') === false)
         {
             return false;
         }
-		return $this->query('ROLLBACK');
+        $this->query('set autocommit = 1');
+		return true;
 	}
 
     /**
