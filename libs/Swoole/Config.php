@@ -84,6 +84,10 @@ class Config extends \ArrayObject
 
     function offsetExists($index)
     {
+        if (!isset($this->config[$index]))
+        {
+            $this->load($index);
+        }
         return isset($this->config[$index]);
     }
 }
