@@ -369,7 +369,6 @@ class RPCServer extends Base implements Swoole\IFace\Protocol
 
     /**
      * 添加访问规则
-     * @param $type
      * @param $ip
      * @throws Swoole\Exception\InvalidParam
      */
@@ -387,6 +386,11 @@ class RPCServer extends Base implements Swoole\IFace\Protocol
         }
     }
 
+    /**
+     * 添加用户许可
+     * @param $user
+     * @param $password
+     */
     function addAllowUser($user, $password)
     {
         $this->userList[$user] = $password;
