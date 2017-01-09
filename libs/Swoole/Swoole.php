@@ -242,11 +242,16 @@ class Swoole
         #DEBUG
         if (defined('DEBUG') and DEBUG == 'on')
         {
-            #捕获错误信息
-//            set_error_handler('swoole_error_handler');
-            #记录运行时间和内存占用情况
+            //记录运行时间和内存占用情况
             $this->env['runtime']['start'] = microtime(true);
             $this->env['runtime']['mem'] = memory_get_usage();
+            //使用whoops美化错误页面
+            if (class_exists('\\Whoops\\Run'))
+            {
+                $whoops = new \Whoops\Run;
+                $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler);
+                $whoops->register();
+            }
         }
         $this->callHook(self::HOOK_INIT);
     }
@@ -594,22 +599,22 @@ class Swoole
         if ($mvc === false)
         {
             $this->http->status(404);
-            return Swoole\Error::info('MVC Error', "url route fail!");
+            throw new \Swoole\Exception\NotFound("MVC Error: url route failed!");
         }
         //check controller name
         if (!preg_match('/^[a-z0-9_]+$/i', $mvc['controller']))
         {
-        	return Swoole\Error::info('MVC Error!',"controller[{$mvc['controller']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
+        	throw new \Swoole\Exception\NotFound("MVC Error: controller[{$mvc['controller']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
         }
         //check view name
         if (!preg_match('/^[a-z0-9_]+$/i', $mvc['view']))
         {
-        	return Swoole\Error::info('MVC Error!',"view[{$mvc['view']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
+            throw new \Swoole\Exception\NotFound("MVC Error: view[{$mvc['view']}] name incorrect.Regx: /^[a-z0-9_]+$/i");
         }
         //directory
         if (isset($mvc['directory']) and !preg_match('/^[a-z0-9_]+$/i', $mvc['directory']))
         {
-            return Swoole\Error::info('MVC Error!',"directory[{$mvc['view']}] incorrect. Regx: /^[a-z0-9_]+$/i");
+            throw new \Swoole\Exception\NotFound("MVC Error: directory[{$mvc['view']}] incorrect. Regx: /^[a-z0-9_]+$/i");
         }
 
 		$this->env['mvc'] = $mvc;
@@ -654,7 +659,7 @@ class Swoole
 
         //file not found
         $this->http->status(404);
-        return Swoole\Error::info('MVC Error', "Controller <b>{$mvc['controller']}</b>[{$controller_file}] not exist!");
+        throw new \Swoole\Exception\NotFound("MVC Error: Controller <b>{$mvc['controller']}</b>[{$controller_file}] not exist!");
 
         do_action:
 
@@ -667,7 +672,7 @@ class Swoole
         if (!method_exists($controller, $mvc['view']))
         {
             $this->http->status(404);
-            return Swoole\Error::info('MVC Error!'.$mvc['view'],"View <b>{$mvc['controller']}->{$mvc['view']}</b> Not Found!");
+            throw new \Swoole\Exception\NotFound("MVC Error:  {$mvc['controller']}->{$mvc['view']} Not Found!");
         }
 
         $param = empty($mvc['param']) ? null : $mvc['param'];
