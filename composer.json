@@ -17,8 +17,6 @@
     "minimum-stability": "dev",
     "require": {
       "filp/whoops": "^2.1",
-      "hoa/cli": "~1.0",
-      "hoa/websocket": "~2.0",
       "Symfony/Console": "3.2"
     }
 }
