@@ -568,9 +568,11 @@ class Tool
             {
                 unset($servers[$k]);
             }
-            $weight += $svr['weight'];
+            else
+            {
+                $weight += $svr['weight'];
+            }
         }
-
         //计算权重并随机选择一台机器
         $use = rand(0, $weight - 1);
         $weight = 0;
