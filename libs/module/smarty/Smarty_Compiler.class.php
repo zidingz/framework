@@ -264,15 +264,27 @@ class Smarty_Compiler extends Smarty {
 		$this->_folded_blocks = $match;
 		reset($this->_folded_blocks);
 
-		/* replace special blocks by "{php}" */
-		$source_content = preg_replace($search.'e', "'"
-		. $this->_quote_replace($this->left_delimiter) . 'php'
-		. "' . str_repeat(\"\n\", substr_count('\\0', \"\n\")) .'"
-		. $this->_quote_replace($this->right_delimiter)
-		. "'"
-		, $source_content);
+        /**
+         * The /e modifier is just deprecated in PHP 5.5.
+         * PHP 5.5已废弃，使用preg_replace_callback
+         */
+        /* replace special blocks by "{php}" */
+        /*
+        $source_content = preg_replace($search.'e', "'"
+        . $this->_quote_replace($this->left_delimiter) . 'php'
+        . "' . str_repeat(\"\n\", substr_count('\\0', \"\n\")) .'"
+        . $this->_quote_replace($this->right_delimiter)
+        . "'"
+        , $source_content);
+         */
+        $source_content = preg_replace_callback($search, create_function('$matches', "return '"
+                . $this->_quote_replace($this->left_delimiter) . 'php'
+                . "' . str_repeat(\"\n\", substr_count('\$matches[1]', \"\n\")) .'"
+                . $this->_quote_replace($this->right_delimiter)
+                . "';")
+            , $source_content);
 
-		/* Gather all template tags. */
+        /* Gather all template tags. */
 		preg_match_all("~{$ldq}\s*(.*?)\s*{$rdq}~s", $source_content, $_match);
 		$template_tags = $_match[1];
 		/* Split content by template tags to obtain non-template content. */
