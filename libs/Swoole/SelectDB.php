@@ -311,7 +311,7 @@ class SelectDB
      */
     function find($field, $find)
     {
-        $this->where("find_in_set('" . $this->db->quote($find) . "'', `$field`");
+        $this->where("find_in_set('" . $this->db->quote($find) . "', `$field`");
     }
 
     /**
