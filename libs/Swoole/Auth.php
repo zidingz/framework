@@ -336,7 +336,15 @@ class Auth
         $user = \Swoole::$php->user;
         if (!$user->isLogin())
         {
-            $login_url = $user->config['login_url'] . '?refer=' . urlencode($_SERVER["REQUEST_URI"] . '?' . $_SERVER['QUERY_STRING']);
+            if (strpos($_SERVER["REQUEST_URI"], '?') === false and !empty($_SERVER['QUERY_STRING']))
+            {
+                $url = $_SERVER["REQUEST_URI"] . '?' . $_SERVER['QUERY_STRING'];
+            }
+            else
+            {
+                $url = $_SERVER["REQUEST_URI"];
+            }
+            $login_url = $user->config['login_url'] . '?refer=' . urlencode($url);
             \Swoole::$php->http->redirect($login_url);
             return false;
         }
