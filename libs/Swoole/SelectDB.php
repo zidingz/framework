@@ -163,12 +163,21 @@ class SelectDB
 
     /**
      * where参数，查询的条件
-     * @param $where
      * @return null
      */
-    function where($where)
+    function where()
     {
-        //$where = str_replace(' or ','',$where);
+        $args = func_get_args();
+        if (count($args) == 1)
+        {
+            $where = $args[0];
+        }
+        else
+        {
+            list($field, $expr, $value) = $args;
+            $where = '`'.str_replace('`', '', $field).'`' . $this->db->quote($expr) . " '".$this->db->quote($value)."'";
+        }
+
         if ($this->where == "")
         {
             $this->where = "where " . $where;
@@ -295,6 +304,14 @@ class SelectDB
         {
             $this->having = '';
         }
+    }
+
+    /**
+     * Find in set
+     */
+    function find($field, $find)
+    {
+        $this->where("find_in_set('" . $this->db->quote($find) . "'', `$field`");
     }
 
     /**
@@ -554,6 +571,19 @@ class SelectDB
         }
         else $this->union = 'UNION ('.$sql.')';
     }
+
+    protected function _where($param)
+    {
+        if (is_array($param))
+        {
+            return call_user_func_array(array($this, 'where'), $param);
+        }
+        else
+        {
+            return call_user_func(array($this, 'where'), $param);
+        }
+    }
+
     /**
      * 将数组作为指令调用
      * @param $params
@@ -566,11 +596,20 @@ class SelectDB
             Error::info('SelectDB Error!','Params put() cannot call put()!');
         }
         //处理where条件
-        if(isset($params['where']))
+        if (isset($params['where']))
         {
             $wheres = $params['where'];
-            if(is_array($wheres)) foreach($wheres as $where) $this->where($where);
-            else $this->where($wheres);
+            if (is_array($wheres))
+            {
+                foreach ($wheres as $where)
+                {
+                    $this->_where($where);
+                }
+            }
+            else
+            {
+                $this->_where($params);
+            }
             unset($params['where']);
         }
         //处理orwhere条件

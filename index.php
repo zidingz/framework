@@ -4,6 +4,7 @@ define('DEBUG', 'on');
 define('WEBPATH', __DIR__);
 define('WEBROOT', 'http://local.framework.com');
 
+require __DIR__.'/vendor/autoload.php';
 //包含框架入口文件
 require __DIR__ . '/libs/lib_config.php';
 //开发环境的配置，如果此目录有配置文件，会优先选择
