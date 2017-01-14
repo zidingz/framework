@@ -610,7 +610,7 @@ class SelectDB
             }
             else
             {
-                $this->_where($params);
+                $this->_where($wheres);
             }
             unset($params['where']);
         }
