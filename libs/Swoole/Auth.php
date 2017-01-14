@@ -326,10 +326,17 @@ class Auth
      */
     public static function loginRequire()
     {
+        /**
+         * 启动Session
+         */
+        if (!\Swoole::$php->session->isStart)
+        {
+            \Swoole::$php->session->start();
+        }
         $user = \Swoole::$php->user;
         if (!$user->isLogin())
         {
-            $login_url = $user->config['login_url'] . '?refer=' . urlencode($_SERVER["REQUEST_URI"]);
+            $login_url = $user->config['login_url'] . '?refer=' . urlencode($_SERVER["REQUEST_URI"] . '?' . $_SERVER['QUERY_STRING']);
             \Swoole::$php->http->redirect($login_url);
             return false;
         }
