@@ -307,11 +307,13 @@ class SelectDB
     }
 
     /**
-     * Find in set
+     * find_in_set语法
+     * @param $field
+     * @param $find
      */
     function find($field, $find)
     {
-        $this->where("find_in_set('" . $this->db->quote($find) . "', `$field`");
+        $this->where("find_in_set('" . $this->db->quote($find) . "', `{$field}`)");
     }
 
     /**
@@ -608,7 +610,7 @@ class SelectDB
             }
             else
             {
-                $this->_where($params);
+                $this->_where($wheres);
             }
             unset($params['where']);
         }
