@@ -17,6 +17,8 @@ class Tool
     const WEEK_TWO = '周';
     const WEEK_THREE = '星期';
 
+    const DATE_FORMAT_HUMEN = 'Y-m-d H:i:s';
+
     static $number = array('〇','一','二','三','四','五','六','七','八','九');
 
     /**
@@ -566,9 +568,11 @@ class Tool
             {
                 unset($servers[$k]);
             }
-            $weight += $svr['weight'];
+            else
+            {
+                $weight += $svr['weight'];
+            }
         }
-
         //计算权重并随机选择一台机器
         $use = rand(0, $weight - 1);
         $weight = 0;
@@ -629,5 +633,14 @@ class Tool
                 $map[$hash] = true;
             }
         }
+    }
+
+    /**
+     * 获取现在的时间字符串，格式为 2016-12-12 00:00:01
+     * @return bool|string
+     */
+    function now()
+    {
+        return date(self::DATE_FORMAT_HUMEN);
     }
 }

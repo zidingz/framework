@@ -29,7 +29,7 @@ class Loader
     /**
      * for composer
      */
-    static function vendor_init()
+    static function vendorInit()
     {
         require __DIR__ . '/../lib_config.php';
     }

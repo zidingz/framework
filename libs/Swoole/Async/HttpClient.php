@@ -1,6 +1,10 @@
 <?php
 namespace Swoole\Async;
 
+/**
+ * 异步Http客户端，已废弃，建议使用swoole扩展内置的swoole_http_client
+ * @package Swoole\Async
+ */
 class HttpClient
 {
     const EOF = "\r\n";

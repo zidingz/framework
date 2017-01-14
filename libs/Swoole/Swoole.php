@@ -114,6 +114,12 @@ class Swoole
     public $pagecache;
 
     /**
+     * 命令
+     * @var array
+     */
+    protected $commands = array();
+
+    /**
      * 对象池
      * @var array
      */
@@ -240,7 +246,7 @@ class Swoole
     function __init()
     {
         #DEBUG
-        if (defined('DEBUG') and DEBUG == 'on')
+        if (defined('DEBUG') and strtolower(DEBUG) == 'on')
         {
             //记录运行时间和内存占用情况
             $this->env['runtime']['start'] = microtime(true);
@@ -249,7 +255,14 @@ class Swoole
             if (class_exists('\\Whoops\\Run'))
             {
                 $whoops = new \Whoops\Run;
-                $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler);
+                if ($this->env['sapi_name'] == 'cli')
+                {
+                    $whoops->pushHandler(new \Whoops\Handler\PlainTextHandler());
+                }
+                else
+                {
+                    $whoops->pushHandler(new \Whoops\Handler\PrettyPageHandler);
+                }
                 $whoops->register();
             }
         }
@@ -714,6 +727,35 @@ class Swoole
         {
             echo $return;
         }
+    }
+
+    function addCommand($class)
+    {
+        if (!class_exists($class))
+        {
+            throw new NotFound("Command[$class] not found.");
+        }
+        $command = new $class;
+        if ($command instanceof Symfony\Component\Console\Command\Command)
+        {
+            $this->commands[] = $command;
+        }
+        else
+        {
+            throw new Swoole\Exception\InvalidParam("class[$class] not instanceof " . ' Symfony\Component\Console\Command\Command');
+        }
+    }
+
+    /**
+     * 命令行工具
+     * @throws Exception
+     */
+    function runConsole()
+    {
+        $app = new  Symfony\Component\Console\Application("<info>Swoole Framework</info> Console Tool.");
+        $app->add(new Swoole\Command\MakeController());
+        $app->add(new Swoole\Command\MakeModel());
+        $app->run();
     }
 
     function reloadController($mvc, $controller_file)
