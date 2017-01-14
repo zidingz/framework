@@ -4,20 +4,20 @@ define('WEBPATH', realpath(__DIR__ . '/..'));
 //包含框架入口文件
 require WEBPATH . '/libs/lib_config.php';
 //Swoole::$php->db->debug = true;
-
-$rs = $php->db->query("show tables")->fetchall();
-var_dump($rs);
-
-echo "sleep 10s\n";
-sleep(10);
-
-$rs = $php->db->query("show tables")->fetchall();
-var_dump($rs);
-
-exit;
+//
+//$rs = $php->db->query("show tables")->fetchall();
+//var_dump($rs);
+//
+//echo "sleep 10s\n";
+//sleep(10);
+//
+//$rs = $php->db->query("show tables")->fetchall();
+//var_dump($rs);
+//
+//exit;
 
 $a = model('User');
-$a->test();
+$a->gets(array());
 exit;
 $r = table('user_profile')->put(array(
     //'uid' => 1234,

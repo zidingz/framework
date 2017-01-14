@@ -307,6 +307,14 @@ class SelectDB
     }
 
     /**
+     * Find in set
+     */
+    function find($field, $find)
+    {
+        $this->where("find_in_set('" . $this->db->quote($find) . "'', `$field`");
+    }
+
+    /**
      * IN条件
      * @param $field
      * @param $ins
