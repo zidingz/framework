@@ -1,11 +1,11 @@
 <?php
 if (empty(Swoole::$php->config['upload']))
 {
-    $config = Swoole::$php->config['upload'];
+    throw new Exception("require upload config");
 }
 else
 {
-    throw new Exception("require upload config");
+    $config = Swoole::$php->config['upload'];
 }
 $upload = new Swoole\Upload($config);
 return $upload;
