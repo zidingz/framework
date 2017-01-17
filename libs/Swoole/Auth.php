@@ -118,10 +118,9 @@ class Auth
      * 登录
      * @param $username
      * @param $password
-     * @param bool $auto_login 是否自动登录
      * @return bool
      */
-    function login($username, $password, $auto_login = false)
+    function login($username, $password)
     {
         Cookie::set(self::$session_prefix . 'username', $username, time() + self::$cookie_life, '/');
         $this->user = $this->db->query('select ' . $this->select . ' from ' . $this->login_table . " where " . self::$username . "='$username' limit 1")->fetch();
@@ -137,10 +136,6 @@ class Auth
             {
                 $_SESSION[self::$session_prefix . 'isLogin'] = true;
                 $_SESSION[self::$session_prefix . 'user_id'] = $this->user['id'];
-                if ($auto_login)
-                {
-                    $this->autoLogin();
-                }
                 return true;
             }
             else
@@ -161,21 +156,7 @@ class Auth
         {
             return true;
         }
-        elseif (isset($_COOKIE[self::$session_prefix . 'autologin']) and isset($_COOKIE[self::$session_prefix . 'username']) and isset($_COOKIE[self::$session_prefix . 'password']))
-        {
-            return $this->login($_COOKIE[self::$session_prefix . 'username'], $_COOKIE[self::$session_prefix . 'password'], $auto = 1);
-        }
         return false;
-    }
-
-    /**
-     * 自动登录，如果自动登录则在本地记住密码
-     */
-    function autoLogin()
-    {
-        Cookie::set(self::$session_prefix . 'autologin', 1, time() + self::$cookie_life, '/');
-        Cookie::set(self::$session_prefix . 'username', $this->user['username'], time() + self::$cookie_life, '/');
-        Cookie::set(self::$session_prefix . 'password', $this->user['password'], time() + self::$cookie_life, '/');
     }
 
     /**
