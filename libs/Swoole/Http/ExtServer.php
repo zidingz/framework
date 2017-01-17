@@ -63,7 +63,7 @@ class ExtServer implements Swoole\IFace\Http
         $this->finish($content);
     }
 
-    function redirect($url, $mode = 301)
+    function redirect($url, $mode = 302)
     {
         $this->response->status($mode);
         $this->response->header('Location', $url);
