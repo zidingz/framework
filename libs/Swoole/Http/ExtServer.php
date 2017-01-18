@@ -63,7 +63,7 @@ class ExtServer implements Swoole\IFace\Http
         $this->finish($content);
     }
 
-    function redirect($url, $mode = 301)
+    function redirect($url, $mode = 302)
     {
         $this->response->status($mode);
         $this->response->header('Location', $url);
@@ -188,6 +188,14 @@ class ExtServer implements Swoole\IFace\Http
                 $body = $php->runMVC();
                 $echo_output = ob_get_contents();
                 ob_end_clean();
+                if (!isset($resp->header['Cache-Control']))
+                {
+                    $resp->header('Cache-Control', 'no-store, no-cache, must-revalidate');
+                }
+                if (!isset($resp->header['Pragma']))
+                {
+                    $resp->header('Pragma', 'no-cache');
+                }
                 $resp->end($echo_output.$body);
             }
             catch (Swoole\Exception\Response $e)

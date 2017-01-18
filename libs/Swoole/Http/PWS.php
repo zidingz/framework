@@ -25,7 +25,7 @@ class PWS implements Swoole\IFace\Http
         $this->finish($content);
     }
 
-    function redirect($url, $mode = 301)
+    function redirect($url, $mode = 302)
     {
         \Swoole::$php->response->setHttpStatus($mode);
         \Swoole::$php->response->setHeader('Location', $url);

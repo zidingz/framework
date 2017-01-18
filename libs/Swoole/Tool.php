@@ -639,7 +639,7 @@ class Tool
      * 获取现在的时间字符串，格式为 2016-12-12 00:00:01
      * @return bool|string
      */
-    function now()
+    static function now()
     {
         return date(self::DATE_FORMAT_HUMEN);
     }

@@ -9,7 +9,7 @@ interface Http
 
     function response($content);
 
-    function redirect($url, $mode = 301);
+    function redirect($url, $mode = 302);
 
     function finish($content = null);
 
