@@ -23,6 +23,7 @@ class Template extends \Smarty
 		$this->cache_dir = WEBPATH."/cache/pagecache";
 		$this->left_delimiter = "{{";
 		$this->right_delimiter = "}}";
+        \Swoole::$php->beforeRequest(array($this, '__init'));
 	}
 
 	function __init()
