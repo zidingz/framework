@@ -37,20 +37,6 @@ SwooleFramework: PHP的高级开发框架
 
 在线体验地址：<http://www.swoole.com/page/index/>
 
-赞助Swoole开源项目（支付宝）
------
-![捐赠Swoole开源项目](http://wiki.swoole.com/static/image/alipay.png)
-
-Composer
------
-```js
-{
-    "require": {
-        "matyhtf/swoole_framework": "dev-master"
-    }
-}
-```
-
 SwooleFramework应用服务器，需要安装swoole扩展。
 ```
 pecl install swoole
