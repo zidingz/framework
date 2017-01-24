@@ -18,7 +18,7 @@ class Session
      * 是否启动
      * @var bool
      */
-    public $isStart;
+    public $isStart = false;
     public $sessID;
     public $readonly; //是否为只读，只读不需要保存
     public $open;
@@ -32,9 +32,9 @@ class Session
     public $use_php_session =  true;
 
     static $sess_size = 32;
-    static $sess_name = 'SESSID';
     static $cookie_key = 'PHPSESSID';
-    static $sess_domain;
+    static $cookie_domain = null;
+    static $cookie_path = '/';
 
     /**
      * 构造函数
@@ -64,7 +64,8 @@ class Session
             if (empty($sessid))
             {
                 $sessid = RandomKey::randmd5(40);
-                Cookie::set(self::$cookie_key, $sessid, self::$cookie_lifetime);
+                \Swoole::$php->http->setCookie(self::$cookie_key, $sessid, time() + self::$cookie_lifetime,
+                    self::$cookie_path, self::$cookie_domain);
             }
             $_SESSION = $this->load($sessid);
         }
