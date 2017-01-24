@@ -706,11 +706,6 @@ class Swoole
         }
         //after action
         $this->callHook(self::HOOK_AFTER_ACTION);
-        //保存Session
-        if (defined('SWOOLE_SERVER') and $this->session->open and $this->session->readonly === false)
-        {
-            $this->session->save();
-        }
         //响应请求
         if (!empty($controller->is_ajax))
         {
