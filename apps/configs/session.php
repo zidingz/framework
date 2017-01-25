@@ -4,6 +4,6 @@ return array(
     'cache_id' => 'session',
     'use_php_session' => false,
     'session_lifetime' => 0,
-    'cookie_domain' => 'framework.com',
+    //'cookie_domain' => 'framework.com',
     'cookie_lifetime' => 86400000,
 );

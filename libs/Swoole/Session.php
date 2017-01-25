@@ -74,7 +74,7 @@ class Session
          */
         if (isset($config['session_lifetime']))
         {
-            $this->session_lifetime = intval($config['cache_lifetime']);
+            $this->session_lifetime = intval($config['session_lifetime']);
         }
         /**
          * 使用PHP提供的Session
