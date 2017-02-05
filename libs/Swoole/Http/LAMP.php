@@ -2,7 +2,7 @@
 namespace Swoole\Http;
 
 use Swoole\IFace\Http;
-use Swoole\Response;
+use Swoole;
 
 class LAMP implements Http
 {
@@ -13,7 +13,7 @@ class LAMP implements Http
 
     function status($code)
     {
-        header('HTTP/1.1 '. Response::$HTTP_HEADERS[$code]);
+        header('HTTP/1.1 '. Swoole\Response::$HTTP_HEADERS[$code]);
     }
 
     function response($content)
@@ -23,7 +23,7 @@ class LAMP implements Http
 
     function redirect($url, $mode = 302)
     {
-        header("HTTP/1.1 " . Response::$HTTP_HEADERS[$mode]);
+        header("HTTP/1.1 " . Swoole\Response::$HTTP_HEADERS[$mode]);
         header("Location: " . $url);
     }
 
