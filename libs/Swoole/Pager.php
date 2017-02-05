@@ -53,9 +53,21 @@ class Pager
             {
                 Error::info(__FUNCTION__, 'need a param of total');
             }
-
             $total = intval($array['total']);
+            /**
+             * 兼容不同的Key写法
+             */
+            if (isset($array['pagesize']))
+            {
+                $array['perpage'] = intval($array['pagesize']);
+            }
+            if (isset($array['page']))
+            {
+                $array['nowindex'] = intval($array['page']);
+            }
+            //每页多少条
             $perpage = isset($array['perpage']) ? intval($array['perpage']) : 10;
+            //当前页数
             $nowindex = isset($array['nowindex']) ? intval($array['nowindex']) : '';
             $url = isset($array['url']) ? $array['url'] : '';
         }
