@@ -118,6 +118,10 @@ class Request
      */
     function getClientIP()
     {
+        if (isset($this->server["HTTP_X_REAL_IP"]) and strcasecmp($this->server["HTTP_X_REAL_IP"], "unknown"))
+        {
+            return $this->server["HTTP_X_REAL_IP"];
+        }
         if (isset($this->server["HTTP_CLIENT_IP"]) and strcasecmp($this->server["HTTP_CLIENT_IP"], "unknown"))
         {
             return $this->server["HTTP_CLIENT_IP"];

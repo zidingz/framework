@@ -1,56 +1,109 @@
 <?php
 namespace Swoole;
+
 /**
  * 会话控制类
- * 通过SwooleCache系统实现会话控制，可支持FileCache,DBCache,Memcache以及更多
+ * 通过Swoole\Cache系统实现会话控制，可支持FileCache, DBCache, Memcache以及更多
  * @author Tianfeng.Han
- * @package SwooleSystem
- * @package Login
+ * @package Swoole
  */
 class Session
 {
+    protected $config;
+
     // 类成员属性定义
     static $cache_prefix = "phpsess_";
-    static $cookie_lifetime = 86400000;
-    static $cache_lifetime = 0;
+    static $cookie_key = 'PHPSESSID';
+    static $sess_size = 32;
 
     /**
      * 是否启动
      * @var bool
      */
-    public $isStart;
-    public $sessID;
-    public $readonly; //是否为只读，只读不需要保存
-    public $open;
-    protected $cache;
+    public $isStart = false;
+    protected $sessID;
+    protected $readonly; //是否为只读，只读不需要保存
 
+    /**
+     * @var IFace\Cache
+     */
+    protected $cache;
 
     /**
      * 使用PHP内建的SESSION
      * @var bool
      */
-    public $use_php_session =  true;
+    public $use_php_session = true;
 
-    static $sess_size = 32;
-    static $sess_name = 'SESSID';
-    static $cookie_key = 'PHPSESSID';
-    static $sess_domain;
+    protected $cookie_lifetime = 86400000;
+    protected $session_lifetime = 0;
+    protected $cookie_domain = null;
+    protected $cookie_path = '/';
 
-    /**
-     * 构造函数
-     * @param $cache IFace\Cache
-     */
-    public function __construct($cache = null)
+    public function __construct($config)
     {
-        $this->cache = $cache;
+        $this->config = $config;
+        /**
+         * 使用PHP提供的Session
+         */
+        if (isset($config['use_php_session']) and $config['use_php_session'])
+        {
+            $this->use_php_session = true;
+            return;
+        }
+
+        if (!empty('cache_id'))
+        {
+            $this->cache = Factory::getCache($config['cache_id']);
+        }
+        /**
+         * cookie过期时间
+         */
+        if (isset($config['cookie_lifetime']))
+        {
+            $this->cookie_lifetime = intval($config['cookie_lifetime']);
+        }
+        if (isset($config))
+        /**
+         * cookie的路径
+         */
+        if (isset($config['cookie_path']))
+        {
+            $this->cookie_path = $config['cookie_path'];
+        }
+        /**
+         * cookie域名
+         */
+        if (isset($config['cookie_domain']))
+        {
+            $this->cookie_domain = $config['cookie_domain'];
+        }
+        /**
+         * session的过期时间
+         */
+        if (isset($config['session_lifetime']))
+        {
+            $this->session_lifetime = intval($config['session_lifetime']);
+        }
+        $this->use_php_session = false;
+        /**
+         * 注册钩子，请求结束后保存Session
+         */
+        \Swoole::$php->afterRequest(array($this, 'save'));
     }
 
+    /**
+     * 启动会话
+     * @param bool $readonly
+     * @throws SessionException
+     */
     public function start($readonly = false)
     {
         if (empty(\Swoole::$php->request))
         {
             throw new SessionException("The method must be used when requested.");
         }
+
         $this->isStart = true;
         if ($this->use_php_session)
         {
@@ -59,18 +112,22 @@ class Session
         else
         {
             $this->readonly = $readonly;
-            $this->open = true;
             $sessid = Cookie::get(self::$cookie_key);
             if (empty($sessid))
             {
                 $sessid = RandomKey::randmd5(40);
-                Cookie::set(self::$cookie_key, $sessid, self::$cookie_lifetime);
+                \Swoole::$php->http->setCookie(self::$cookie_key, $sessid, time() + $this->cookie_lifetime,
+                    $this->cookie_path, $this->cookie_domain);
             }
             $_SESSION = $this->load($sessid);
         }
         \Swoole::$php->request->session = $_SESSION;
     }
 
+    /**
+     * 设置SessionID
+     * @param $session_id
+     */
     function setId($session_id)
     {
         $this->sessID = $session_id;
@@ -96,11 +153,17 @@ class Session
         }
     }
 
+    /**
+     * 加载Session
+     * @param $sessId
+     * @return array
+     */
     public function load($sessId)
     {
         $this->sessID = $sessId;
-        $data = $this->get($sessId);
-        if ($data)
+        $data = $this->cache->get(self::$cache_prefix . $sessId);
+        //先读数据，如果没有，就初始化一个
+        if (!empty($data))
         {
             return unserialize($data);
         }
@@ -110,107 +173,23 @@ class Session
         }
     }
 
+    /**
+     * 保存Session
+     * @return bool
+     */
     public function save()
     {
-        return $this->set($this->sessID, serialize($_SESSION));
-    }
-    /**
-     * 打开Session
-     * @param   String  $pSavePath
-     * @param   String  $pSessName
-     * @return  Bool    TRUE/FALSE
-     */
-    public function open($save_path='',$sess_name='')
-    {
-        self::$cache_prefix = $save_path.'_'.$sess_name;
-        return true;
-    }
-    /**
-     * 关闭Session
-     * @param   NULL
-     * @return  Bool    TRUE/FALSE
-     */
-    public function close()
-    {
-        return true;
-    }
-    /**
-     * 读取Session
-     * @param   String  $sessId
-     * @return  Bool    TRUE/FALSE
-     */
-    public function get($sessId)
-    {
-        $session = $this->cache->get(self::$cache_prefix . $sessId);
-        //先读数据，如果没有，就初始化一个
-        if (!empty($session))
+        /**
+         * 使用PHP Sesion，Readonl，未启动 这3种情况下不需要保存
+         */
+        if ($this->use_php_session or !$this->isStart or $this->readonly)
         {
-            return $session;
+            return true;
         }
-        else
-        {
-            return array();
-        }
-    }
-
-    /**
-     * 设置Session的值
-     * @param   String  $wSessId
-     * @param   String  $wData
-     * @return  Bool    true/FALSE
-     */
-    public function set($sessId, $session='')
-    {
-        $key = self::$cache_prefix . $sessId;
-        $ret = $this->cache->set($key, $session, self::$cache_lifetime);
-        return $ret;
-    }
-    /**
-     * 销毁Session
-     * @param   String  $wSessId
-     * @return  Bool    true/FALSE
-     */
-    public function delete($sessId = '')
-    {
-        return $this->cache->delete(self::$cache_prefix.$sessId);
-    }
-    /**
-     * 内存回收
-     * @param   NULL
-     * @return  Bool    true/FALSE
-     */
-    public function gc()
-    {
-        return true;
-    }
-    /**
-     * 初始化Session，配置Session
-     * @param   NULL
-     * @return  Bool  true/FALSE
-     */
-    function initSess()
-    {
-        //不使用 GET/POST 变量方式
-        ini_set('session.use_trans_sid', 0);
-        //设置垃圾回收最大生存时间
-        ini_set('session.gc_maxlifetime', self::$cache_lifetime);
-        //使用 COOKIE 保存 SESSION ID 的方式
-        ini_set('session.use_cookies', 1);
-        ini_set('session.cookie_path', '/');
-        //多主机共享保存 SESSION ID 的 COOKIE
-        ini_set('session.cookie_domain', self::$sess_domain);
-        //将 session.save_handler 设置为 user，而不是默认的 files
-        session_module_name('user');
-        //定义 SESSION 各项操作所对应的方法名
-        session_set_save_handler(
-            array($this, 'open'),
-            array($this, 'close'),
-            array($this, 'get'),
-            array($this, 'set'),
-            array($this, 'delete'),
-            array($this, 'gc'));
-        session_start();
-        return true;
+        //设置为Session关闭状态
+        $this->isStart = false;
+        $key = self::$cache_prefix . $this->sessID;
+        return $this->cache->set($key, serialize($_SESSION), $this->session_lifetime);
     }
 }
 

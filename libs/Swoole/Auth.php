@@ -216,7 +216,6 @@ class Auth
         }
         unset($_SESSION[self::$session_prefix . 'isLogin']);
         unset($_SESSION[self::$session_prefix . 'user_id']);
-
         if (!empty($_SESSION[self::$session_prefix . 'save_key']))
         {
             foreach ($_SESSION[self::$session_prefix . 'save_key'] as $sk)
@@ -225,10 +224,6 @@ class Auth
             }
         }
         unset($_SESSION[self::$session_prefix . 'save_key']);
-        if (isset($_COOKIE[self::$session_prefix . 'password']))
-        {
-            Cookie::set(self::$session_prefix . 'password', '', 0, '/');
-        }
         return true;
     }
 

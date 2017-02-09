@@ -1,19 +1,21 @@
 <?php
-if (!empty(Swoole::$php->config['session']['use_swoole_session']) or defined('SWOOLE_SERVER'))
+//未定义session配置，默认使用PHP session
+if (empty(Swoole::$php->config['session']))
 {
-    if (empty(Swoole::$php->config['cache']['session']))
-    {
-        $cache = Swoole::$php->cache;
-    }
-    else
-    {
-        $cache = Swoole\Factory::getCache('session');
-    }
-    $session = new Swoole\Session($cache);
-    $session->use_php_session = false;
+    $config = array('use_php_session' => true);
 }
 else
 {
-    $session = new Swoole\Session;
+    $config = Swoole::$php->config['session'];
 }
-return $session;
+//Server模式不支持php session
+if (defined('SWOOLE_SERVER'))
+{
+    $config['use_php_session'] = false;
+}
+//未设置session的cache
+if (empty($config['cache_id']))
+{
+    $config['cache_id'] = 'session';
+}
+return new Swoole\Session($config);
