@@ -43,6 +43,15 @@ class Session
     public function __construct($config)
     {
         $this->config = $config;
+        /**
+         * 使用PHP提供的Session
+         */
+        if (isset($config['use_php_session']) and $config['use_php_session'])
+        {
+            $this->use_php_session = true;
+            return;
+        }
+
         if (!empty('cache_id'))
         {
             $this->cache = Factory::getCache($config['cache_id']);
@@ -76,22 +85,11 @@ class Session
         {
             $this->session_lifetime = intval($config['session_lifetime']);
         }
+        $this->use_php_session = false;
         /**
-         * 使用PHP提供的Session
+         * 注册钩子，请求结束后保存Session
          */
-        if (isset($config['use_php_session']) and $config['use_php_session'])
-        {
-            $this->use_php_session = true;
-            return;
-        }
-        else
-        {
-            $this->use_php_session = false;
-            /**
-             * 注册钩子，请求结束后保存Session
-             */
-            \Swoole::$php->afterRequest(array($this, 'save'));
-        }
+        \Swoole::$php->afterRequest(array($this, 'save'));
     }
 
     /**
