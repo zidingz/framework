@@ -31,9 +31,6 @@ class AppFPM extends FastCGI
             {
                 $php->tpl->clear_all_assign();
             }
-            //还原session
-            $php->session->open = false;
-            $php->session->readonly = false;
         });
     }
 
