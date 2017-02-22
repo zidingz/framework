@@ -24,17 +24,6 @@ class Event
     function __construct($config)
     {
         $this->config = $config;
-        //同步模式，直接执行函数
-        if (isset($config['async']) and $config['async'])
-        {
-            $class = $config['type'];
-            if (!class_exists($class))
-            {
-                throw new Exception\NotFound("class $class not found.");
-            }
-            $this->_queue = new $class($config);
-            $this->async = true;
-        }
     }
 
     /**
@@ -94,7 +83,7 @@ class Event
         /**
          * 异步，将事件压入队列
          */
-        if ($this->async)
+        if (isset($config['async']) && $config['async'])
         {
             return $this->_queue->push(array('type' => $type, 'data' => $data));
         }
@@ -109,6 +98,14 @@ class Event
 
     function _worker()
     {
+        $class = $config['type'];
+        if (!class_exists($class))
+        {
+            throw new Exception\NotFound("class $class not found.");
+        }
+
+        $this->_queue = new $class($config);
+
         while ($this->_atomic->get() == 1)
         {
             $event = $this->_queue->pop();
