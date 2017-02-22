@@ -83,7 +83,7 @@ class Event
         /**
          * 异步，将事件压入队列
          */
-        if (isset($config['async']) && $config['async'])
+        if (isset($this->config['async']) && $this->config['async'])
         {
             return $this->_queue->push(array('type' => $type, 'data' => $data));
         }
