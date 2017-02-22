@@ -6,10 +6,6 @@ use Swoole\IFace;
 
 class Event
 {
-    /**
-     * @var IFace\Queue
-     */
-    protected $_queue;
     protected $_handles = array();
 
     /**
@@ -20,6 +16,11 @@ class Event
 
     protected $config;
     protected $async = false;
+
+    /**
+     * @var IFace\Queue
+     */
+    protected static $queue_instance = null;
 
     function __construct($config)
     {
@@ -85,7 +86,7 @@ class Event
          */
         if (isset($this->config['async']) && $this->config['async'])
         {
-            return $this->_queue->push(array('type' => $type, 'data' => $data));
+            return self::getQueueInstance()->push(array('type' => $type, 'data' => $data));
         }
         /**
          * 同步，直接在引发事件时处理
@@ -98,17 +99,11 @@ class Event
 
     function _worker()
     {
-        $class = $this->config['type'];
-        if (!class_exists($class))
-        {
-            throw new Exception\NotFound("class $class not found.");
-        }
-
-        $this->_queue = new $class($this->config);
+        $queue = self::getQueueInstance();
 
         while ($this->_atomic->get() == 1)
         {
-            $event = $this->_queue->pop();
+            $event = $queue->pop();
             if ($event)
             {
                 $this->_execute($event['type'], $event['data']);
@@ -193,5 +188,21 @@ class Event
             //停止运行
             $this->_atomic->set(0);
         });
+    }
+
+    protected static function getQueueInstance()
+    {
+        $class = $this->config['type'];
+        if (!class_exists($class))
+        {
+            throw new Exception\NotFound("class $class not found.");
+        }
+
+        if (is_null(self::$queue_instance))
+        {
+            self::$queue_instance = new $class($this->config);
+        }
+
+        return self::$queue_instance;
     }
 }
