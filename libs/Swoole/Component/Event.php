@@ -98,13 +98,13 @@ class Event
 
     function _worker()
     {
-        $class = $config['type'];
+        $class = $this->config['type'];
         if (!class_exists($class))
         {
             throw new Exception\NotFound("class $class not found.");
         }
 
-        $this->_queue = new $class($config);
+        $this->_queue = new $class($this->config);
 
         while ($this->_atomic->get() == 1)
         {
