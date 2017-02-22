@@ -6,6 +6,10 @@ use Swoole\IFace;
 
 class Event
 {
+    /**
+     * @var IFace\Queue
+     */
+    protected $_queue;
     protected $_handles = array();
 
     /**
@@ -16,11 +20,6 @@ class Event
 
     protected $config;
     protected $async = false;
-
-    /**
-     * @var IFace\Queue
-     */
-    protected static $queue_instance = null;
 
     function __construct($config)
     {
@@ -86,7 +85,7 @@ class Event
          */
         if (isset($this->config['async']) && $this->config['async'])
         {
-            return self::getQueueInstance()->push(array('type' => $type, 'data' => $data));
+            return $this->getQueueInstance()->push(array('type' => $type, 'data' => $data));
         }
         /**
          * 同步，直接在引发事件时处理
@@ -99,7 +98,7 @@ class Event
 
     function _worker()
     {
-        $queue = self::getQueueInstance();
+        $queue = $this->getQueueInstance();
 
         while ($this->_atomic->get() == 1)
         {
@@ -190,7 +189,7 @@ class Event
         });
     }
 
-    protected static function getQueueInstance()
+    protected function getQueueInstance()
     {
         $class = $this->config['type'];
         if (!class_exists($class))
@@ -198,11 +197,11 @@ class Event
             throw new Exception\NotFound("class $class not found.");
         }
 
-        if (is_null(self::$queue_instance))
+        if (is_null($this->_queue))
         {
-            self::$queue_instance = new $class($this->config);
+            $this->_queue = new $class($this->config);
         }
 
-        return self::$queue_instance;
+        return $this->_queue;
     }
 }
