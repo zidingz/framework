@@ -143,6 +143,23 @@ class Model
         }
     }
 
+    /**
+     * 批量插入数据
+     * @param array $fields
+     * @param array $data
+     * @return bool
+     */
+    public function puts(array $fields, array $data)
+    {
+        $c = count($data);
+        if ($c <= 0 or count($fields) <= 0)
+        {
+            return false;
+        }
+
+        return $this->db->insertBatch($fields, $data, $this->table);
+    }
+
 	/**
 	 * 更新ID为$id的记录,值为$data关联数组
 	 * @param $id

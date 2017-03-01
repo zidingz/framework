@@ -181,6 +181,21 @@ class Database
     }
 
     /**
+     * 批量插入$data数据库的表$table，$data为数据记录列表
+     * @param $fields array
+     * @param $data array
+     * @param $table string
+     * @return int
+     */
+    public function insertBatch(array $fields, array $data, $table)
+    {
+        $this->db_apt->init();
+        $this->db_apt->from($table);
+        $this->write_times += 1;
+        return $this->db_apt->insertBatch($fields, $data);
+    }
+
+    /**
 	 * 从$table删除一条$where为$id的记录
 	 * @param $id
 	 * @param $table
