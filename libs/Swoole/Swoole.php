@@ -382,16 +382,16 @@ class Swoole
     /**
      * 加载内置的Swoole模块
      * @param $module
-     * @param $key
+     * @param $id
      * @throws NotFound
      * @return mixed
      */
-    protected function loadModule($module, $key = 'master')
+    protected function loadModule($module, $id = 'master')
     {
-        $object_id = $module . '_' . $key;
-        if (empty($this->objects[$object_id]))
+        $key = $module . '_' . $id;
+        if (empty($this->objects[$key]))
         {
-            $this->factory_key = $key;
+            $this->factory_key = $id;
             $user_factory_file = self::$app_path . '/factory/' . $module . '.php';
             //尝试从用户工厂构建对象
             if (is_file($user_factory_file))
@@ -409,9 +409,9 @@ class Swoole
                 }
                 $object = require $system_factory_file;
             }
-            $this->objects[$object_id] = $object;
+            $this->objects[$key] = $object;
         }
-        return $this->objects[$object_id];
+        return $this->objects[$key];
     }
 
     /**
@@ -460,6 +460,7 @@ class Swoole
             {
                 $this->{$module} = null;
             }
+            unset($this->config[$module][$object_id]);
             return true;
         }
     }
