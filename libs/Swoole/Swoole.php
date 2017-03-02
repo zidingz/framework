@@ -414,6 +414,56 @@ class Swoole
         return $this->objects[$object_id];
     }
 
+    /**
+     * 卸载的Swoole模块
+     * @param $module
+     * @param $object_id
+     * @throws NotFound
+     * @return bool
+     */
+    function unloadModule($module, $object_id = 'all')
+    {
+        //卸载全部
+        if ($object_id == 'all')
+        {
+            $find = false;
+            foreach($this->objects as $key => $object)
+            {
+                list($name, $id) = explode('_', $key, 2);
+                //找到了此模块
+                if ($name === $module)
+                {
+                    $this->unloadModule($module, $id);
+                    $find = true;
+                }
+            }
+            return $find;
+        }
+        //卸载某个对象
+        else
+        {
+            $key = $module.'_'.$object_id;
+            if (empty($this->objects[$key]))
+            {
+                return false;
+            }
+            $object = $this->objects[$key];
+            //存在close方法，自动调用
+            if (is_object($object) and method_exists($object, 'close'))
+            {
+                call_user_func(array($object, 'close'));
+            }
+            //删除对象
+            unset($this->objects[$key]);
+            //master
+            if ($object_id == 'master')
+            {
+                $this->{$module} = null;
+            }
+            return true;
+        }
+    }
+
     function __call($func, $param)
     {
         //swoole built-in module

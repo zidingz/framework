@@ -16,8 +16,24 @@ require WEBPATH . '/libs/lib_config.php';
 //
 //exit;
 
+$r = Swoole::$php->db->query("show tables")->fetchall();
+var_dump($r);
+
+$r = Swoole::$php->db('slave')->query("show tables")->fetchall();
+var_dump($r);
+
+Swoole::$php->unloadModule('db', 'slave');
+var_dump(Swoole::$php);
+exit;
+
 $a = model('User');
-$a->gets(array());
+$r = $a->puts(array('username', 'mobile', 'realname'), array(
+    ['rango1', '153223211', 'rango2',],
+    ['rango2', '153223211', 'rango1',],
+    ['rango3', '153223211', 'rango2',],
+    ['rango4', '153223211', 'rango1',],
+));
+var_dump($r);
 exit;
 $r = table('user_profile')->put(array(
     //'uid' => 1234,
