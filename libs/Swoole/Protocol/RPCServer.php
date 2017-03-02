@@ -5,6 +5,8 @@ use Swoole;
 /**
  * RPC服务器
  * @package Swoole\Network
+ * @method beforeRequest
+ * @method afterRequest
  */
 class RPCServer extends Base implements Swoole\IFace\Protocol
 {
@@ -348,7 +350,18 @@ class RPCServer extends Base implements Swoole\IFace\Protocol
         {
             return array('errno' => self::ERR_NOFUNC);
         }
+        //前置方法
+        if (method_exists($this, 'beforeRequest'))
+        {
+            $this->beforeRequest($request);
+        }
+        //调用接口方法
         $ret = call_user_func_array($request['call'], $request['params']);
+        //后置方法
+        if (method_exists($this, 'afterRequest'))
+        {
+            $this->afterRequest($ret);
+        }
         //禁止接口返回NULL，客户端得到NULL时认为RPC调用失败
         if ($ret === NULL)
         {
