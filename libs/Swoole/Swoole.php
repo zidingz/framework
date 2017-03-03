@@ -442,6 +442,8 @@ class Swoole
         //卸载某个对象
         else
         {
+            //清除配置
+            unset($this->config[$module][$object_id]);
             $key = $module.'_'.$object_id;
             if (empty($this->objects[$key]))
             {
@@ -460,7 +462,6 @@ class Swoole
             {
                 $this->{$module} = null;
             }
-            unset($this->config[$module][$object_id]);
             return true;
         }
     }
