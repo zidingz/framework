@@ -426,6 +426,11 @@ class Swoole
         //卸载全部
         if ($object_id == 'all')
         {
+            //清除配置
+            if (isset($this->config[$module]))
+            {
+                unset($this->config[$module]);
+            }
             $find = false;
             foreach($this->objects as $key => $object)
             {
@@ -443,7 +448,10 @@ class Swoole
         else
         {
             //清除配置
-            unset($this->config[$module][$object_id]);
+            if (isset($this->config[$module][$object_id]))
+            {
+                unset($this->config[$module][$object_id]);
+            }
             $key = $module.'_'.$object_id;
             if (empty($this->objects[$key]))
             {
