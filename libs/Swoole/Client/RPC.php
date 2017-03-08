@@ -200,7 +200,7 @@ class RPC
      * @return bool
      * @throws \Exception
      */
-    protected function connectToServer(RPC_Result $retObj)
+    protected function connectToServer($retObj)
     {
         //循环连接
         while (count($this->servers) > 0)
