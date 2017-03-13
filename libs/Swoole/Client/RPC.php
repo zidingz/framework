@@ -68,6 +68,14 @@ class RPC
     }
 
     /**
+     * @param bool $keepSocket
+     */
+    public function setKeepSocket($keepSocket)
+    {
+        $this->keepSocket = $keepSocket;
+    }
+
+    /**
      * 设置编码类型
      * @param $json
      * @param $gzip
