@@ -175,7 +175,8 @@ class PdoDB extends \PDO implements Swoole\IDatabase
 	 */
 	function close()
 	{
-		unset($this);
+		//unset($this);
+		return;
 	}
 
     function quote($str)
