@@ -56,12 +56,23 @@ class RPC
     protected $user;
     protected $password;
 
+    private $keepSocket = false;    //让整个对象保持同一个socket，不再重新分配
+    private $keepSocketServer = array();    //对象保持同一个socket的服务器信息
+
     function __construct($id = null)
     {
         $key = empty($id) ? 'default' : $id;
         self::$_instances[$key] = $this;
         $this->haveSwoole = extension_loaded('swoole');
         $this->haveSockets = extension_loaded('sockets');
+    }
+
+    /**
+     * @param bool $keepSocket
+     */
+    public function setKeepSocket($keepSocket)
+    {
+        $this->keepSocket = $keepSocket;
     }
 
     /**
@@ -200,7 +211,7 @@ class RPC
      * @return bool
      * @throws \Exception
      */
-    protected function connectToServer(RPC_Result $retObj)
+    protected function connectToServer($retObj)
     {
         //循环连接
         while (count($this->servers) > 0)
@@ -431,6 +442,16 @@ class RPC
         {
             throw new \Exception("servers config empty.");
         }
+
+        if ($this->keepSocket) {
+            if (is_array($this->keepSocketServer) && count($this->keepSocketServer)) {
+                return $this->keepSocketServer;
+            } else {
+                $this->keepSocketServer = Tool::getServer($this->servers);
+                return $this->keepSocketServer;
+            }
+        }
+        //保留老的server获取方式
         return Tool::getServer($this->servers);
     }
 

@@ -382,16 +382,16 @@ class Swoole
     /**
      * 加载内置的Swoole模块
      * @param $module
-     * @param $key
+     * @param $id
      * @throws NotFound
      * @return mixed
      */
-    protected function loadModule($module, $key = 'master')
+    protected function loadModule($module, $id = 'master')
     {
-        $object_id = $module . '_' . $key;
-        if (empty($this->objects[$object_id]))
+        $key = $module . '_' . $id;
+        if (empty($this->objects[$key]))
         {
-            $this->factory_key = $key;
+            $this->factory_key = $id;
             $user_factory_file = self::$app_path . '/factory/' . $module . '.php';
             //尝试从用户工厂构建对象
             if (is_file($user_factory_file))
@@ -409,9 +409,69 @@ class Swoole
                 }
                 $object = require $system_factory_file;
             }
-            $this->objects[$object_id] = $object;
+            $this->objects[$key] = $object;
         }
-        return $this->objects[$object_id];
+        return $this->objects[$key];
+    }
+
+    /**
+     * 卸载的Swoole模块
+     * @param $module
+     * @param $object_id
+     * @throws NotFound
+     * @return bool
+     */
+    function unloadModule($module, $object_id = 'all')
+    {
+        //卸载全部
+        if ($object_id == 'all')
+        {
+            //清除配置
+            if (isset($this->config[$module]))
+            {
+                unset($this->config[$module]);
+            }
+            $find = false;
+            foreach($this->objects as $key => $object)
+            {
+                list($name, $id) = explode('_', $key, 2);
+                //找到了此模块
+                if ($name === $module)
+                {
+                    $this->unloadModule($module, $id);
+                    $find = true;
+                }
+            }
+            return $find;
+        }
+        //卸载某个对象
+        else
+        {
+            //清除配置
+            if (isset($this->config[$module][$object_id]))
+            {
+                unset($this->config[$module][$object_id]);
+            }
+            $key = $module.'_'.$object_id;
+            if (empty($this->objects[$key]))
+            {
+                return false;
+            }
+            $object = $this->objects[$key];
+            //存在close方法，自动调用
+            if (is_object($object) and method_exists($object, 'close'))
+            {
+                call_user_func(array($object, 'close'));
+            }
+            //删除对象
+            unset($this->objects[$key]);
+            //master
+            if ($object_id == 'master')
+            {
+                $this->{$module} = null;
+            }
+            return true;
+        }
     }
 
     function __call($func, $param)

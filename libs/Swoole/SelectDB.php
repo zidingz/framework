@@ -882,6 +882,55 @@ class SelectDB
     }
 
     /**
+     * 批量插入
+     * @param array $fields
+     * @param array $data
+     * @return Database\MySQLiRecord
+     */
+    function insertBatch(array $fields, array $data)
+    {
+        $field_str = "";
+        $c1 = count($fields) - 1;
+        $c2 = count($data) - 1;
+
+
+        /**
+         * 拼接字段
+         */
+        foreach ($fields as $k => $f)
+        {
+            $field_str .= '`' . $f . '`';
+            if ($k < $c1)
+            {
+                $field_str .= ', ';
+            }
+        }
+
+        $sql = 'INSERT INTO ' . $this->table . '(' . $field_str . ') VALUES ';
+
+        foreach ($data as $k => $v)
+        {
+            $sql .= '(';
+            foreach ($v as $k2 => $v2)
+            {
+                $v2 = $this->db->quote($v2);
+                $sql .= "'$v2'";
+                if ($k2 < $c1)
+                {
+                    $sql .= ", ";
+                }
+            }
+
+            $sql .= ')';
+            if ($k < $c2)
+            {
+                $sql .= ', ';
+            }
+        }
+        return $this->db->query($sql);
+    }
+
+    /**
      * 对符合当前条件的记录执行update
      * @param $data
      * @return bool
