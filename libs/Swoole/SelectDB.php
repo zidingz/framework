@@ -861,13 +861,23 @@ class SelectDB
 
         foreach($data as $key => $value)
         {
-            $value = $this->db->quote($value);
-            $field = $field . "`$key`,";
-            $values = $values . "'$value',";
+            if (!is_null($value))
+            {
+                $value = $this->db->quote($value);
+                $field = $field . "`$key`,";
+                $values = $values . "'$value',";
+            }
+            else
+            {
+                $field = $field . "`$key`,";
+                $values = $values . "null,";
+            }
         }
 
         $field = substr($field, 0, -1);
         $values = substr($values, 0, -1);
+        echo "insert into {$this->table} ($field) values($values)";
+        echo "\n";
         return $this->db->query("insert into {$this->table} ($field) values($values)");
     }
 
