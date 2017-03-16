@@ -938,6 +938,12 @@ class SelectDB
         $update = "";
         foreach ($data as $key => $value)
         {
+            if (is_null($value))
+            {
+                $update = $update . "`$key`=null,";
+                continue;
+            }
+
             $value = $this->db->quote($value);
             if ($value != '' and $value{0} == '`')
             {
