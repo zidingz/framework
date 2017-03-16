@@ -876,8 +876,6 @@ class SelectDB
 
         $field = substr($field, 0, -1);
         $values = substr($values, 0, -1);
-        echo "insert into {$this->table} ($field) values($values)";
-        echo "\n";
         return $this->db->query("insert into {$this->table} ($field) values($values)");
     }
 
