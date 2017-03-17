@@ -242,7 +242,7 @@ HTMLS;
         {
             $output = '<fieldset style="margin:5px;"><div style="overflow:auto;text-align:left;">';
             $this->session->start();
-            $output .= "<h2>SESSION:</h2>" . Tool::dump($request->session);
+            $output .= "<h2>SESSION:</h2>" . Tool::dump($this->request->session);
             $html .= $output."</div></fieldset>";
         }
 
