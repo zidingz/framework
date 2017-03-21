@@ -591,6 +591,7 @@ class Tool
             }
         }
         //绝不会到这里
+        $servers = array_values($servers);
         return $servers[0];
     }
 

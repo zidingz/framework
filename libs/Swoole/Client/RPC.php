@@ -213,16 +213,24 @@ class RPC
      */
     protected function connectToServer($retObj)
     {
+        $servers = $this->servers;
         //循环连接
-        while (count($this->servers) > 0)
+        while (count($servers) > 0)
         {
-            $svr = $this->getServer();
+            $svr = $this->getServer($servers);
             $socket = $this->getConnection($svr['host'], $svr['port']);
             //连接失败，服务器节点不可用
             //TODO 如果连接失败，需要上报机器存活状态
             if ($socket === false)
             {
-                $this->onConnectServerFailed($svr);
+                foreach($servers as $k => $v)
+                {
+                    if ($v['host'] == $svr['host'] and $v['port'] == $svr['port'])
+                    {
+                        //从Server列表中移除
+                        unset($servers[$k]);
+                    }
+                }
             }
             else
             {
@@ -433,45 +441,33 @@ class RPC
 
     /**
      * 从配置中取出一个服务器配置
+     * @param $servers array
      * @return array
      * @throws \Exception
      */
-    function getServer()
+    function getServer($servers)
     {
-        if (empty($this->servers))
+        if (empty($servers))
         {
             throw new \Exception("servers config empty.");
         }
 
-        if ($this->keepSocket) {
-            if (is_array($this->keepSocketServer) && count($this->keepSocketServer)) {
-                return $this->keepSocketServer;
-            } else {
-                $this->keepSocketServer = Tool::getServer($this->servers);
-                return $this->keepSocketServer;
-            }
-        }
-        //保留老的server获取方式
-        return Tool::getServer($this->servers);
-    }
-
-    /**
-     * 连接服务器失败了
-     * @param $svr
-     * @return bool
-     */
-    function onConnectServerFailed($svr)
-    {
-        foreach($this->servers as $k => $v)
+        if ($this->keepSocket)
         {
-            if ($v['host'] == $svr['host'] and $v['port'] == $svr['port'])
+            if (is_array($this->keepSocketServer) && count($this->keepSocketServer))
             {
-                //从Server列表中移除
-                unset($this->servers[$k]);
-                return true;
+                return $this->keepSocketServer;
+            }
+            else
+            {
+                $this->keepSocketServer = Tool::getServer($servers);
+
+                return $this->keepSocketServer;
             }
         }
-        return false;
+
+        //保留老的server获取方式
+        return Tool::getServer($servers);
     }
 
     /**
