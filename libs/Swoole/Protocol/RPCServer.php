@@ -154,7 +154,7 @@ class RPCServer extends Base implements Swoole\IFace\Protocol
             $ret = $this->server->send($fd, self::encode($response, $_header['type'], $_header['uid'], $_header['serid']));
             if ($ret === false)
             {
-                trigger_error("SendToClient failed. params=".var_export($request, true)."\nheaders=".var_export($_header, true), E_USER_WARNING);
+                trigger_error("SendToClient failed. code=".$this->server->getLastError()." params=".var_export($request, true)."\nheaders=".var_export($_header, true), E_USER_WARNING);
             }
             //退出进程
             if (self::$stop)
