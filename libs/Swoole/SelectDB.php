@@ -861,17 +861,9 @@ class SelectDB
 
         foreach($data as $key => $value)
         {
-            if (!is_null($value))
-            {
-                $value = $this->db->quote($value);
-                $field = $field . "`$key`,";
-                $values = $values . "'$value',";
-            }
-            else
-            {
-                $field = $field . "`$key`,";
-                $values = $values . "null,";
-            }
+            $value = $this->db->quote($value);
+            $field = $field . "`$key`,";
+            $values = $values . "'$value',";
         }
 
         $field = substr($field, 0, -1);
@@ -938,12 +930,6 @@ class SelectDB
         $update = "";
         foreach ($data as $key => $value)
         {
-            if (is_null($value))
-            {
-                $update = $update . "`$key`=null,";
-                continue;
-            }
-
             $value = $this->db->quote($value);
             if ($value != '' and $value{0} == '`')
             {
