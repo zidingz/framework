@@ -35,6 +35,7 @@ class Server extends Base implements Driver
      */
     protected $sw;
     protected $pid_file;
+    static public $swoole;
 
     /**
      * 设置PID文件
@@ -380,6 +381,7 @@ class Server extends Base implements Driver
             $this->sw->on('Task', array($this->protocol, 'onTask'));
             $this->sw->on('Finish', array($this->protocol, 'onFinish'));
         }
+        self::$swoole = $this->sw;
         $this->sw->start();
     }
 
@@ -412,6 +414,15 @@ class Server extends Base implements Driver
     function send($client_id, $data)
     {
         return $this->sw->send($client_id, $data);
+    }
+
+    static function task($data,$func)
+    {
+        $params = array(
+            'func' => $func,
+            'data' => $data,
+        );
+        self::$swoole->task($params);
     }
 
     function __call($func, $params)
