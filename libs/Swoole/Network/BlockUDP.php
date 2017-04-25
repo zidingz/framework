@@ -1,7 +1,7 @@
 <?php
 namespace Swoole\Network;
 
-class SelectUDP extends \Swoole\Server\Base
+class BlockUDP extends \Swoole\Server\Base
 {
     public $server_block = 1;
     function __construct($host,$port,$timeout=30)
