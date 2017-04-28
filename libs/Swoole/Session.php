@@ -112,12 +112,15 @@ class Session
         else
         {
             $this->readonly = $readonly;
-            $sessid = Cookie::get(self::$cookie_key);
-            if (empty($sessid))
-            {
-                $sessid = RandomKey::randmd5(40);
-                \Swoole::$php->http->setCookie(self::$cookie_key, $sessid, time() + $this->cookie_lifetime,
-                    $this->cookie_path, $this->cookie_domain);
+            $sessid = $this->sessID;
+            if (empty($sessid)){
+                $sessid = Cookie::get(self::$cookie_key);
+                if (empty($sessid))
+                {
+                    $sessid = RandomKey::randmd5(40);
+                    \Swoole::$php->http->setCookie(self::$cookie_key, $sessid, time() + $this->cookie_lifetime,
+                        $this->cookie_path, $this->cookie_domain);
+                }
             }
             $_SESSION = $this->load($sessid);
         }
