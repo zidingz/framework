@@ -631,6 +631,8 @@ class RPC
                                 $retObj->code = RPC_Result::ERR_CLOSED;
                                 unset($this->waitList[$retObj->requestId]);
                                 $this->closeConnection($retObj->server_host, $retObj->server_port);
+                                //执行after钩子函数
+                                $this->afterRequest($retObj);
                             }
                         }
                         continue;
