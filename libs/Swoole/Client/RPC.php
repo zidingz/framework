@@ -218,6 +218,10 @@ class RPC
         while (count($servers) > 0)
         {
             $svr = $this->getServer($servers);
+            if (empty($svr))
+            {
+                return false;
+            }
             $socket = $this->getConnection($svr['host'], $svr['port']);
             //连接失败，服务器节点不可用
             //TODO 如果连接失败，需要上报机器存活状态
