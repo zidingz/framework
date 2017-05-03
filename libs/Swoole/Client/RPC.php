@@ -235,6 +235,10 @@ class RPC
                         unset($servers[$k]);
                     }
                 }
+                if ($this->keepSocket) {
+                    //若连接失败，则清除掉该server
+                    $this->keepSocketServer = array();
+                }
             }
             else
             {

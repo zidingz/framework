@@ -214,8 +214,20 @@ class Upload
             $this->error_code = 4;
             return false;
         }
-
         $save_filename = rtrim($path) . '/' . ltrim($filename);
+
+        $base_url = $this->base_url;
+        if (substr($base_url,-1) != "/"){
+            $base_url.="/";
+        }
+        $_sub_dir = "";
+        if (!empty($this->sub_dir)){
+            $_sub_dir = $this->sub_dir;
+            if (substr($_sub_dir,-1) != "/"){
+                $_sub_dir .= "/";
+            }
+        }
+
     	//写入文件
         if (self::moveUploadFile($_FILES[$name]['tmp_name'], $save_filename))
         {
@@ -230,7 +242,7 @@ class Upload
                     $this->thumb_width,
                     $this->thumb_height,
                     $this->thumb_qulitity);
-                $return['thumb'] =  "{$this->base_url}/{$this->sub_dir}/{$sub_dir}/{$thumb_file}";
+                $return['thumb'] =   $base_url.$_sub_dir."{$sub_dir}/{$thumb_file}";
             }
             //压缩图片
             if ($this->max_width and in_array($filetype, array('gif', 'jpg', 'jpeg', 'bmp', 'png')))
@@ -241,7 +253,7 @@ class Upload
                     $this->max_height,
                     $this->max_qulitity);
             }
-            $return['url'] = "{$this->base_url}/{$this->sub_dir}/{$sub_dir}/{$filename}";
+            $return['url']  = $base_url.$_sub_dir."{$sub_dir}/{$filename}";
             $return['size'] = $filesize;
             $return['type'] = $filetype;
             return $return;
