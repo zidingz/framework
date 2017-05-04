@@ -1,6 +1,8 @@
 <?php
 namespace Swoole;
 
+use Swoole\Component\QueryBuilder;
+
 /**
  * Model类，ORM基础类，提供对某个数据库表的接口
  * @author Tianfeng Han
@@ -463,4 +465,13 @@ class Model
 	{
 
 	}
+
+    /**
+     * @param $fields
+     * @return QueryBuilder
+     */
+    function select($fields = '*')
+    {
+        return new QueryBuilder($this->db, $this->table, $fields);
+    }
 }

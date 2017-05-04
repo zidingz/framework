@@ -95,4 +95,26 @@ class Db extends Swoole\Controller
         var_dump($ret1->result->fetchall());
         var_dump($ret2->result->fetchall());
     }
+
+    function linked()
+    {
+        $table = table('user_login');
+        $this->db->debug = true;
+        $r = $table->select('realname, id')
+            ->where('username', '=', 'rango')
+            ->where('id = 3')
+//            ->where(array('id' => 3, 'username' => 'rango'))
+            ->orWhere('id', '=', 1)
+            ->fetch();
+        var_dump($r);
+//        $conn = DriverManager::getConnection(array(/*..*/));
+//        $queryBuilder = $conn->createQueryBuilder();
+//
+//        $queryBuilder
+//            ->select('id', 'name')
+//            ->from('users')
+//            ->where('email = ?')
+//            ->setParameter(0, $userInputEmail)
+//        ;
+    }
 }

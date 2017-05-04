@@ -76,6 +76,9 @@ class SelectDB
      */
     public $db;
 
+    /**
+     * @param $db
+     */
     function __construct($db)
     {
         $this->db = $db;
@@ -205,10 +208,10 @@ class SelectDB
      * @param $like
      * @return null
      */
-    function like($field,$like)
+    function like($field, $like)
     {
         self::sql_safe($field);
-        $this->where("`{$field}` like '{$like}'");
+        $this->where($field, 'like', $like);
     }
 
     /**
@@ -218,6 +221,17 @@ class SelectDB
      */
     function orwhere($where)
     {
+        $args = func_get_args();
+        if (count($args) == 1)
+        {
+            $where = $args[0];
+        }
+        else
+        {
+            list($field, $expr, $value) = $args;
+            $where = '`'.str_replace('`', '', $field).'`' . $this->db->quote($expr) . " '".$this->db->quote($value)."'";
+        }
+
         if ($this->where == "")
         {
             $this->where = "where " . $where;
@@ -313,7 +327,7 @@ class SelectDB
      */
     function find($field, $find)
     {
-        $this->where("find_in_set('" . $this->db->quote($find) . "', `{$field}`)");
+        $this->where("FIND_IN_SET('" . $this->db->quote($find) . "', `{$field}`)");
     }
 
     /**
@@ -333,7 +347,7 @@ class SelectDB
             //去掉两边的分号
             $ins = trim($ins, ',');
         }
-        $this->where("`$field` in ({$ins})");
+        $this->where("`$field` IN ({$ins})");
     }
 
     /**
@@ -353,7 +367,7 @@ class SelectDB
             //去掉两边的分号
             $ins = trim($ins, ',');
         }
-        $this->where("`$field` not in ({$ins})");
+        $this->where("`$field` NOT IN ({$ins})");
     }
 
     /**
@@ -362,9 +376,9 @@ class SelectDB
      * @param $on
      * @return null
      */
-    function join($table_name,$on)
+    function join($table_name, $on)
     {
-        $this->join.="INNER JOIN `{$table_name}` ON ({$on})";
+        $this->join .= "INNER JOIN `{$table_name}` ON ({$on})";
     }
 
     /**
@@ -373,9 +387,9 @@ class SelectDB
      * @param $on
      * @return null
      */
-    function leftjoin($table_name,$on)
+    function leftjoin($table_name, $on)
     {
-        $this->join.="LEFT JOIN `{$table_name}` ON ({$on})";
+        $this->join .= "LEFT JOIN `{$table_name}` ON ({$on})";
     }
 
     /**
@@ -384,9 +398,9 @@ class SelectDB
      * @param $on
      * @return null
      */
-    function rightjoin($table_name,$on)
+    function rightjoin($table_name, $on)
     {
-        $this->join.="RIGHT JOIN `{$table_name}` ON ({$on})";
+        $this->join .= "RIGHT JOIN `{$table_name}` ON ({$on})";
     }
 
     /**
