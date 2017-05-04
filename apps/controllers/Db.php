@@ -98,23 +98,24 @@ class Db extends Swoole\Controller
 
     function linked()
     {
-        $table = table('user_login');
+        $table = table('test_table');
         $this->db->debug = true;
-        $r = $table->select('realname, id')
-            ->where('username', '=', 'rango')
-            ->where('id = 3')
+        $selector = $table->select('realname, id');
+        $list = $selector->paginate($_GET['page'], 10)
+//            ->where('username', '=', 'rango')
+//            ->where('id = 3')
 //            ->where(array('id' => 3, 'username' => 'rango'))
-            ->orWhere('id', '=', 1)
-            ->fetch();
-        var_dump($r);
-//        $conn = DriverManager::getConnection(array(/*..*/));
-//        $queryBuilder = $conn->createQueryBuilder();
-//
-//        $queryBuilder
-//            ->select('id', 'name')
-//            ->from('users')
-//            ->where('email = ?')
-//            ->setParameter(0, $userInputEmail)
-//        ;
+//            ->orWhere('id', '=', 1)
+            ->fetchall();
+
+        $pager = $selector->getPager();
+
+        $pager->disableLast();
+
+        echo Swoole\HTML::parseList($list, function ($k, $v) {
+            return "$k: " . ($v['realname'] ? $v['realname'] : $v['id']);
+        });
+
+        echo $pager->render();
     }
 }

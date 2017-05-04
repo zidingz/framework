@@ -26,10 +26,15 @@ class QueryBuilder
     function where()
     {
         $args = func_get_args();
-        if (count($args) == 3)
+        $argc = count($args);
+        if ($argc == 3)
         {
             $this->selector->where($args[0], $args[1], $args[2]);
 
+        }
+        elseif ($argc == 2)
+        {
+            $this->selector->equal($args[0], $args[1]);
         }
         else
         {
@@ -124,10 +129,15 @@ class QueryBuilder
     function orWhere()
     {
         $args = func_get_args();
-        if (count($args) == 3)
+        $argc = count($args);
+        if ($argc == 3)
         {
             $this->selector->orwhere($args[0], $args[1], $args[2]);
 
+        }
+        elseif ($argc == 2)
+        {
+            $this->selector->orwhere($args[0], '=', $args[1]);
         }
         else
         {
@@ -209,6 +219,23 @@ class QueryBuilder
     function having($expr)
     {
         $this->selector->having($expr);
+
+        return $this;
+    }
+
+    /**
+     * @return \Swoole\Pager
+     */
+    function getPager()
+    {
+        return $this->selector->pager;
+    }
+
+    function paginate($page, $pagesize = 10)
+    {
+        $this->selector->page($page);
+        $this->selector->pagesize($pagesize);
+        $this->selector->paging();
 
         return $this;
     }

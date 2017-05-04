@@ -55,6 +55,10 @@ class SelectDB
     public $num = 0;
     public $pages = 0;
     public $page = 0;
+
+    /**
+     * @var Pager
+     */
     public $pager = null;
 
     public $auto_cache = false;

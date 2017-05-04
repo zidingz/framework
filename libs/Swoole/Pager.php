@@ -40,6 +40,8 @@ class Pager
     public $offset = 0;
     public $style;
 
+    protected $noLastPage = false;
+
     /**
 	 * constructor构造函数
 	 *
@@ -158,6 +160,10 @@ class Pager
 	 */
     function last_page()
     {
+        if ($this->noLastPage)
+        {
+            return '';
+        }
         $style = @$this->span_class['last'];
         if ($this->page == $this->totalpage)
         {
@@ -314,5 +320,10 @@ class Pager
     {
         $style = (empty($style)) ? '' : 'class="' . $style . '"';
         return '<a ' . $style . 'href="' . $url . '">' . $text . '</a>';
+    }
+
+    function disableLast()
+    {
+        $this->noLastPage = true;
     }
 }

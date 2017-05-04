@@ -21,6 +21,27 @@ class HTML
 	    return preg_replace('#<!--[^>]*-->#','',$content);
 	}
 
+    static function parseList(array $array, callable $callback, $class = '')
+    {
+        if ($class)
+        {
+            $html = "<ul class='$class'>";
+        }
+        else
+        {
+            $html = '<ul>';
+        }
+
+        foreach ($array as $k => $v)
+        {
+            $out = $callback($k, $v);
+            $html .= '<li>' . $out . '</li>';
+        }
+        $html .= '</ul>';
+
+        return $html;
+    }
+
     /**
      * 解析相对路径
      * @param $current
