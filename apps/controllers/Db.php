@@ -99,7 +99,7 @@ class Db extends Swoole\Controller
     function linked()
     {
         $table = table('test_table');
-        $this->db->debug = true;
+//        $this->db->debug = true;
         $selector = $table->select('realname, id');
         $list = $selector->paginate($_GET['page'], 10)
 //            ->where('username', '=', 'rango')
@@ -109,8 +109,8 @@ class Db extends Swoole\Controller
             ->fetchall();
 
         $pager = $selector->getPager();
-
-        $pager->disableLast();
+//        $pager->disable('last');
+//        $pager->disable('first');
 
         echo Swoole\HTML::parseList($list, function ($k, $v) {
             return "$k: " . ($v['realname'] ? $v['realname'] : $v['id']);

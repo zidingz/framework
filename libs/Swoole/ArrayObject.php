@@ -117,6 +117,15 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         return $this->array[array_rand($this->array, 1)];
     }
 
+    /**
+     * 移除元素
+     * @param $value
+     */
+    function remove($value)
+    {
+        unset($this->array[$this->search($value)]);
+    }
+
     function toArray()
     {
         return $this->array;
