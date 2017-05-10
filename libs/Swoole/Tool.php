@@ -183,10 +183,11 @@ class Tool
         }
         return $result;
     }
+
     /**
      * 多久之前
      * @param $datetime
-     * @return unknown_type
+     * @return string
      */
     static function howLongAgo($datetime)
     {
