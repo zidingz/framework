@@ -51,7 +51,7 @@ class RPC
     protected static $_instances = array();
 
     protected $encode_gzip = false;
-    protected $encode_json = false;
+    protected $encode_type = RPCServer::DECODE_PHP;
 
     protected $user;
     protected $password;
@@ -77,14 +77,18 @@ class RPC
 
     /**
      * 设置编码类型
-     * @param $json
+     * @param $type
      * @param $gzip
      */
-    function setEncodeType($json, $gzip)
+    function setEncodeType($type, $gzip)
     {
-        if ($json)
+        if ($type == RPCServer::DECODE_SWOOLE && (substr(PHP_VERSION, 0, 1) != '7'))
         {
-            $this->encode_json = true;
+            throw new \Exception("swoole_serialize only use in phpng");
+        }
+        else
+        {
+            $this->encode_type = $type;
         }
         if ($gzip)
         {
@@ -272,7 +276,7 @@ class RPC
         //请求串号
         $retObj->requestId = self::getRequestId();
         //打包格式
-        $encodeType = $this->encode_json ? RPCServer::DECODE_JSON : RPCServer::DECODE_PHP;
+        $encodeType = $this->encode_type;
         if ($this->encode_gzip)
         {
             $encodeType |= RPCServer::DECODE_GZIP;

@@ -55,6 +55,7 @@ class RPCServer extends Base implements Swoole\IFace\Protocol
     const DECODE_PHP            = 1;   //使用PHP的serialize打包
     const DECODE_JSON           = 2;   //使用json_encode打包
     const DECODE_MSGPACK        = 3;   //使用msgpack打包
+    const DECODE_SWOOLE         = 4;   //使用swoole_serialize打包
     const DECODE_GZIP           = 128; //启用GZIP压缩
 
     const ALLOW_IP              = 1;
@@ -216,6 +217,9 @@ class RPCServer extends Base implements Swoole\IFace\Protocol
             case self::DECODE_JSON:
                 $body = json_encode($data);
                 break;
+            case self::DECODE_SWOOLE:
+                $body = \swoole_serialize::pack($data);
+                break;
             case self::DECODE_PHP:
             default:
                 $body = serialize($data);
@@ -245,6 +249,8 @@ class RPCServer extends Base implements Swoole\IFace\Protocol
         {
             case self::DECODE_JSON:
                 return json_decode($data, true);
+            case self::DECODE_SWOOLE:
+                return \swoole_serialize::unpack($data);
             case self::DECODE_PHP;
             default:
                 return unserialize($data);
