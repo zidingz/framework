@@ -8,7 +8,7 @@ class Controller extends Object
     public $is_ajax = false;
 
     /**
-     * 是否对GET/POST/REQUEST/COOKIE参数进行转意
+     * 是否对GET/POST/REQUEST/COOKIE参数进行转义
      * @var bool
      */
     public $if_filter = true;
