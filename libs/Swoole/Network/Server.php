@@ -161,20 +161,6 @@ class Server extends Base implements Driver
             {
                 call_user_func(self::$beforeReloadCallback, $opt);
             }
-            /**
-             * 清理Opcache缓存
-             */
-            if (function_exists('opcache_reset'))
-            {
-                opcache_reset();
-            }
-            /**
-             * 清理APC缓存
-             */
-            if (function_exists('apc_clear_cache'))
-            {
-                apc_clear_cache();
-            }
             \Swoole::$php->os->kill($server_pid, SIGUSR1);
             exit;
         }
@@ -310,6 +296,21 @@ class Server extends Base implements Driver
 
     function onWorkerStart($serv, $worker_id)
     {
+        /**
+         * 清理Opcache缓存
+         */
+        if (function_exists('opcache_reset'))
+        {
+            opcache_reset();
+        }
+        /**
+         * 清理APC缓存
+         */
+        if (function_exists('apc_clear_cache'))
+        {
+            apc_clear_cache();
+        }
+
         if ($worker_id >= $serv->setting['worker_num'])
         {
             Swoole\Console::setProcessName($this->getProcessName() . ': task');
