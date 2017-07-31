@@ -137,11 +137,12 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
     /**
      * 执行一个SQL语句
      * @param string $sql 执行的SQL语句
+     * @param int $resultmode
      * @return MySQLiRecord | false
      */
-    function query($sql)
+    function query($sql, $resultmode = MYSQLI_STORE_RESULT)
     {
-        $result = $this->tryReconnect(array('parent', 'query'), array($sql));
+        $result = $this->tryReconnect(array('parent', 'query'), array($sql,$resultmode));
         if (!$result)
         {
             trigger_error(__CLASS__." SQL Error:". $this->errorMessage($sql), E_USER_WARNING);

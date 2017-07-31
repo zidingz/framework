@@ -765,7 +765,7 @@ class SelectDB
         {
             $this->exeucte();
         }
-        if ($this->result)
+        if (!is_bool($this->result))
         {
             return $this->result->fetchall();
         }

@@ -61,13 +61,13 @@ class Console
     {
         if (function_exists('cli_set_process_title'))
         {
-            cli_set_process_title($name);
+            @cli_set_process_title($name);
         }
         else
         {
             if (function_exists('swoole_set_process_name'))
             {
-                swoole_set_process_name($name);
+                @swoole_set_process_name($name);
             }
             else
             {

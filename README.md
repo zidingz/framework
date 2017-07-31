@@ -14,7 +14,7 @@ SwooleFramework: PHP的高级开发框架
 -----
 使用内置应用服务器，可节省每次请求代码来的额外消耗。连接池技术可以很好的帮助存储系统节省连接资源。
 
-###Swoole应用服务器支持的特性###
+### Swoole应用服务器支持的特性
 * 热部署，代码更新后即刻生效。依赖runkit扩展（ <https://github.com/zenovich/runkit> ）
 * MaxRequest进程回收机制，防止内存泄露
 * 支持使用Windows作为开发环境
@@ -27,7 +27,7 @@ SwooleFramework: PHP的高级开发框架
 * 支持Session/Cookie
 * 支持Http/FastCGI两种协议
 
-###Swoole框架额外提供的网络协议###
+### Swoole框架额外提供的网络协议
 * WebSocket协议支持，并附带一个基于websocket协议的webim系统
 * 普通Web服务器，可支持静态文件和普通include php方式的程序
 * SOA逻辑层服务器/客户端，支持并行请求
