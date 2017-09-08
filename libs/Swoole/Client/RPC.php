@@ -82,7 +82,7 @@ class RPC
      */
     function setEncodeType($type, $gzip)
     {
-        if ($type == RPCServer::DECODE_SWOOLE && (substr(PHP_VERSION, 0, 1) != '7'))
+        if ($type === RPCServer::DECODE_SWOOLE and (substr(PHP_VERSION, 0, 1) != '7'))
         {
             throw new \Exception("swoole_serialize only use in phpng");
         }
