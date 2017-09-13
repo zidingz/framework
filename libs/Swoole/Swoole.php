@@ -637,6 +637,10 @@ class Swoole
                     $this->server->httpError(500, $response, $e->getMessage());
                 }
             }
+            catch (Swoole\Exception\NotFound $e)
+            {
+                $this->server->httpError(404, $response, $e->getMessage());
+            }
         }
         catch (\Exception $e)
         {
