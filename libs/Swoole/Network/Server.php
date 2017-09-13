@@ -258,7 +258,12 @@ class Server extends Base implements Driver
     {
         $this->runtimeSetting['daemonize'] = 1;
     }
-
+    
+    function connections()
+    {
+        return $this->sw->connections;
+    }
+    
     function connection_info($fd)
     {
         return $this->sw->connection_info($fd);
