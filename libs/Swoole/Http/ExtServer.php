@@ -20,7 +20,7 @@ class ExtServer implements Swoole\IFace\Http
     public $response;
 
     public $document_root;
-    public $charest = 'utf-8';
+    public $charset = 'utf-8';
     public $expire_time = 86400;
     const DATE_FORMAT_HTTP = 'D, d-M-Y H:i:s T';
 
@@ -148,7 +148,7 @@ class ExtServer implements Swoole\IFace\Http
             $extname = Swoole\Upload::getFileExt($file);
             if (empty($this->types[$extname]))
             {
-                $mime_type = 'text/html; charset='.$this->charest;
+                $mime_type = 'text/html; charset='.$this->charset;
             }
             else
             {
