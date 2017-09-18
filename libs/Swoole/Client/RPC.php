@@ -678,6 +678,21 @@ class RPC
         $this->requestIndex = 0;
         return $success_num;
     }
+
+    /**
+     * 关闭所有连接
+     */
+    function close()
+    {
+        foreach ($this->connections as $key => $socket)
+        {
+            /**
+             * @var $socket \swoole_client
+             */
+            $socket->close();
+            unset($this->connections[$key]);
+        }
+    }
 }
 
 /**
