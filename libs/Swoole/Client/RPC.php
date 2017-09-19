@@ -689,7 +689,7 @@ class RPC
             /**
              * @var $socket \swoole_client
              */
-            $socket->close();
+            $socket->close(true);
             unset($this->connections[$key]);
         }
     }
