@@ -82,6 +82,16 @@ class RPC
      */
     function setEncodeType($type, $gzip)
     {
+        //兼容老版本，老版本true代表用json false代表serialize
+        if($type === true)
+        {
+            $type = RPCServer::DECODE_JSON;
+        }
+        if($type === false)
+        {
+            $type = RPCServer::DECODE_PHP;
+        }
+        
         if ($type === RPCServer::DECODE_SWOOLE and (substr(PHP_VERSION, 0, 1) != '7'))
         {
             throw new \Exception("swoole_serialize only use in phpng");
