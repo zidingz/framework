@@ -84,7 +84,7 @@ class RPCServer extends Base implements Swoole\IFace\Protocol
         $this->log("Timer[$interval] call");
     }
 
-    function onReceive($serv, $fd, $from_id, $data)
+    function onReceive($serv, $fd, $reactor_id, $data)
     {
         if (!isset($this->_buffer[$fd]) or $this->_buffer[$fd] === '')
         {
