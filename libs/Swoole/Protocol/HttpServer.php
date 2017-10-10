@@ -233,6 +233,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
         $request = $this->requests[$client_id];
 
         $request->fd = $client_id;
+        $request->time = time();
 
         /**
          * Socket连接信息
@@ -287,7 +288,6 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     function parseRequest($request)
     {
         $url_info = parse_url($request->meta['uri']);
-        $request->time = time();
         $request->meta['path'] = $url_info['path'];
         if (isset($url_info['fragment'])) $request->meta['fragment'] = $url_info['fragment'];
         if (isset($url_info['query']))
