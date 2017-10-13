@@ -1,20 +1,24 @@
 <?php
 namespace Swoole\Database;
 use Swoole;
+
 /**
  * MySQL数据库封装类
- *
- * @package SwooleExtend
  * @author  Tianfeng.Han
- *
+ * @version 2.0.1
  */
-class MySQLi extends \mysqli implements Swoole\IDatabase
+class MySQLi implements Swoole\IDatabase
 {
     const DEFAULT_PORT = 3306;
 
     public $debug = false;
     public $conn = null;
     public $config;
+
+    /**
+     * @var $mysqli \mysqli
+     */
+    protected $mysqli;
 
     function __construct($db_config)
     {
@@ -27,7 +31,12 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
 
     function lastInsertId()
     {
-        return $this->insert_id;
+        return $this->mysqli->insert_id;
+    }
+
+    function close()
+    {
+        return $this->mysqli->close();
     }
 
     /**
@@ -60,21 +69,21 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
         {
             $db_config['name'] = $db_config['database'];
         }
-        parent::connect(
+        $this->mysqli = mysqli_connect(
             $host,
             $db_config['user'],
             $db_config['password'],
             $db_config['name'],
             $db_config['port']
         );
-        if ($this->connect_errno)
+        if (!$this->mysqli)
         {
-            trigger_error("mysqli connect to server[$host:{$db_config['port']}] failed: " . mysqli_connect_error(), E_USER_WARNING);
+            trigger_error("mysqli connect to server[$host:{$db_config['port']}] failed: " . $this->mysqli->connect_error, E_USER_WARNING);
             return false;
         }
         if (!empty($db_config['charset']))
         {
-            $this->set_charset($db_config['charset']);
+            $this->mysqli->set_charset($db_config['charset']);
         }
         return true;
     }
@@ -96,14 +105,14 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
      */
     protected function errorMessage($sql)
     {
-        $msg = $this->error . "<hr />$sql<hr />\n";
+        $msg = $this->mysqli->error . "<hr />$sql<hr />\n";
         $msg .= "Server: {$this->config['host']}:{$this->config['port']}. <br/>\n";
-        if ($this->connect_errno)
+        if ($this->mysqli->connect_errno)
         {
-            $msg .= "ConnectError[{$this->connect_errno}]: {$this->connect_error}<br/>\n";
+            $msg .= "ConnectError[{$this->mysqli->connect_errno}]: {$this->mysqli->connect_error}<br/>\n";
         }
-        $msg .= "Message: {$this->error} <br/>\n";
-        $msg .= "Errno: {$this->errno}\n";
+        $msg .= "Message: {$this->mysqli->error} <br/>\n";
+        $msg .= "Errno: {$this->mysqli->errno}\n";
         return $msg;
     }
 
@@ -115,7 +124,7 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
             $result = @call_user_func_array($call, $params);
             if ($result === false)
             {
-                if ($this->errno == 2013 or $this->errno == 2006)
+                if ($this->mysqli->errno == 2013 or $this->mysqli->errno == 2006)
                 {
                     $r = $this->checkConnection();
                     if ($r === true)
@@ -140,12 +149,13 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
      * @param int $resultmode
      * @return MySQLiRecord | false
      */
-    function query($sql, $resultmode = MYSQLI_STORE_RESULT)
+    function query($sql, $resultmode = null)
     {
-        $result = $this->tryReconnect(array('parent', 'query'), array($sql,$resultmode));
+        $result = $this->tryReconnect(array($this->mysqli, 'query'), array($sql, $resultmode));
         if (!$result)
         {
-            trigger_error(__CLASS__." SQL Error:". $this->errorMessage($sql), E_USER_WARNING);
+            trigger_error(__CLASS__ . " SQL Error:" . $this->errorMessage($sql), E_USER_WARNING);
+
             return false;
         }
         if (is_bool($result))
@@ -163,24 +173,32 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
     function multi_query($sql)
     {
         $result = $this->tryReconnect(array('parent', 'multi_query'), array($sql));
-        if (!$result) {
+        if (!$result)
+        {
             Swoole\Error::info(__CLASS__ . " SQL Error", $this->errorMessage($sql));
             return false;
         }
 
         $result = call_user_func_array(array('parent', 'use_result'), array());
         $output = array();
-        while ($row = $result->fetch_assoc()) {
+        while ($row = $result->fetch_assoc())
+        {
             $output[] = $row;
         }
         $result->free();
 
-        while (call_user_func_array(array('parent', 'more_results'), array()) && call_user_func_array(array('parent', 'next_result'), array())) {
+        while (call_user_func_array(array('parent', 'more_results'), array()) && call_user_func_array(array(
+                'parent',
+                'next_result'
+            ), array()))
+        {
             $extraResult = call_user_func_array(array('parent', 'use_result'), array());
-            if ($extraResult instanceof \mysqli_result) {
+            if ($extraResult instanceof \mysqli_result)
+            {
                 $extraResult->free();
             }
         }
+
         return $output;
     }
 
@@ -205,7 +223,7 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
      */
     protected function checkConnection()
     {
-        if (!@$this->ping())
+        if (!@$this->mysqli->ping())
         {
             $this->close();
             return $this->connect();
@@ -219,7 +237,7 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
      */
     function errno()
     {
-        return $this->errno;
+        return $this->mysqli->errno;
     }
 
     /**
@@ -228,7 +246,7 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
      */
     function getAffectedRows()
     {
-        return $this->affected_rows;
+        return $this->mysqli->affected_rows;
     }
 
     /**
@@ -237,7 +255,12 @@ class MySQLi extends \mysqli implements Swoole\IDatabase
      */
     function Insert_ID()
     {
-        return $this->insert_id;
+        return $this->mysqli->insert_id;
+    }
+
+    function __call($func, $params)
+    {
+        return call_user_func_array(array($this->mysqli, $func), $params);
     }
 }
 

@@ -82,7 +82,17 @@ class RPC
      */
     function setEncodeType($type, $gzip)
     {
-        if ($type == RPCServer::DECODE_SWOOLE && (substr(PHP_VERSION, 0, 1) != '7'))
+        //兼容老版本，老版本true代表用json false代表serialize
+        if($type === true)
+        {
+            $type = RPCServer::DECODE_JSON;
+        }
+        if($type === false)
+        {
+            $type = RPCServer::DECODE_PHP;
+        }
+        
+        if ($type === RPCServer::DECODE_SWOOLE and (substr(PHP_VERSION, 0, 1) != '7'))
         {
             throw new \Exception("swoole_serialize only use in phpng");
         }
@@ -677,6 +687,21 @@ class RPC
         $this->waitList = array();
         $this->requestIndex = 0;
         return $success_num;
+    }
+
+    /**
+     * 关闭所有连接
+     */
+    function close()
+    {
+        foreach ($this->connections as $key => $socket)
+        {
+            /**
+             * @var $socket \swoole_client
+             */
+            $socket->close(true);
+            unset($this->connections[$key]);
+        }
     }
 }
 

@@ -81,6 +81,9 @@ class Proxy
         //只读的语句
         if (strcasecmp($command, 'select') === 0)
         {
+           if($this->forceMaster){
+             $sql = "/*master*/".$sql;
+            }
             $db = $this->getDB(self::DB_SLAVE);
         }
         else
