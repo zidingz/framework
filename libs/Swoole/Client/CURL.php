@@ -388,13 +388,30 @@ class CURL
         // set multipart form data - file array field-value pairs
         if (!empty($file_field_array))
         {
-            foreach ($file_field_array as $var_name => $var_value)
-            {
-                if (strpos(PHP_OS, "WIN") !== false)
+
+            /*
+             * TRUE to disable support for the @ prefix for uploading files in CURLOPT_POSTFIELDS
+             * Added in PHP 5.5.0 with FALSE as the default value.
+             * PHP 5.6.0 changes the default value to TRUE.
+             * PHP 7 removes this option; the CURLFile interface must be used to upload files.
+             */
+            if (PHP_VERSION_ID >= 70000) {
+                foreach ($file_field_array as $var_name => $var_value)
                 {
-                    $var_value = str_replace("/", "\\", $var_value);
-                } // win hack
-                $file_field_array[$var_name] = "@" . $var_value;
+                    $file_field_array[$var_name] = new \CURLFile($var_value);
+                }
+            } else {
+                if (PHP_VERSION_ID >= 50600) {
+                    curl_setopt ( $this->ch, CURLOPT_SAFE_UPLOAD, false);
+                }
+                foreach ($file_field_array as $var_name => $var_value)
+                {
+                    if (strpos(PHP_OS, "WIN") !== false)
+                    {
+                        $var_value = str_replace("/", "\\", $var_value);
+                    }
+                    $file_field_array[$var_name] = "@" . $var_value;
+                }
             }
         }
 
