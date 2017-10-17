@@ -422,16 +422,19 @@ class CURL
 
         //and finally send curl request
         $result = curl_exec($this->ch);
-
+        $this->info = curl_getinfo($this->ch);
+        if ($this->info)
+        {
+            $this->httpCode = $this->info['http_code'];
+        }
         if (curl_errno($this->ch))
         {
+            $this->errCode = curl_errno($this->ch);
+            $this->errMsg = curl_error($this->ch) . '[' . $this->errCode . ']';
             if ($this->debug)
             {
-                echo "Error Occured in Curl\n";
-                echo "Error number: " . curl_errno($this->ch) . "\n";
-                echo "Error message: " . curl_error($this->ch) . "\n";
+                \Swoole::$php->log->warn($this->errMsg);
             }
-
             return false;
         }
         else
