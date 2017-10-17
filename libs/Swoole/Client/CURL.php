@@ -26,6 +26,7 @@ class CURL
      * @public string
      */
     public $debug = false;
+    public $failonerror = false;
 
     /**
      * Contain last error message if error occured
@@ -44,9 +45,10 @@ class CURL
      * @param boolean $debug
      * @access public
      */
-    function __construct($debug = false)
+    function __construct($debug = false,$failonerror = true)
     {
         $this->debug = $debug;
+        $this->failonerror = $failonerror;
         $this->init();
     }
 
@@ -61,14 +63,16 @@ class CURL
 
         //set various options
 
-        //set error in case http return code bigger than 300
-        curl_setopt($this->ch, CURLOPT_FAILONERROR, true);
+        //set error in case http return code bigger than 400
+        if ($this->failonerror) {
+            curl_setopt($this->ch, CURLOPT_FAILONERROR, true);
+        }
 
         // allow redirects
         curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, true);
 
         // use gzip if possible
-        curl_setopt($this->ch, CURLOPT_ENCODING, 'gzip, deflate');
+        //curl_setopt($this->ch, CURLOPT_ENCODING, 'gzip, deflate');
 
         // do not veryfy ssl
         // this is important for windows
