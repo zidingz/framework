@@ -153,7 +153,7 @@ class RPC
             return false;
         }
         $socket = $this->connections[$conn_key];
-        $socket->close();
+        $socket->close(true);
         unset($this->connections[$conn_key]);
         return true;
     }
@@ -674,6 +674,7 @@ class RPC
                 foreach ($this->waitList as $obj)
                 {
                     $obj->code = ($obj->socket->isConnected()) ? RPC_Result::ERR_TIMEOUT : RPC_Result::ERR_CONNECT;
+                    $this->closeConnection($obj->server_host, $obj->server_port);
                     //执行after钩子函数
                     $this->afterRequest($obj);
                 }
