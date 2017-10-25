@@ -31,7 +31,7 @@ namespace Swoole;
  * @method Client\CoMySQL        codb
  * @method Platform\Linux os
  */
-class Object
+class BaseObject
 {
     /**
      * @var \Swoole

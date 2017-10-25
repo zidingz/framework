@@ -6,7 +6,7 @@ use Swoole\Exception\InvalidParam;
 /**
  * Controller的基类，控制器基类
  */
-class Controller extends Object
+class Controller extends BaseObject
 {
     public $is_ajax = false;
 
