@@ -127,6 +127,7 @@ class MySQLi implements Swoole\IDatabase
                 if ($this->mysqli->errno == 2013 or $this->mysqli->errno == 2006)
                 {
                     $r = $this->checkConnection();
+                    $call[0] = $this->mysqli;
                     if ($r === true)
                     {
                         continue;
