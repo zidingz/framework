@@ -81,7 +81,7 @@ class MySQL implements \Swoole\IDatabase
             $res = mysql_query($sql, $this->conn);
             if ($res === false)
             {
-                if (mysql_errno($this->conn) == 2006 or mysql_errno($this->conn) == 2013)
+                if (mysql_errno($this->conn) == 2006 or mysql_errno($this->conn) == 2013 or (mysql_errno($this->conn) == 0 and !$this->ping()))
                 {
                     $r = $this->checkConnection();
                     if ($r === true)
