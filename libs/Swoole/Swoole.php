@@ -741,7 +741,7 @@ class Swoole
 
         //file not found
         $this->http->status(404);
-        throw new \Swoole\Exception\NotFound("MVC Error: Controller <b>{$mvc['controller']}</b>[{$controller_file}] not exist!");
+        throw new \Swoole\Exception\NotFound("MVC Error: Controller <b>{$mvc['controller']}</b>[{$controller_file}] not exist!<br />\nURL: {$_SERVER['REQUEST_URI']}");
 
         do_action:
 
