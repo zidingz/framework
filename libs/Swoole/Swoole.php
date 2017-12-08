@@ -754,7 +754,9 @@ class Swoole
         if (!method_exists($controller, $mvc['view']))
         {
             $this->http->status(404);
-            throw new \Swoole\Exception\NotFound("MVC Error:  {$mvc['controller']}->{$mvc['view']} Not Found!");
+            $msg = "MVC Error:  {$mvc['controller']}->{$mvc['view']} Not Found!<br />\n";
+            $msg .= "URL: {$_SERVER['REQUEST_URI']}";
+            throw new \Swoole\Exception\NotFound($msg);
         }
 
         $param = empty($mvc['param']) ? null : $mvc['param'];
