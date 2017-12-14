@@ -48,6 +48,16 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         $this->array = unserialize($str);
     }
 
+    function __get($key)
+    {
+        return $this->array[$key];
+    }
+
+    function __set($key, $value)
+    {
+        $this->array[$key] = $value;
+    }
+
     function offsetGet($k)
     {
         return $this->array[$k];

@@ -75,6 +75,11 @@ class StringObject
         return new ArrayObject(explode($sp, $this->string, $limit));
     }
 
+    function char($index)
+    {
+        return $this->string[$index];
+    }
+
     function toArray($splitLength = 1)
     {
         return new ArrayObject(str_split($this->string, $splitLength));
