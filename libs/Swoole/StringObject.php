@@ -57,7 +57,12 @@ class StringObject
 
     function  startWith($needle)
     {
-        return strpos($this->string, $needle) === 0;
+        return $this->pos($needle) === 0;
+    }
+
+    function contains($subString)
+    {
+        return $this->pos($subString) !== false;
     }
 
     function endWith($needle)
