@@ -15,6 +15,16 @@ class StringObject
         return $this->string;
     }
 
+    function indexOf($find_str)
+    {
+        return strpos($this->string, $find_str);
+    }
+
+    function lastIndexOf($find_str)
+    {
+        return strrpos($this->string, $find_str);
+    }
+
     function pos($find_str)
     {
         return strpos($this->string, $find_str);
