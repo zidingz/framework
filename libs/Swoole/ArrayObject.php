@@ -97,6 +97,9 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         return array_splice($this->array, $offset, 0, $val);
     }
 
+    /**
+     * @return mixed
+     */
     function search($find)
     {
         return array_search($find, $this->array);
@@ -177,20 +180,28 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
     /**
      * 移除元素
      * @param $value
+     * @return ArrayObject
      */
     function remove($value)
     {
         unset($this->array[$this->search($value)]);
+
+        return $this;
     }
 
     /**
      * 遍历数组
      * @param $fn callable
-     * @return bool
+     * @return ArrayObject
      */
     function each(callable $fn)
     {
-        return array_walk($this->array, $fn);
+        if (array_walk($this->array, $fn) === false)
+        {
+            throw new \RuntimeException("array_walk() failed.");
+        }
+
+        return $this;
     }
 
     /**
@@ -239,6 +250,17 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
     }
 
     /**
+     * 排序
+     */
+    function sort($sort_flags = SORT_REGULAR)
+    {
+        $newArray = $this->array;
+        sort($newArray, $sort_flags);
+
+        return new ArrayObject($newArray);
+    }
+
+    /**
      * 数组反序
      */
     function reverse($preserve_keys = false)
@@ -248,10 +270,16 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
 
     /**
      * 数组元素随机化
+     * @return ArrayObject
      */
     function shuffle()
     {
-        return shuffle($this->array);
+        if (shuffle($this->array) === false)
+        {
+            throw new \RuntimeException("shuffle() failed.");
+        }
+
+        return $this;
     }
 
     /**
