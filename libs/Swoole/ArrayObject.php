@@ -43,6 +43,33 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         return serialize($this->array);
     }
 
+    /**
+     * @return StringObject
+     */
+    function json()
+    {
+        return new StringObject(json_encode($this->array));
+    }
+
+    function indexOf($value)
+    {
+        return $this->search($value);
+    }
+
+    function lastIndexOf($value)
+    {
+        $find = false;
+        foreach ($this->array as $k => $v)
+        {
+            if ($value == $v)
+            {
+                $find = $k;
+            }
+        }
+
+        return $find;
+    }
+
     function unserialize($str)
     {
         $this->array = unserialize($str);
@@ -98,11 +125,13 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
     }
 
     /**
+     * @param $find
+     * @param $strict
      * @return mixed
      */
-    function search($find)
+    function search($find, $strict = false)
     {
-        return array_search($find, $this->array);
+        return array_search($find, $this->array, $strict);
     }
 
     function count()
@@ -161,6 +190,8 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
 
     /**
      * 数组切片
+     * @param $offset
+     * @param $length
      * @return ArrayObject
      */
     function slice($offset, $length = null)
@@ -231,6 +262,21 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
     function values()
     {
         return new ArrayObject(array_values($this->array));
+    }
+
+    /**
+     * array_column
+     */
+    function column($column_key, $index = null)
+    {
+        if ($index)
+        {
+            return array_column($this->array, $column_key, $index);
+        }
+        else
+        {
+            return new ArrayObject(array_column($this->array, $column_key));
+        }
     }
 
     /**
