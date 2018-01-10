@@ -85,6 +85,38 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         $this->array[$key] = $value;
     }
 
+    function set($key, $value)
+    {
+        $this->array[$key] = $value;
+    }
+
+    function get($key)
+    {
+        return $this->array[$key];
+    }
+
+    function delete($key)
+    {
+        if (isset($this->array[$key]))
+        {
+            return false;
+        }
+        else
+        {
+            unset($this->array[$key]);
+
+            return true;
+        }
+    }
+
+    /**
+     * 删除所有数据
+     */
+    function clear()
+    {
+        $this->array = array();
+    }
+
     function offsetGet($k)
     {
         return $this->array[$k];
@@ -108,6 +140,11 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
     function contains($val)
     {
         return in_array($val, $this->array);
+    }
+
+    function exists($key)
+    {
+        return array_key_exists($key, $this->array);
     }
 
     function join($str)
@@ -134,9 +171,20 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         return array_search($find, $this->array, $strict);
     }
 
+    /**
+     * @return int
+     */
     function count()
     {
         return count($this->array);
+    }
+
+    /**
+     * @return bool
+     */
+    function isEmpty()
+    {
+        return empty($this->array);
     }
 
     /**
@@ -147,6 +195,9 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         return array_sum($this->array);
     }
 
+    /**
+     * @return float|int
+     */
     function product()
     {
         return array_product($this->array);
@@ -215,7 +266,11 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
      */
     function remove($value)
     {
-        unset($this->array[$this->search($value)]);
+        $key = $this->search($value);
+        if ($key)
+        {
+            unset($this->array[$key]);
+        }
 
         return $this;
     }
