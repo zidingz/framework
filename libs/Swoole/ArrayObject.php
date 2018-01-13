@@ -43,6 +43,33 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         return serialize($this->array);
     }
 
+    /**
+     * @return StringObject
+     */
+    function json()
+    {
+        return new StringObject(json_encode($this->array));
+    }
+
+    function indexOf($value)
+    {
+        return $this->search($value);
+    }
+
+    function lastIndexOf($value)
+    {
+        $find = false;
+        foreach ($this->array as $k => $v)
+        {
+            if ($value == $v)
+            {
+                $find = $k;
+            }
+        }
+
+        return $find;
+    }
+
     function unserialize($str)
     {
         $this->array = unserialize($str);
@@ -56,6 +83,38 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
     function __set($key, $value)
     {
         $this->array[$key] = $value;
+    }
+
+    function set($key, $value)
+    {
+        $this->array[$key] = $value;
+    }
+
+    function get($key)
+    {
+        return self::detectType($this->array[$key]);
+    }
+
+    function delete($key)
+    {
+        if (isset($this->array[$key]))
+        {
+            return false;
+        }
+        else
+        {
+            unset($this->array[$key]);
+
+            return true;
+        }
+    }
+
+    /**
+     * 删除所有数据
+     */
+    function clear()
+    {
+        $this->array = array();
     }
 
     function offsetGet($k)
@@ -83,6 +142,11 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         return in_array($val, $this->array);
     }
 
+    function exists($key)
+    {
+        return array_key_exists($key, $this->array);
+    }
+
     function join($str)
     {
         return new StringObject(implode($str, $this->array));
@@ -94,20 +158,33 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         {
             return false;
         }
-        return array_splice($this->array, $offset, 0, $val);
+        return new ArrayObject(array_splice($this->array, $offset, 0, $val));
     }
 
     /**
+     * @param $find
+     * @param $strict
      * @return mixed
      */
-    function search($find)
+    function search($find, $strict = false)
     {
-        return array_search($find, $this->array);
+        return array_search($find, $this->array, $strict);
     }
 
+    /**
+     * @return int
+     */
     function count()
     {
         return count($this->array);
+    }
+
+    /**
+     * @return bool
+     */
+    function isEmpty()
+    {
+        return empty($this->array);
     }
 
     /**
@@ -118,6 +195,9 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         return array_sum($this->array);
     }
 
+    /**
+     * @return float|int
+     */
     function product()
     {
         return array_product($this->array);
@@ -161,6 +241,8 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
 
     /**
      * 数组切片
+     * @param $offset
+     * @param $length
      * @return ArrayObject
      */
     function slice($offset, $length = null)
@@ -172,9 +254,9 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
      * 数组随机取值
      * @return mixed
      */
-    function rand()
+    function randGet()
     {
-        return $this->array[array_rand($this->array, 1)];
+        return self::detectType($this->array[array_rand($this->array, 1)]);
     }
 
     /**
@@ -184,7 +266,11 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
      */
     function remove($value)
     {
-        unset($this->array[$this->search($value)]);
+        $key = $this->search($value);
+        if ($key)
+        {
+            unset($this->array[$key]);
+        }
 
         return $this;
     }
@@ -231,6 +317,21 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
     function values()
     {
         return new ArrayObject(array_values($this->array));
+    }
+
+    /**
+     * array_column
+     */
+    function column($column_key, $index = null)
+    {
+        if ($index)
+        {
+            return array_column($this->array, $column_key, $index);
+        }
+        else
+        {
+            return new ArrayObject(array_column($this->array, $column_key));
+        }
     }
 
     /**
@@ -307,6 +408,22 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
     function filter(callable $fn, $flag = 0)
     {
         return new ArrayObject(array_filter($this->array, $fn, $flag));
+    }
+
+    static function detectType($value)
+    {
+        if (is_array($value))
+        {
+            return new ArrayObject($value);
+        }
+        elseif (is_string($value))
+        {
+            return new StringObject($value);
+        }
+        else
+        {
+            return $value;
+        }
     }
 
     /**
