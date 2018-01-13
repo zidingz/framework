@@ -92,19 +92,7 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
 
     function get($key)
     {
-        $value = $this->array[$key];
-        if (is_array($value))
-        {
-            return new ArrayObject($value);
-        }
-        else if (is_string($value))
-        {
-            return new StringObject($value);
-        }
-        else
-        {
-            return $value;
-        }
+        return self::detectType($this->array[$key]);
     }
 
     function delete($key)
@@ -170,7 +158,7 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         {
             return false;
         }
-        return array_splice($this->array, $offset, 0, $val);
+        return new ArrayObject(array_splice($this->array, $offset, 0, $val));
     }
 
     /**
@@ -266,9 +254,9 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
      * 数组随机取值
      * @return mixed
      */
-    function rand()
+    function randGet()
     {
-        return $this->array[array_rand($this->array, 1)];
+        return self::detectType($this->array[array_rand($this->array, 1)]);
     }
 
     /**
@@ -420,6 +408,22 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
     function filter(callable $fn, $flag = 0)
     {
         return new ArrayObject(array_filter($this->array, $fn, $flag));
+    }
+
+    static function detectType($value)
+    {
+        if (is_array($value))
+        {
+            return new ArrayObject($value);
+        }
+        elseif (is_string($value))
+        {
+            return new StringObject($value);
+        }
+        else
+        {
+            return $value;
+        }
     }
 
     /**
