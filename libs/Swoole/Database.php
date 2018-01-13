@@ -64,7 +64,6 @@ class Database
 	const TYPE_MYSQL   = 1;
 	const TYPE_MYSQLi  = 2;
 	const TYPE_PDO     = 3;
-    const TYPE_CLMysql = 4;
 
     function __construct($db_config)
     {
@@ -75,9 +74,6 @@ class Database
                 break;
             case self::TYPE_MYSQLi:
                 $this->_db = new Database\MySQLi($db_config);
-                break;
-            case self::TYPE_CLMysql:
-                $this->_db = new Database\CLMySQL($db_config);
                 break;
             default:
                 $this->_db = new Database\PdoDB($db_config);
