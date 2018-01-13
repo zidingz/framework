@@ -92,7 +92,19 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
 
     function get($key)
     {
-        return $this->array[$key];
+        $value = $this->array[$key];
+        if (is_array($value))
+        {
+            return new ArrayObject($value);
+        }
+        else if (is_string($value))
+        {
+            return new StringObject($value);
+        }
+        else
+        {
+            return $value;
+        }
     }
 
     function delete($key)
