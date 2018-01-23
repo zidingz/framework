@@ -90,6 +90,10 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         $this->array[$key] = $value;
     }
 
+    /**
+     * @param $key
+     * @return ArrayObject|StringObject
+     */
     function get($key)
     {
         return self::detectType($this->array[$key]);
