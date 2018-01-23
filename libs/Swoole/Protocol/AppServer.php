@@ -12,9 +12,9 @@ class AppServer extends HttpServer
     protected $router_function;
     protected $apps_path;
 
-    function onStart($serv)
+    function onStart($serv, $worker_id = 0)
     {
-        parent::onStart($serv);
+        parent::onStart($serv, $worker_id);
         if (empty($this->apps_path))
         {
             if (!empty($this->config['apps']['apps_path']))
