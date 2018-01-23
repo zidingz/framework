@@ -79,6 +79,7 @@ class RPC
      * 设置编码类型
      * @param $type
      * @param $gzip
+     * @throws \Exception
      */
     function setEncodeType($type, $gzip)
     {
@@ -598,6 +599,11 @@ class RPC
         }
     }
 
+    protected function freeConnection($socket)
+    {
+        var_dump($socket);
+    }
+
     /**
      * 接收响应
      * @param $timeout
@@ -665,6 +671,7 @@ class RPC
                     $retObj = $this->waitList[$header['serid']];
                     //成功处理
                     $this->finish(RPCServer::decode(substr($data, RPCServer::HEADER_SIZE), $header['type']), $retObj);
+                    $this->freeConnection($connection);
                     $success_num++;
                 }
             }
