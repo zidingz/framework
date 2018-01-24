@@ -13,8 +13,11 @@ Swoole\Network\Server::start(function ()
 {
     $config = array(
         'document_root' => WEBPATH,
-        'log_file' => '/tmp/swoole.log',
+//        'log_file' => '/tmp/swoole.log',
         'charset' => 'UTF-8',
     );
+    Swoole::$enableCoroutine = true;
+    Swoole::$enableOutputBuffer = false;
+    $r = Swoole::$php->redis;
     Swoole::$php->runHttpServer('0.0.0.0', 9501, $config);
 });

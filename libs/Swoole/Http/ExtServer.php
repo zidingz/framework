@@ -2,6 +2,7 @@
 namespace Swoole\Http;
 
 use Swoole;
+use Swoole\Coroutine\Context;
 
 /**
  * Class Http_LAMP
@@ -47,15 +48,39 @@ class ExtServer implements Swoole\IFace\Http
         $this->config = $config;
     }
 
+    protected function getRequest()
+    {
+        if (Swoole::$enableCoroutine)
+        {
+            return Context::get('request');
+        }
+        else
+        {
+            return $this->request;
+        }
+    }
+
+    protected function getResponse()
+    {
+        if (Swoole::$enableCoroutine)
+        {
+            return Context::get('response');
+        }
+        else
+        {
+            return $this->response;
+        }
+    }
+
     function header($k, $v)
     {
         $k = ucwords($k);
-        $this->response->header($k, $v);
+        $this->getResponse()->header($k, $v);
     }
 
     function status($code)
     {
-        $this->response->status($code);
+        $this->getResponse()->status($code);
     }
 
     function response($content)
@@ -65,8 +90,8 @@ class ExtServer implements Swoole\IFace\Http
 
     function redirect($url, $mode = 302)
     {
-        $this->response->status($mode);
-        $this->response->header('Location', $url);
+        $this->getResponse()->status($mode);
+        $this->getResponse()->header('Location', $url);
     }
 
     function finish($content = '')
@@ -76,12 +101,12 @@ class ExtServer implements Swoole\IFace\Http
 
     function getRequestBody()
     {
-        return $this->request->rawContent();
+        return $this->getRequest->rawContent();
     }
 
     function setcookie($name, $value = null, $expire = null, $path = '/', $domain = null, $secure = null, $httponly = null)
     {
-        $this->response->cookie($name, $value, $expire, $path, $domain, $secure, $httponly);
+        $this->getResponse()->cookie($name, $value, $expire, $path, $domain, $secure, $httponly);
     }
 
     /**
@@ -90,31 +115,32 @@ class ExtServer implements Swoole\IFace\Http
      */
     function assign(Swoole\Request $request)
     {
-        if (isset($this->request->get))
+        $_request = $this->getRequest();
+        if (!empty($_request->get))
         {
-            $request->get = $this->request->get;
+            $request->get = $_request->get;
         }
-        if (isset($this->request->post))
+        if (!empty($request->post))
         {
-            $request->post = $this->request->post;
+            $request->post = $_request->post;
         }
-        if (isset($this->request->files))
+        if (!empty($_request->files))
         {
-            $request->files = $this->request->files;
+            $request->files = $_request->files;
         }
-        if (isset($this->request->cookie))
+        if (!empty($_request->cookie))
         {
-            $request->cookie = $this->request->cookie;
+            $request->cookie = $_request->cookie;
         }
-        if (isset($this->request->server))
+        if (!empty($_request->server))
         {
-            foreach($this->request->server as $key => $value)
+            foreach ($_request->server as $key => $value)
             {
                 $request->server[strtoupper($key)] = $value;
             }
-            $request->remote_ip = $this->request->server['remote_addr'];
+            $request->remote_ip = $_request->server['remote_addr'];
         }
-        $request->header = $this->request->header;
+        $request->header = $_request->header;
         $request->setGlobal();
     }
 
@@ -175,6 +201,13 @@ class ExtServer implements Swoole\IFace\Http
         $this->request = $req;
         $this->response = $resp;
 
+        //保存协程上下文
+        if (Swoole::$enableCoroutine)
+        {
+            Context::put('request', $req);
+            Context::put('response', $resp);
+        }
+
         $php = Swoole::getInstance();
         $php->request = new Swoole\Request();
         $php->response = new Swoole\Response();
@@ -183,11 +216,19 @@ class ExtServer implements Swoole\IFace\Http
         {
             try
             {
-                ob_start();
-                /*---------------------处理MVC----------------------*/
-                $body = $php->runMVC();
-                $echo_output = ob_get_contents();
-                ob_end_clean();
+                if (Swoole::$enableOutputBuffer)
+                {
+                    ob_start();
+                    /*---------------------处理MVC----------------------*/
+                    $body = $php->runMVC();
+                    $echo_output = ob_get_contents();
+                    ob_end_clean();
+                }
+                else
+                {
+                    $body = $php->runMVC();
+                }
+
                 if (!isset($resp->header['Cache-Control']))
                 {
                     $resp->header('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -207,6 +248,12 @@ class ExtServer implements Swoole\IFace\Http
         {
             $resp->status(500);
             $resp->end($e->getMessage() . "<hr />" . nl2br($e->getTraceAsString()));
+        }
+        //保存协程上下文
+        if (Swoole::$enableCoroutine)
+        {
+            Context::delete('request');
+            Context::delete('response');
         }
     }
 

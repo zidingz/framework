@@ -104,6 +104,18 @@ class Swoole
     static $charset = 'utf-8';
     static $debug = false;
 
+    /**
+     * 开启 Swoole-2.x 协程模式
+     * @var bool
+     */
+    static $enableCoroutine = false;
+
+    /**
+     * 是否缓存 echo 输出
+     * @var bool
+     */
+    static $enableOutputBuffer = true;
+
     static $setting = array();
     public $error_call = array();
     /**
@@ -403,10 +415,21 @@ class Swoole
             {
                 $object = require $user_factory_file;
             }
+            //Swoole 2.0 协程模式
+            elseif (self::$enableCoroutine)
+            {
+                $system_factory_2x_file = LIBPATH . '/factory_2x/' . $module . '.php';
+                //不存在，继续使用 1.x 的工厂
+                if (!is_file($system_factory_2x_file))
+                {
+                    goto get_factory_file;
+                }
+                $object = require $system_factory_2x_file;
+            }
             //系统默认
             else
             {
-                $system_factory_file = LIBPATH . '/factory/' . $module . '.php';
+                get_factory_file: $system_factory_file = LIBPATH . '/factory/' . $module . '.php';
                 //组件不存在，抛出异常
                 if (!is_file($system_factory_file))
                 {
@@ -624,11 +647,18 @@ class Swoole
         {
             try
             {
-                ob_start();
-                /*---------------------处理MVC----------------------*/
-                $response->body = $php->runMVC();
-                $response->body .= ob_get_contents();
-                ob_end_clean();
+                //捕获echo输出的内容
+                if (self::$enableOutputBuffer)
+                {
+                    ob_start();
+                    $response->body = $php->runMVC();
+                    $response->body .= ob_get_contents();
+                    ob_end_clean();
+                }
+                else
+                {
+                    $response->body = $php->runMVC();
+                }
             }
             catch(Swoole\Exception\Response $e)
             {
@@ -766,7 +796,7 @@ class Swoole
         //magic method
         if (method_exists($controller, '__beforeAction'))
         {
-            call_user_func(array($controller, '__beforeAction'), $mvc);
+            $controller->{'__beforeAction'}($mvc);
         }
         //do action
         try
@@ -803,7 +833,7 @@ class Swoole
         //magic method
         if (method_exists($controller, '__afterAction'))
         {
-            call_user_func(array($controller, '__afterAction'), $return);
+            $controller->{'__afterAction'}($return);
         }
         //after action
         $this->callHook(self::HOOK_AFTER_ACTION);

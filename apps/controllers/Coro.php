@@ -20,9 +20,17 @@ class Coro extends Swoole\Controller
             $ret2 = $client->task("BL\\Test::test1", ["hello{$i}_2"]);
             $ret3 = $client->task("BL\\Test::test1", ["hello{$i}_3"]);
         }
-        echo "failed=$err.\n";
-        echo "success=$ok.\n";
         echo "use " . (microtime(true) - $s) * 1000, "ms\n";
         var_dump($ret1->getResult(), $ret2->getResult(), $ret3->getResult());
+        var_dump($ret1->code, $ret2->code, $ret3->code);
+        return "xxx";
+    }
+
+    function redis()
+    {
+        $value = $this->redis->get("key");
+        Swoole\Coroutine::sleep(0.1);
+        $value2 = $this->redis->get("key_hello");
+        return $this->json(['value' => $value, 'value2' => $value2]);
     }
 }
