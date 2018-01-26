@@ -64,6 +64,10 @@ class Database
 	const TYPE_MYSQL   = 1;
 	const TYPE_MYSQLi  = 2;
 	const TYPE_PDO     = 3;
+    /**
+     * 协程版本
+     */
+	const TYPE_COMYSQL = 4;
 
     function __construct($db_config)
     {
@@ -74,6 +78,9 @@ class Database
                 break;
             case self::TYPE_MYSQLi:
                 $this->_db = new Database\MySQLi($db_config);
+                break;
+            case self::TYPE_COMYSQL:
+                $this->_db = new Coroutine\Component\MySQL($db_config);
                 break;
             default:
                 $this->_db = new Database\PdoDB($db_config);
@@ -264,6 +271,6 @@ class Database
      */
     function __call($method, $args = array())
     {
-        return call_user_func_array(array($this->_db, $method), $args);
+        return $this->_db->{$method}($args);
     }
 }
