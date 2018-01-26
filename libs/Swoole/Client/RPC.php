@@ -602,7 +602,7 @@ class RPC
 
     protected function freeConnection($socket)
     {
-        var_dump($socket);
+//        var_dump($socket);
     }
 
     /**
