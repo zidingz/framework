@@ -120,7 +120,7 @@ class ExtServer implements Swoole\IFace\Http
         {
             $request->get = $_request->get;
         }
-        if (!empty($request->post))
+        if (!empty($_request->post))
         {
             $request->post = $_request->post;
         }
