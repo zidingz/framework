@@ -175,6 +175,8 @@ class Memcache
         $connection = $this->_getConnection($serverKey);
         if ($connection->send($cmd) == false)
         {
+            $connection->close();
+
             return false;
         }
         $data = $connection->recv();
@@ -184,6 +186,9 @@ class Memcache
 
             return false;
         }
+
+        //释放连接
+        $this->_freeConnection($serverKey, $connection);
 
         return $this->decode($data);
     }
@@ -396,6 +401,16 @@ class Memcache
                 return $conn;
             }
         }
+    }
+
+    protected function _freeConnection($serverKey, $conn)
+    {
+        //创建连接池
+        if (!isset($this->pool[$serverKey]))
+        {
+            $this->pool[$serverKey] = new \SplQueue();
+        }
+        $this->pool[$serverKey]->push($conn);
     }
 
     /**

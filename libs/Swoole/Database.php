@@ -271,6 +271,6 @@ class Database
      */
     function __call($method, $args = array())
     {
-        return $this->_db->{$method}($args);
+        return $this->_db->{$method}(...$args);
     }
 }

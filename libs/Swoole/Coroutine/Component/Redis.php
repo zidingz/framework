@@ -6,6 +6,8 @@ use Swoole\Coroutine\Redis as CoRedis;
 
 class Redis extends Base
 {
+    protected $type = 'redis';
+
     function create()
     {
         $redis = new CoRedis($this->config);

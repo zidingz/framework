@@ -7,6 +7,8 @@ use Swoole\IDbRecord;
 
 class MySQL extends Base
 {
+    protected $type = 'mysql';
+
     function create()
     {
         $db = new CoMySQL;
@@ -30,7 +32,22 @@ class MySQL extends Base
         {
             return false;
         }
-       return new MySQLRecordSet($db->query($sql));
+
+        return new MySQLRecordSet($db->query($sql));
+    }
+
+    function quote($val)
+    {
+        /**
+         * @var $db CoMySQL
+         */
+        $db = $this->_getObject();
+        if (!$db)
+        {
+            return false;
+        }
+
+        return $db->escape($val);
     }
 
 }
