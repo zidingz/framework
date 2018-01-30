@@ -720,21 +720,30 @@ class Swoole
     {
         //redis
         $redis_conf = $this->config['redis'];
-        foreach ($redis_conf as $k => $v)
+        if (!empty($redis_conf))
         {
-            $this->loadModule('redis', $k);
+            foreach ($redis_conf as $k => $v)
+            {
+                $this->loadModule('redis', $k);
+            }
         }
         //cache
         $cache_conf = $this->config['cache'];
-        foreach ($cache_conf as $k => $v)
+        if (!empty($cache_conf))
         {
-            $this->loadModule('cache', $k);
+            foreach ($cache_conf as $k => $v)
+            {
+                $this->loadModule('cache', $k);
+            }
         }
         //db
         $db_conf = $this->config['redis'];
-        foreach ($db_conf as $k => $v)
+        if (!empty($db_conf))
         {
-            $this->loadModule('db', $k);
+            foreach ($db_conf as $k => $v)
+            {
+                $this->loadModule('db', $k);
+            }
         }
     }
 
