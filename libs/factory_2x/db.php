@@ -19,6 +19,9 @@ if (!empty($config['name']))
     unset($config['name']);
 }
 
+//用于隔离多实例
+$config['object_id'] = $php->factory_key;
+
 $db = new Swoole\Database($config);
 
 return $db;

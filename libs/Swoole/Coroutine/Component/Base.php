@@ -16,8 +16,13 @@ abstract class Base
 
     function __construct($config)
     {
+        if (empty($config['object_id']))
+        {
+            throw new Swoole\Exception\InvalidParam("require object_id");
+        }
         $this->config = $config;
         $this->pool = new \SplQueue();
+        $this->type .= '_'.$config['object_id'];
         \Swoole::getInstance()->beforeAction([$this, '_createObject']);
         \Swoole::getInstance()->afterAction([$this, '_freeObject']);
     }
