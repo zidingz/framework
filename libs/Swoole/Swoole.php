@@ -109,6 +109,7 @@ class Swoole
      * @var bool
      */
     static $enableCoroutine = false;
+    protected static $coroutineInit = false;
 
     /**
      * 是否缓存 echo 输出
@@ -289,6 +290,28 @@ class Swoole
             }
         }
         $this->callHook(self::HOOK_INIT);
+    }
+
+    static function go($func)
+    {
+        $app = self::getInstance();
+
+        if (!self::$coroutineInit)
+        {
+            if (Swoole::$enableCoroutine === false)
+            {
+                throw new RuntimeException("Swoole::\$enableCoroutine cannot be false.");
+            }
+            $app->loadAllModules();
+        }
+
+        return Swoole\Coroutine::create(function () use ($func, $app) {
+            $app->callHook(self::HOOK_INIT);
+            $app->callHook(self::HOOK_BEFORE_ACTION);
+            $func();
+            $app->callHook(self::HOOK_AFTER_ACTION);
+            $app->callHook(self::HOOK_CLEAN);
+        });
     }
 
     /**
