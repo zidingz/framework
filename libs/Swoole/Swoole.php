@@ -318,7 +318,7 @@ class Swoole
      * 执行Hook函数列表
      * @param $type
      */
-    protected function callHook($type)
+    function callHook($type)
     {
         if (isset($this->hooks[$type]))
         {
