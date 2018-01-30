@@ -31,11 +31,11 @@ class MakeController extends Command
         $file = \Swoole::$app_path . '/controllers/' . $name . '.php';
         if (is_file($file))
         {
-            $output->writeln("<error>Controller[$name] already exists!</error>");
+            $output->writeln("<error>Controller[$name](file=$file) already exists!</error>");
         }
         elseif (self::init($name, $file))
         {
-            $output->writeln("<info>success!</error>");
+            $output->writeln("<info>success!</info>");
         }
         else
         {

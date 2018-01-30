@@ -169,7 +169,7 @@ class Swoole
     const HOOK_BEFORE_ACTION = 4;
     const HOOK_AFTER_ACTION = 5;
 
-    private function __construct()
+    private function __construct($appDir = '')
     {
         if (!defined('DEBUG')) define('DEBUG', 'on');
 
@@ -179,7 +179,11 @@ class Swoole
             Swoole\Error::$echo_html = true;
         }
 
-        if (defined('APPSPATH'))
+        if (!empty($appDir))
+        {
+            self::$app_path = $appDir;
+        }
+        elseif (defined('APPSPATH'))
         {
             self::$app_path = APPSPATH;
         }
@@ -188,7 +192,8 @@ class Swoole
             self::$app_path = WEBPATH . '/apps';
             define('APPSPATH', self::$app_path);
         }
-        else
+
+        if (empty(self::$app_path))
         {
             Swoole\Error::info("core error", __CLASS__ . ": Swoole::\$app_path and WEBPATH empty.");
         }
@@ -685,10 +690,36 @@ class Swoole
         return $response;
     }
 
+    /**
+     * 加载所有模块
+     */
+    function loadAllModules()
+    {
+        //redis
+        $redis_conf = $this->config['redis'];
+        foreach ($redis_conf as $k => $v)
+        {
+            $this->loadModule('redis', $k);
+        }
+        //cache
+        $cache_conf = $this->config['cache'];
+        foreach ($cache_conf as $k => $v)
+        {
+            $this->loadModule('cache', $k);
+        }
+        //db
+        $db_conf = $this->config['redis'];
+        foreach ($db_conf as $k => $v)
+        {
+            $this->loadModule('db', $k);
+        }
+    }
+
     function runHttpServer($host = '0.0.0.0', $port = 9501, $config = array())
     {
         define('SWOOLE_SERVER', true);
         define('SWOOLE_HTTP_SERVER', true);
+        $this->loadAllModules();
         $this->ext_http_server = $this->http = new Swoole\Http\ExtServer($config);
         Swoole\Network\Server::$useSwooleHttpServer = true;
         $server = new Swoole\Network\Server($host, $port);
@@ -886,6 +917,7 @@ class Swoole
         $app = new  Symfony\Component\Console\Application("<info>Swoole Framework</info> Console Tool.");
         $app->add(new Swoole\Command\MakeController());
         $app->add(new Swoole\Command\MakeModel());
+        $app->add(new Swoole\Command\MakeConfig());
         $app->run();
     }
 
