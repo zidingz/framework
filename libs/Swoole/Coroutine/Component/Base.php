@@ -31,13 +31,13 @@ abstract class Base
     {
         if ($this->pool->count() > 0)
         {
-            $redis = $this->pool->pop();
+            $object = $this->pool->pop();
         }
         else
         {
-            $redis = $this->create();
+            $object = $this->create();
         }
-        Context::put($this->type, $redis);
+        Context::put($this->type, $object);
     }
 
     function _freeObject()
@@ -47,10 +47,10 @@ abstract class Base
         {
             return;
         }
-        $_redis = Context::get($this->type);
-        if ($_redis)
+        $object = Context::get($this->type);
+        if ($object)
         {
-            $this->pool->push($_redis);
+            $this->pool->push($object);
             Context::delete($this->type);
         }
     }

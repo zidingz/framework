@@ -737,7 +737,7 @@ class Swoole
             }
         }
         //db
-        $db_conf = $this->config['redis'];
+        $db_conf = $this->config['db'];
         if (!empty($db_conf))
         {
             foreach ($db_conf as $k => $v)

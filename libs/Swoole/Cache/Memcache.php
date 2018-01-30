@@ -30,7 +30,12 @@ class Memcache implements Swoole\IFace\Cache
         {
             $config['use_memcached'] = true;
         }
-        if (empty($config['use_memcached']))
+
+        if (Swoole::$enableCoroutine)
+        {
+            $this->cache = new Swoole\Coroutine\Memcache;
+        }
+        elseif (empty($config['use_memcached']))
         {
             $this->cache = new \Memcache;
             $this->flags = MEMCACHE_COMPRESSED;
