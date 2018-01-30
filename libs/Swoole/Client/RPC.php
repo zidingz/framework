@@ -110,7 +110,7 @@ class RPC
     /**
      * 获取SOA服务实例
      * @param $id
-     * @return RPC
+     * @return static
      */
     static function getInstance($id = null)
     {
