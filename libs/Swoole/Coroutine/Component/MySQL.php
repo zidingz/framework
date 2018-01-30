@@ -3,9 +3,10 @@
 namespace Swoole\Coroutine\Component;
 
 use Swoole\Coroutine\MySQL as CoMySQL;
+use Swoole\IDatabase;
 use Swoole\IDbRecord;
 
-class MySQL extends Base
+class MySQL extends Base implements IDatabase
 {
     protected $type = 'mysql';
 
@@ -50,6 +51,57 @@ class MySQL extends Base
         return $db->escape($val);
     }
 
+    function lastInsertId()
+    {
+        /**
+         * @var $db CoMySQL
+         */
+        $db = $this->_getObject();
+        if (!$db)
+        {
+            return false;
+        }
+
+        return $db->insert_id;
+    }
+
+    function getAffectedRows()
+    {
+        /**
+         * @var $db CoMySQL
+         */
+        $db = $this->_getObject();
+        if (!$db)
+        {
+            return false;
+        }
+
+        return $db->affected_rows;
+    }
+
+    function errno()
+    {
+        /**
+         * @var $db CoMySQL
+         */
+        $db = $this->_getObject();
+        if (!$db)
+        {
+            return -1;
+        }
+
+        return $db->errno;
+    }
+
+    function close()
+    {
+
+    }
+
+    function connect()
+    {
+
+    }
 }
 
 class MySQLRecordSet implements IDbRecord
