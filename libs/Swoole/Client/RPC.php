@@ -1,5 +1,6 @@
 <?php
 namespace Swoole\Client;
+use Swoole\Core;
 use Swoole\Exception\InvalidParam;
 use Swoole\Protocol\RPCServer;
 use Swoole\Tool;
@@ -84,11 +85,11 @@ class RPC
     function setEncodeType($type, $gzip)
     {
         //兼容老版本，老版本true代表用json false代表serialize
-        if($type === true)
+        if ($type === true)
         {
             $type = RPCServer::DECODE_JSON;
         }
-        if($type === false)
+        if ($type === false)
         {
             $type = RPCServer::DECODE_PHP;
         }
@@ -115,6 +116,10 @@ class RPC
     static function getInstance($id = null)
     {
         $key = empty($id) ? 'default' : $id;
+        if (Core::$enableCoroutine)
+        {
+            return new static($id);
+        }
         if (empty(self::$_instances[$key]))
         {
             $object = new static($id);
