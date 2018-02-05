@@ -296,10 +296,10 @@ class RPC
         //发送失败了
         if ($retObj->socket->send(RPCServer::encode($retObj->send, $encodeType, 0, $retObj->requestId)) === false)
         {
+            $this->closeConnection($retObj->server_host, $retObj->server_port);
             //连接被重置了，重现连接到服务器
             if ($this->haveSwoole and $retObj->socket->errCode == 104)
             {
-                $this->closeConnection($retObj->server_host, $retObj->server_port);
                 goto connect_to_server;
             }
             $retObj->code = RPC_Result::ERR_SEND;
@@ -602,7 +602,7 @@ class RPC
 
     protected function freeConnection($socket)
     {
-//        var_dump($socket);
+
     }
 
     /**
@@ -672,7 +672,6 @@ class RPC
                     $retObj = $this->waitList[$header['serid']];
                     //成功处理
                     $this->finish(RPCServer::decode(substr($data, RPCServer::HEADER_SIZE), $header['type']), $retObj);
-                    $this->freeConnection($connection);
                     $success_num++;
                 }
             }
@@ -688,8 +687,17 @@ class RPC
                 }
                 //清空当前列表
                 $this->waitList = array();
+                foreach($read as $r)
+                {
+                    $this->freeConnection($r);
+                }
                 return $success_num;
             }
+        }
+
+        foreach($read as $r)
+        {
+            $this->freeConnection($r);
         }
 
         //未发生任何超时

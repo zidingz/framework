@@ -18,6 +18,5 @@ Swoole\Network\Server::start(function ()
     );
     Swoole::$enableCoroutine = true;
     Swoole::$enableOutputBuffer = false;
-    $r = Swoole::$php->redis;
     Swoole::$php->runHttpServer('0.0.0.0', 9501, $config);
 });
