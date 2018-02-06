@@ -243,14 +243,10 @@ class Redis extends Base
     }
 
     /**
-     * @return mixed
+     * @param $key
+     * @return bool|mixed
      */
-    public function sGetMembers(){}
-
-    /**
-     * @return mixed
-     */
-    public function sRandMember($key)
+    public function sGetMembers($key)
     {
         /**
          * @var $redis CoRedis
@@ -261,7 +257,26 @@ class Redis extends Base
             return false;
         }
 
-        return $redis->sRandMember($key);
+        return $redis->sGetMembers($key);
+    }
+
+    /**
+     * @param $key
+     * @param int $count
+     * @return bool|mixed
+     */
+    public function sRandMember($key, $count = 1)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->sRandMember($key, $count);
     }
 
     /**
