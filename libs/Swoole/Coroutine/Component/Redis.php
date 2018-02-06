@@ -34,7 +34,7 @@ class Redis extends Base
         return $redis->get($key);
     }
 
-    public function set($key, $value)
+    public function set($key, $value, $expire = null)
     {
         /**
          * @var $redis CoRedis
@@ -45,7 +45,14 @@ class Redis extends Base
             return false;
         }
 
-        return $redis->set($key, $value);
+        if ($expire)
+        {
+            return $redis->setEx($key, $expire, $value);
+        }
+        else
+        {
+            return $redis->set($key, $value);
+        }
     }
 
     /**
@@ -56,7 +63,19 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function setEx(){}
+    public function setEx($key, $ttl, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->setEx($key, $ttl, $value);
+    }
 
     /**
      * @return mixed
@@ -124,10 +143,22 @@ class Redis extends Base
     public function keys(){}
 
     /**
-     * @param $key[required]
+     * @param $key [required]
      * @return mixed
      */
-    public function exists($key){}
+    public function exists($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->exists($key);
+    }
 
     /**
      * @param $key[required]
@@ -194,10 +225,22 @@ class Redis extends Base
     public function sPop(){}
 
     /**
-     * @param $key[required]
+     * @param $key [required]
      * @return mixed
      */
-    public function sMembers($key){}
+    public function sMembers($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->sMembers($key);
+    }
 
     /**
      * @return mixed
@@ -207,7 +250,19 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function sRandMember(){}
+    public function sRandMember($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->sRandMember($key);
+    }
 
     /**
      * @return mixed
@@ -414,25 +469,61 @@ class Redis extends Base
     public function rPushx($key, $value){}
 
     /**
-     * @param $key[required]
-     * @param $value[required]
+     * @param $key [required]
+     * @param $value [required]
      * @return mixed
      */
-    public function sContains($key, $value){}
+    public function sContains($key, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->sContains($key, $value);
+    }
 
     /**
-     * @param $key[required]
-     * @param $value[required]
+     * @param $key [required]
+     * @param $value [required]
      * @return mixed
      */
-    public function sismember($key, $value){}
+    public function sismember($key, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->sismember($key, $value);
+    }
 
     /**
-     * @param $key[required]
-     * @param $value[required]
+     * @param $key [required]
+     * @param $value [required]
      * @return mixed
      */
-    public function zScore($key, $value){}
+    public function zScore($key, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zScore($key, $value);
+    }
 
     /**
      * @param $key[required]
@@ -449,14 +540,40 @@ class Redis extends Base
     public function zRevRank($key, $value){}
 
     /**
-     * @return mixed
+     * @param $key
+     * @param $hashKey
+     * @return bool|mixed
      */
-    public function hGet(){}
+    public function hGet($key, $hashKey)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->hGet($key, $hashKey);
+    }
 
     /**
      * @return mixed
      */
-    public function hMGet(){}
+    public function hMGet($key, $hashKeys)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->hMGet($key, $hashKeys);
+    }
 
     /**
      * @return mixed
@@ -469,14 +586,42 @@ class Redis extends Base
     public function publish(){}
 
     /**
-     * @return mixed
+     * @param $key
+     * @param $value
+     * @param $member
+     * @return bool|mixed
      */
-    public function zIncrBy(){}
+    public function zIncrBy($key, $value, $member)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zIncrBy($key, $value, $member);
+    }
 
     /**
-     * @return mixed
+     * @param array ...$args
+     * @return bool|mixed
      */
-    public function zAdd(){}
+    public function zAdd(...$args)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zAdd(...$args);
+    }
 
     /**
      * @return mixed
@@ -496,7 +641,19 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function zRange(){}
+    public function zRange($key, $start, $end, $withscores = null)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zRange($key, $start, $end, $withscores);
+    }
 
     /**
      * @return mixed
@@ -556,10 +713,22 @@ class Redis extends Base
     public function hIncrBy(){}
 
     /**
-     * @param $key[required]
+     * @param $key [required]
      * @return mixed
      */
-    public function incr($key){}
+    public function incr($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->incr($key);
+    }
 
     /**
      * @param $key[required]
@@ -715,7 +884,19 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function sAdd(){}
+    public function sAdd($key, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->sAdd($key, $value);
+    }
 
     /**
      * @return mixed
@@ -755,12 +936,35 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function sRemove(){}
+    public function sRemove($key, $member){
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->sRemove($key, $member);
+    }
 
     /**
      * @return mixed
      */
-    public function srem(){}
+    public function srem($key, $member)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->sRemove($key, $member);
+    }
 
     /**
      * @return mixed
