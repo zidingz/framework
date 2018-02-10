@@ -2,6 +2,7 @@
 
 namespace Swoole\Coroutine\Component;
 
+use Swoole\Coroutine\Context;
 use Swoole\Coroutine\MySQL as CoMySQL;
 use Swoole\IDatabase;
 use Swoole\IDbRecord;
@@ -34,7 +35,21 @@ class MySQL extends Base implements IDatabase
             return false;
         }
 
-        return new MySQLRecordSet($db->query($sql));
+        $result = false;
+        for ($i = 0; $i < 2; $i++)
+        {
+            $result = $db->query($sql);
+            if ($result === false)
+            {
+                $db->close();
+                Context::delete($this->type);
+                $this->_createObject();
+                continue;
+            }
+            break;
+        }
+
+        return new MySQLRecordSet($result);
     }
 
     function quote($val)
