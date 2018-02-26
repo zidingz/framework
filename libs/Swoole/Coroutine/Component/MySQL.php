@@ -43,7 +43,7 @@ class MySQL extends Base implements IDatabase
             {
                 $db->close();
                 Context::delete($this->type);
-                $this->_createObject();
+                $db = $this->_createObject();
                 continue;
             }
             break;
