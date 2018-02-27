@@ -38,6 +38,7 @@ abstract class Base
             $object = $this->create();
         }
         Context::put($this->type, $object);
+        return $object;
     }
 
     function _freeObject()

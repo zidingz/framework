@@ -1019,7 +1019,7 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function eval(){}
+    public function evaluate(){}
 
     /**
      * @return mixed
