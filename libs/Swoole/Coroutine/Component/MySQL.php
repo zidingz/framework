@@ -130,7 +130,7 @@ class MySQLRecordSet implements IDbRecord
 
     function fetch()
     {
-        return $this->result[0];
+        return isset($this->result[0]) ? $this->result[0] : null;
     }
 
     function fetchall()

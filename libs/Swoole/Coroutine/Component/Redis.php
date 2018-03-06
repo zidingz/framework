@@ -15,10 +15,14 @@ class Redis extends Base
         {
             return false;
         }
-        else
+        if (isset($this->config['database']))
         {
-            return $redis;
+            if (!$redis->select($this->config['database']))
+            {
+                return false;
+            }
         }
+        return $redis;
     }
 
     function get($key)
