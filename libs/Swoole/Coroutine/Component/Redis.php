@@ -58,7 +58,18 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function setBit(){}
+    public function setBit($offset, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+        return $redis->setBit($offset, $value);
+    }
 
     /**
      * @return mixed
@@ -80,67 +91,223 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function psetEx(){}
+    public function psetEx($key, $ttl, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->psetEx($key, $ttl, $value);
+    }
 
     /**
      * @return mixed
      */
-    public function lSet(){}
+    public function lSet($index, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->lSet($index, $value);
+    }
 
     /**
      * @return mixed
      */
-    public function mGet(){}
+    public function mGet($params)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->mGet($params);
+    }
 
     /**
      * @return mixed
      */
-    public function del(){}
+    public function del(...$args)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->del(...$args);
+    }
 
     /**
      * @return mixed
      */
-    public function hDel(){}
+    public function hDel(...$arg)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->hDel(...$arg);
+    }
 
     /**
      * @return mixed
      */
-    public function hSet(){}
+    public function hSet($key, $hashKey, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->hSet($key, $hashKey, $value);
+    }
 
     /**
      * @return mixed
      */
-    public function hMSet(){}
+    public function hMSet($key, $hashKeys)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->hSet($key, $hashKeys);
+    }
 
     /**
      * @return mixed
      */
-    public function hSetNx(){}
+    public function hSetNx($key, $hashKey, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->hSetNx($key, $hashKey, $value);
+    }
 
     /**
      * @return mixed
      */
-    public function delete(){}
+    public function delete(...$args)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->delete(...$args);
+    }
 
     /**
      * @return mixed
      */
-    public function mSet(){}
+    public function mSet(array $array)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->mSet($array);
+    }
 
     /**
      * @return mixed
      */
-    public function mSetNx(){}
+    public function mSetNx(array $array)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->mSet($array);
+    }
 
     /**
      * @return mixed
      */
-    public function getKeys(){}
+    public function getKeys($pattern)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->getKeys($pattern);
+    }
 
     /**
      * @return mixed
      */
-    public function keys(){}
+    public function keys($pattern)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->getKeys($pattern);
+    }
 
     /**
      * @param $key [required]
@@ -164,65 +331,209 @@ class Redis extends Base
      * @param $key[required]
      * @return mixed
      */
-    public function type($key){}
+    public function type($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->type($key);
+    }
 
     /**
      * @param $key[required]
      * @return mixed
      */
-    public function strLen($key){}
+    public function strLen($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->strLen($key);
+    }
 
     /**
      * @param $key[required]
      * @return mixed
      */
-    public function lPop($key){}
+    public function lPop($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->lPop($key);
+    }
 
     /**
      * @return mixed
      */
-    public function blPop(){}
+    public function blPop($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->blPop($key);
+    }
 
     /**
      * @param $key[required]
      * @return mixed
      */
-    public function rPop($key){}
+    public function rPop($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->rPop($key);
+    }
 
     /**
      * @return mixed
      */
-    public function brPop(){}
+    public function brPop(array $keys, $timeout)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->brPop($keys, $timeout);
+    }
 
     /**
      * @return mixed
      */
-    public function bRPopLPush(){}
+    public function bRPopLPush($srcKey, $dstKey, $timeout)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->bRPopLPush($srcKey, $dstKey, $timeout);
+    }
 
     /**
      * @return mixed
      */
-    public function lSize(){}
+    public function lSize($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->lSize($key);
+    }
 
     /**
      * @return mixed
      */
-    public function lLen(){}
+    public function lLen($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->lLen($key);
+    }
 
     /**
      * @return mixed
      */
-    public function sSize(){}
+    public function sSize($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->sSize($key);
+    }
 
     /**
      * @return mixed
      */
-    public function scard(){}
+    public function scard($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->sSize($key);
+    }
 
     /**
      * @return mixed
      */
-    public function sPop(){}
+    public function sPop($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->sPop($key);
+    }
 
     /**
      * @param $key [required]
@@ -282,206 +593,662 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function persist(){}
+    public function persist($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->persist($key);
+    }
 
     /**
      * @param $key[required]
      * @return mixed
      */
-    public function ttl($key){}
+    public function ttl($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->ttl($key);
+    }
 
     /**
      * @param $key[required]
      * @return mixed
      */
-    public function pttl($key){}
+    public function pttl($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->pttl($key);
+    }
 
     /**
      * @return mixed
      */
-    public function zCard(){}
+    public function zCard($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zCard($key);
+    }
 
     /**
      * @return mixed
      */
-    public function zSize(){}
+    public function zSize($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zSize($key);
+    }
 
     /**
      * @return mixed
      */
-    public function hLen(){}
+    public function hLen($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->hLen($key);
+    }
 
     /**
      * @return mixed
      */
-    public function hKeys(){}
+    public function hKeys($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->hKeys($key);
+    }
 
     /**
      * @return mixed
      */
-    public function hVals(){}
+    public function hVals($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->hVals($key);
+    }
 
     /**
      * @return mixed
      */
-    public function hGetAll(){}
+    public function hGetAll($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->hGetAll($key);
+    }
 
     /**
      * @param $key[required]
      * @return mixed
      */
-    public function debug($key){}
+    public function debug($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->debug($key);
+    }
 
     /**
      * @return mixed
      */
-    public function restore(){}
+    public function restore($key, $ttl, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->restore($key, $ttl, $value);
+    }
 
     /**
      * @param $key[required]
      * @return mixed
      */
-    public function dump($key){}
+    public function dump($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->dump($key);
+    }
 
     /**
      * @return mixed
      */
-    public function renameKey(){}
+    public function renameKey($srcKey, $dstKey)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->renameKey($srcKey, $dstKey);
+    }
 
     /**
      * @return mixed
      */
-    public function rename(){}
+    public function rename($srcKey, $dstKey)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->rename($srcKey, $dstKey);
+    }
 
     /**
      * @return mixed
      */
-    public function renameNx(){}
+    public function renameNx($srcKey, $dstKey)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->renameNx($srcKey, $dstKey);
+    }
 
     /**
      * @return mixed
      */
-    public function rpoplpush(){}
+    public function rpoplpush($srcKey, $dstKey)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->rpoplpush($srcKey, $dstKey);
+    }
 
     /**
      * @return mixed
      */
-    public function randomKey(){}
+    public function randomKey()
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->randomKey();
+    }
 
     /**
      * @return mixed
      */
-    public function ping(){}
+    public function ping()
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->ping();
+    }
 
     /**
      * @return mixed
      */
-    public function auth(){}
+    public function auth($password)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->auth($password);
+    }
 
     /**
      * @return mixed
      */
-    public function unwatch(){}
+    public function unwatch()
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->unwatch();
+    }
 
     /**
      * @return mixed
      */
-    public function watch(){}
+    public function watch($key)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->watch($key);
+    }
 
     /**
      * @return mixed
      */
-    public function save(){}
+    public function save()
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->save();
+    }
 
     /**
      * @return mixed
      */
-    public function bgSave(){}
+    public function bgSave()
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->bgSave();
+    }
 
     /**
      * @return mixed
      */
-    public function lastSave(){}
+    public function lastSave()
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->lastSave();
+    }
 
     /**
      * @return mixed
      */
-    public function flushDB(){}
+    public function flushDB()
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->flushDB();
+    }
 
     /**
      * @return mixed
      */
-    public function flushAll(){}
+    public function flushAll()
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->flushAll();
+    }
 
     /**
      * @return mixed
      */
-    public function dbSize(){}
+    public function dbSize()
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->dbSize();
+    }
 
     /**
      * @return mixed
      */
-    public function bgrewriteaof(){}
+    public function bgrewriteaof()
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->bgrewriteaof();
+    }
 
     /**
      * @return mixed
      */
-    public function time(){}
+    public function time()
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->time();
+    }
 
     /**
      * @return mixed
      */
-    public function role(){}
+    public function role()
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->role();
+    }
 
     /**
      * @return mixed
      */
-    public function setRange(){}
+    public function setRange($key, $offset, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->setRange($key, $offset, $value);
+    }
 
     /**
      * @param $key[required]
      * @param $value[required]
      * @return mixed
      */
-    public function setNx($key, $value){}
+    public function setNx($key, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->setNx($key, $value);
+    }
 
     /**
      * @param $key[required]
      * @param $value[required]
      * @return mixed
      */
-    public function getSet($key, $value){}
+    public function getSet($key, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->getSet($key, $value);
+    }
 
     /**
      * @param $key[required]
      * @param $value[required]
      * @return mixed
      */
-    public function append($key, $value){}
+    public function append($key, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->append($key, $value);
+    }
 
     /**
      * @param $key[required]
      * @param $value[required]
      * @return mixed
      */
-    public function lPushx($key, $value){}
+    public function lPushx($key, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->lPushx($key, $value);
+    }
 
     /**
      * @return mixed
      */
-    public function lPush(){}
+    public function lPush(...$args)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->lPush(...$args);
+    }
 
     /**
      * @return mixed
      */
-    public function rPush(){}
+    public function rPush(...$args)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->lPush(...$args);
+    }
 
     /**
      * @param $key[required]
      * @param $value[required]
      * @return mixed
      */
-    public function rPushx($key, $value){}
+    public function rPushx($key, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->rPushx($key, $value);
+    }
 
     /**
      * @param $key [required]
@@ -545,14 +1312,38 @@ class Redis extends Base
      * @param $value[required]
      * @return mixed
      */
-    public function zRank($key, $value){}
+    public function zRank($key, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zRank($key, $value);
+    }
 
     /**
      * @param $key[required]
      * @param $value[required]
      * @return mixed
      */
-    public function zRevRank($key, $value){}
+    public function zRevRank($key, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zRevRank($key, $value);
+    }
 
     /**
      * @param $key
@@ -593,12 +1384,36 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function hExists(){}
+    public function hExists($key, $hashKey)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->hExists($key, $hashKey);
+    }
 
     /**
      * @return mixed
      */
-    public function publish(){}
+    public function publish($channel, $message)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->publish($channel, $message);
+    }
 
     /**
      * @param $key
@@ -641,12 +1456,36 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function zDeleteRangeByScore(){}
+    public function zDeleteRangeByScore($key, $start, $end)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zDeleteRangeByScore($key, $start, $end);
+    }
 
     /**
      * @return mixed
      */
-    public function zRemRangeByScore(){}
+    public function zRemRangeByScore($key, $start, $end)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zRemRangeByScore($key, $start, $end);
+    }
 
     /**
      * @return mixed
@@ -673,7 +1512,19 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function zRevRange(){}
+    public function zRevRange($key, $start, $end, $withscore = null)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zRevRange($key, $start, $end, $withscore);
+    }
 
     /**
      * @return mixed
@@ -720,12 +1571,36 @@ class Redis extends Base
      * @param $integer[required]
      * @return mixed
      */
-    public function incrBy($key, $integer){}
+    public function incrBy($key, $integer)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->incrBy($key, $integer);
+    }
 
     /**
      * @return mixed
      */
-    public function hIncrBy(){}
+    public function hIncrBy($key, $hashKey, $value)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->hIncrBy($key, $hashKey, $value);
+    }
 
     /**
      * @param $key [required]
@@ -750,7 +1625,19 @@ class Redis extends Base
      * @param $integer[required]
      * @return mixed
      */
-    public function decrBy($key, $integer){}
+    public function decrBy($key, $integer)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->decrBy($key, $integer);
+    }
 
     /**
      * @param $key[required]
@@ -796,7 +1683,19 @@ class Redis extends Base
      * @param $integer[required]
      * @return mixed
      */
-    public function expire($key, $integer){}
+    public function expire($key, $integer)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->expire($key, $integer);
+    }
 
     /**
      * @return mixed
@@ -984,17 +1883,53 @@ class Redis extends Base
     /**
      * @return mixed
      */
-    public function zDelete(){}
+    public function zDelete(...$args)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zDelete(...$args);
+    }
 
     /**
      * @return mixed
      */
-    public function zRemove(){}
+    public function zRemove(...$args)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zRemove(...$args);
+    }
 
     /**
      * @return mixed
      */
-    public function zRem(){}
+    public function zRem(...$args)
+    {
+        /**
+         * @var $redis CoRedis
+         */
+        $redis = $this->_getObject();
+        if (!$redis)
+        {
+            return false;
+        }
+
+        return $redis->zRem(...$args);
+    }
 
     /**
      * @return mixed
