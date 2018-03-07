@@ -39,15 +39,12 @@ abstract class Base
                 {
                     continue;
                 }
-                else
-                {
-                    break;
-                }
             }
             else
             {
                 $object = $this->create();
             }
+            break;
         }
 
         Context::put($this->type, $object);
