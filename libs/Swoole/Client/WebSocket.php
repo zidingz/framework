@@ -137,16 +137,18 @@ class WebSocket
             if ($_tmp)
             {
                 $headerBuffer .= $_tmp;
-                if (substr($headerBuffer, -4, 4) != "\r\n\r\n")
-                {
+                $offset = stripos($headerBuffer,"\r\n\r\n");
+                if ($offset === false) {
                     continue;
                 }
+                $header = substr($headerBuffer, 0, $offset+4);
+                $this->buffer = substr($headerBuffer, $offset+4);
             }
             else
             {
                 return false;
             }
-            return $this->doHandShake($headerBuffer);
+            return $this->doHandShake($header);
         }
         return false;
     }
@@ -198,6 +200,10 @@ class WebSocket
         while (true)
         {
             $data = $this->socket->recv();
+            if ($this->buffer) {
+                $data = $this->buffer.$data;
+                $this->buffer = '';
+            }
             if (!$data)
             {
                 return false;
