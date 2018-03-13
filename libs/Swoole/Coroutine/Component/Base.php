@@ -29,14 +29,24 @@ abstract class Base
 
     function _createObject()
     {
-        if ($this->pool->count() > 0)
+        while (true)
         {
-            $object = $this->pool->pop();
+            if ($this->pool->count() > 0)
+            {
+                $object = $this->pool->pop();
+                //必须要 Swoole 2.1.1 以上版本
+                if ($object->connected === false)
+                {
+                    continue;
+                }
+            }
+            else
+            {
+                $object = $this->create();
+            }
+            break;
         }
-        else
-        {
-            $object = $this->create();
-        }
+
         Context::put($this->type, $object);
         return $object;
     }
