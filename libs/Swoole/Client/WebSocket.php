@@ -197,22 +197,37 @@ class WebSocket
             trigger_error("not complete handshake.");
             return false;
         }
-        while (true)
+        if ($this->buffer and  $offset = stripos($this->buffer,"\r\n\r\n") !== false)
         {
-            $data = $this->socket->recv();
-            if ($this->buffer) {
-                $data = $this->buffer.$data;
-                $this->buffer = '';
+            $packet = substr($this->buffer, 0, $offset + 4);
+            $next = substr($this->buffer, $offset + 4);
+            if ($next) {
+                $this->buffer = $next;
             }
-            if (!$data)
-            {
-                return false;
-            }
-            $this->parser->push($data);
-            $frame = $this->parser->pop($data);
+            $this->parser->push($packet);
+            $frame = $this->parser->pop();
             if ($frame)
             {
                 return $frame->data;
+            }
+        } else {
+            while (true)
+            {
+                $data = $this->socket->recv();
+                if ($this->buffer) {
+                    $data = $this->buffer.$data;
+                    $this->buffer = '';
+                }
+                if (!$data)
+                {
+                    return false;
+                }
+                $this->parser->push($data);
+                $frame = $this->parser->pop();
+                if ($frame)
+                {
+                    return $frame->data;
+                }
             }
         }
         return false;
