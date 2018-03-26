@@ -85,7 +85,7 @@ class Redis
             {
                 $this->_redis->connect($this->config['host'], $this->config['port'], $this->config['timeout']);
             }
-
+            
             if (!empty($this->config['password']))
             {
                 $this->_redis->auth($this->config['password']);
@@ -125,12 +125,7 @@ class Redis
                 {
                     $this->_redis->close();
                 }
-                // 有可能 select 失败，isConnected 依然是 true，
-                // 读写失败并不再抛异常，强制 close
-                if ($this->connect() === false)
-                {
-                    @$this->_redis->close();
-                }
+                $this->connect();
                 $reConnect = true;
                 continue;
             }
