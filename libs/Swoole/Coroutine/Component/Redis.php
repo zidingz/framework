@@ -208,7 +208,7 @@ class Redis extends Base
             return false;
         }
 
-        return $redis->hSet($key, $hashKeys);
+        return $redis->hMSet($key, $hashKeys);
     }
 
     /**
@@ -276,7 +276,7 @@ class Redis extends Base
             return false;
         }
 
-        return $redis->mSet($array);
+        return $redis->mSetNx($array);
     }
 
     /**
@@ -519,7 +519,7 @@ class Redis extends Base
             return false;
         }
 
-        return $redis->sSize($key);
+        return $redis->sCard($key);
     }
 
     /**
