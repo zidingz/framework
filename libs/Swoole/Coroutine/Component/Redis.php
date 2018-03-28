@@ -17,7 +17,7 @@ class Redis extends Base
         }
         if (isset($this->config['database']))
         {
-            if (!$redis->select($this->config['database']))
+            if (!$redis->select(intval($this->config['database'])))
             {
                 return false;
             }
