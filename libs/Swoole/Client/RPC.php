@@ -533,7 +533,7 @@ class RPC
      * @param $connection
      * @return bool|string
      */
-    protected function recvPacket($connection)
+    protected function recvPacket($connection, $timeout=0.5)
     {
         if ($this->haveSwoole)
         {
@@ -646,7 +646,7 @@ class RPC
                 //可读
                 foreach($read as $connection)
                 {
-                    $data = $this->recvPacket($connection);
+                    $data = $this->recvPacket($connection,$timeout);
                     //socket被关闭了
                     if ($data === "")
                     {

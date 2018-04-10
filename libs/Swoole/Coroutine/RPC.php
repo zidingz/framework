@@ -37,6 +37,37 @@ class RPC extends Swoole\Client\RPC
         return count($read);
     }
 
+    protected function recvPacket($connection, $timeout=0.5)
+    {
+        if ($this->haveSwoole)
+        {
+            return $connection->recv($timeout);
+        }
+
+        /**
+         * Stream or Socket
+         */
+        $_header_data = $connection->recv(RPCServer::HEADER_SIZE, true);
+        if (empty($_header_data))
+        {
+            return "";
+        }
+        //这里仅使用了length和type，uid,serid未使用
+        $header = unpack(RPCServer::HEADER_STRUCT, $_header_data);
+        //错误的包头，返回空字符串，结束连接
+        if ($header === false or $header['length'] <= 0 or $header['length'] > $this->packet_maxlen)
+        {
+            return "";
+        }
+
+        $_body_data = $connection->recv($header['length'], true);
+        if (empty($_body_data))
+        {
+            return "";
+        }
+        return $_header_data . $_body_data;
+    }
+
     protected function getConnection($host, $port)
     {
         $pool = self::getPool($host . ':' . $port);
