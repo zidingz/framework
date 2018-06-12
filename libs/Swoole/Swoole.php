@@ -110,6 +110,9 @@ class Swoole
      */
     static $enableCoroutine = false;
     protected static $coroutineInit = false;
+    const coroModuleDb = 1;
+    const coroModuleRedis = 2;
+    const coroModuleCache = 3;
 
     /**
      * 是否缓存 echo 输出
@@ -317,12 +320,13 @@ class Swoole
     /**
      * 执行Hook函数列表
      * @param $type
+    * @param $subtype
      */
-    function callHook($type)
+    function callHook($type,$subtype = false)
     {
-        if (isset($this->hooks[$type]))
+        if ($subtype and isset($this->hooks[$type][$subtype]))
         {
-            foreach ($this->hooks[$type] as $f)
+            foreach ($this->hooks[$type][$subtype] as $f)
             {
                 if (!is_callable($f))
                 {
@@ -330,6 +334,32 @@ class Swoole
                     continue;
                 }
                 $f();
+            }
+        }
+        elseif (isset($this->hooks[$type]))
+        {
+            foreach ($this->hooks[$type] as $f)
+            {
+                //has subtype
+                if (is_array($f))
+                {
+                    foreach ($f as $subtype => $ff)
+                    {
+                        if (!is_callable($ff))
+                        {
+                            trigger_error("SwooleFramework: hook function[$ff] is not callable.");
+                            continue;
+                        }
+                        $ff();
+                    }
+                } else {
+                    if (!is_callable($f))
+                    {
+                        trigger_error("SwooleFramework: hook function[$f] is not callable.");
+                        continue;
+                    }
+                    $f();
+                }
             }
         }
     }
@@ -348,16 +378,31 @@ class Swoole
      * @param $type
      * @param $func
      * @param $prepend bool
+     * @param $subtype bool
      */
-    function addHook($type, $func, $prepend = false)
+    function addHook($type, $func, $prepend = false, $subtype = false)
     {
-        if ($prepend)
+        if ($subtype)
         {
-            array_unshift($this->hooks[$type], $func);
+            if ($prepend)
+            {
+                array_unshift($this->hooks[$type][$subtype], $func);
+            }
+            else
+            {
+                $this->hooks[$type][$subtype][] = $func;
+            }
         }
         else
         {
-            $this->hooks[$type][] = $func;
+            if ($prepend)
+            {
+                array_unshift($this->hooks[$type], $func);
+            }
+            else
+            {
+                $this->hooks[$type][] = $func;
+            }
         }
     }
 
@@ -398,19 +443,21 @@ class Swoole
     /**
      * 在Action执行前回调
      * @param callable $callback
+     * @param mixed $subtype
      */
-    function beforeAction(callable $callback)
+    function beforeAction(callable $callback, $subtype = false)
     {
-        $this->addHook(self::HOOK_BEFORE_ACTION, $callback);
+        $this->addHook(self::HOOK_BEFORE_ACTION, $callback, false, $subtype);
     }
 
     /**
      * 在Action执行后回调
      * @param callable $callback
+     * @param mixed $subtype
      */
-    function afterAction(callable $callback)
+    function afterAction(callable $callback, $subtype = false)
     {
-        $this->addHook(self::HOOK_AFTER_ACTION, $callback);
+        $this->addHook(self::HOOK_AFTER_ACTION, $callback, false, $subtype);
     }
 
     function __get($lib_name)

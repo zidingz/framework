@@ -8,6 +8,14 @@ class Redis extends Base
 {
     protected $type = 'redis';
 
+    function __construct($config)
+    {
+        parent::__construct($config);
+        \Swoole::getInstance()->beforeAction([$this, '_createObject'],\Swoole::coroModuleRedis);
+        \Swoole::getInstance()->afterAction([$this, '_freeObject'],\Swoole::coroModuleRedis);
+    }
+
+
     function create()
     {
         $redis = new CoRedis($this->config);

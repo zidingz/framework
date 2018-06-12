@@ -23,8 +23,6 @@ abstract class Base
         $this->config = $config;
         $this->pool = new \SplQueue();
         $this->type .= '_'.$config['object_id'];
-        \Swoole::getInstance()->beforeAction([$this, '_createObject']);
-        \Swoole::getInstance()->afterAction([$this, '_freeObject']);
     }
 
     function _createObject()

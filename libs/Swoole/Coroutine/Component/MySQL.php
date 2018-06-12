@@ -11,6 +11,13 @@ class MySQL extends Base implements IDatabase
 {
     protected $type = 'mysql';
 
+    function __construct($config)
+    {
+        parent::__construct($config);
+        \Swoole::getInstance()->beforeAction([$this, '_createObject'], \Swoole::coroModuleDb);
+        \Swoole::getInstance()->afterAction([$this, '_freeObject'],\Swoole::coroModuleDb);
+    }
+
     function create()
     {
         $db = new CoMySQL;
