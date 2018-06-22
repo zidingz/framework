@@ -341,7 +341,7 @@ class Swoole
             foreach ($this->hooks[$type] as $f)
             {
                 //has subtype
-                if (is_array($f))
+                if (is_array($f) and !is_callable($f))
                 {
                     foreach ($f as $subtype => $ff)
                     {
