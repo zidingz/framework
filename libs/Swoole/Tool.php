@@ -551,6 +551,8 @@ class Tool
     /**
      * 将秒数转为人性化格式
      * @param $n
+     * @param int $round
+     * @return string
      */
     static function getHumanTime($n, $round = 3)
     {
