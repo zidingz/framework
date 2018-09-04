@@ -28,9 +28,14 @@ class Loader
 
     /**
      * for composer
+     * @param string $dir
      */
-    static function vendorInit()
+    static function vendorInit($dir = '')
     {
+        if ($dir)
+        {
+            define('WEBPATH', $dir);
+        }
         require __DIR__ . '/../lib_config.php';
     }
 
