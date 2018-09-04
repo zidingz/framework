@@ -552,7 +552,7 @@ class Tool
      * 将秒数转为人性化格式
      * @param $n
      */
-    static function getHumanTime($n)
+    static function getHumanTime($n, $round = 3)
     {
         if ($n > 86400 * 365)
         {
