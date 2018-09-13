@@ -16,7 +16,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
-      "filp/whoops": "^2.1",
-      "Symfony/Console": "^3.2"
+      "filp/whoops": "^2.2",
+      "Symfony/Console": "^4.1"
     }
 }
