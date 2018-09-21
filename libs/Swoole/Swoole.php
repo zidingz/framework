@@ -851,6 +851,10 @@ class Swoole
         else
         {
             $controller_dir = self::$app_path . '/controllers';
+            if (!is_dir($controller_dir))
+            {
+                $controller_dir = self::$app_path . '/Controllers';
+            }
         }
         //子目录
         if (isset($mvc['directory']))
