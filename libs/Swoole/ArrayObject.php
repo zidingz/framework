@@ -407,6 +407,7 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
     /**
      * 过滤数组中的元素
      * @param $fn callable
+     * @param int $flag
      * @return ArrayObject
      */
     function filter(callable $fn, $flag = 0)
@@ -414,6 +415,10 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
         return new ArrayObject(array_filter($this->array, $fn, $flag));
     }
 
+    /**
+     * @param $value
+     * @return ArrayObject|StringObject
+     */
     static function detectType($value)
     {
         if (is_array($value))
