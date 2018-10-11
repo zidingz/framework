@@ -681,10 +681,11 @@ class Tool
 
     /**
      * 获取现在的时间字符串，格式为 2016-12-12 00:00:01
+     * @param null $tm
      * @return bool|string
      */
-    static function now()
+    static function now($tm = null)
     {
-        return date(self::DATE_FORMAT_HUMEN);
+        return date(self::DATE_FORMAT_HUMEN, $tm);
     }
 }
