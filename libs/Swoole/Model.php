@@ -118,7 +118,7 @@ class Model
 
 	/**
 	 * 插入一条新的记录到表
-	 * @param $data Array 必须是键值（表的字段对应值）对应
+	 * @param $data array 必须是键值（表的字段对应值）对应
 	 * @return int
 	 */
     public function put($data)
@@ -390,6 +390,22 @@ class Model
             return false;
         }
 	}
+
+    /**
+     * 检测表是否存在
+     */
+    function existsTable()
+    {
+        $data = $this->db->query("show tables like '{$this->table}'")->fetch();
+        if (empty($data))
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+    }
 
 	/**
 	 * 获取表的字段描述
