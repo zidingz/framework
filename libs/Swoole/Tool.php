@@ -680,6 +680,34 @@ class Tool
     }
 
     /**
+     * @param $array
+     * @return \stdClass
+     */
+    static function array2object($array)
+    {
+        $object = new \stdClass();
+        foreach ($array as $key => $value)
+        {
+            $object->$key = $value;
+        }
+        return $object;
+    }
+
+    /**
+     * @param $object
+     * @return array
+     */
+    static function object2array($object)
+    {
+        $array = [];
+        foreach ($object as $key => $value)
+        {
+            $array[$key] = $value;
+        }
+        return $array;
+    }
+
+    /**
      * 获取现在的时间字符串，格式为 2016-12-12 00:00:01
      * @param null $tm
      * @return bool|string

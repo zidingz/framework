@@ -23,7 +23,7 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
 
     function valid()
     {
-        return count($this->array) >= $this->index;
+        return array_key_exists($this->index, $this->array);
     }
 
     function rewind()
