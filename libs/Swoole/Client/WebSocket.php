@@ -161,12 +161,13 @@ class WebSocket
     function doHandShake($headerBuffer)
     {
         $header = Swoole\Http\Parser::parseHeader($headerBuffer);
-        if (!isset($header['Sec-WebSocket-Accept']))
+        $_header_key_low_case = array_change_key_case($header, CASE_LOWER);
+        if (!isset($_header_key_low_case['sec-websocket-accept']))
         {
             $this->disconnect();
             return false;
         }
-        if ($header['Sec-WebSocket-Accept'] != base64_encode(pack('H*', sha1($this->key . self::GUID))))
+        if ($_header_key_low_case['sec-websocket-accept'] != base64_encode(pack('H*', sha1($this->key . self::GUID))))
         {
             $this->disconnect();
             return false;
