@@ -7,3 +7,4 @@
 *.pid
 /uploads
 /composer.lock
+/nbproject
