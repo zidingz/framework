@@ -523,6 +523,11 @@ class Tool
         file_put_contents($file, $log, FILE_APPEND);
     }
 
+    /**
+     * @param $n
+     * @param int $round
+     * @return string
+     */
     static function getHumanSize($n, $round = 3)
     {
         if ($n > 1024 * 1024 * 1024)
@@ -543,6 +548,43 @@ class Tool
         }
     }
 
+    /**
+     * 将秒数转为人性化格式
+     * @param $n
+     * @param int $round
+     * @return string
+     */
+    static function getHumanTime($n, $round = 3)
+    {
+        if ($n > 86400 * 365)
+        {
+            return round($n / ( 86400 * 365), $round) . "年";
+        }
+        elseif ($n > 86400 * 30)
+        {
+            return round($n / (86400 * 30), $round) . "月";
+        }
+        elseif ($n > 86400)
+        {
+            return round($n / (86400), $round) . "天";
+        }
+        elseif ($n > 3600)
+        {
+            return round($n / (3600), $round) . "小时";
+        }
+        elseif ($n > 60)
+        {
+            return round($n / (60), $round) . "分钟";
+        }
+        else
+        {
+            return $n."秒";
+        }
+    }
+
+    /**
+     * @param $func
+     */
     static function showCost($func)
     {
         $_t = microtime(true);
@@ -639,10 +681,11 @@ class Tool
 
     /**
      * 获取现在的时间字符串，格式为 2016-12-12 00:00:01
+     * @param null $tm
      * @return bool|string
      */
-    static function now()
+    static function now($tm = null)
     {
-        return date(self::DATE_FORMAT_HUMEN);
+        return date(self::DATE_FORMAT_HUMEN, $tm);
     }
 }

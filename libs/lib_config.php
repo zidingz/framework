@@ -39,6 +39,7 @@ function createModel($model_name)
  * @param $model_name
  * @param $db_key
  * @return Swoole\Model
+ * @throws \Swoole\Error
  */
 function model($model_name, $db_key = 'master')
 {
@@ -58,7 +59,8 @@ function table($table_name, $db_key = 'master')
 
 /**
  * 开启会话
- * @param $readonly
+ * @param bool $readonly
+ * @throws \Swoole\SessionException
  */
 function session($readonly = false)
 {
@@ -110,6 +112,10 @@ function error($error_id, $stop = true)
 
 /**
  * 错误信息输出处理
+ * @param $errno
+ * @param $errstr
+ * @param $errfile
+ * @param $errline
  */
 function swoole_error_handler($errno, $errstr, $errfile, $errline)
 {
