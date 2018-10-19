@@ -225,6 +225,33 @@ class RPC
         }
     }
 
+    /*
+     * 验证缓存中是否存在已经配置为下线的连接 防止短时间内配置恢复后连接错误使用
+     */
+    protected function validConnection($servers)
+    {
+        $offline = [];
+        foreach ($servers as $k => $svr)
+        {
+            if (!empty($svr['status']) and $svr['status'] == 'offline')
+            {
+                $offline[] = $svr;
+            }
+        }
+        if (!empty($offline)) {
+            foreach ($offline as $svr)
+            {
+                $conn_key = $svr['host'].':'.$svr['port'];
+                if (isset($this->connections[$conn_key]))
+                {
+                    $socket = $this->connections[$conn_key];
+                    $socket->close(true);
+                    unset($this->connections[$conn_key]);
+                }
+            }
+        }
+    }
+
     /**
      * 连接到服务器
      * @param RPC_Result $retObj
@@ -242,6 +269,7 @@ class RPC
             {
                 return false;
             }
+            $this->validConnection($servers);
             $socket = $this->getConnection($svr['host'], $svr['port']);
             //连接失败，服务器节点不可用
             //TODO 如果连接失败，需要上报机器存活状态
