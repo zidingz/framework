@@ -123,6 +123,10 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
 
     function offsetGet($k)
     {
+        if (!isset($this->array[$k]))
+        {
+            return null;
+        }
         return $this->array[$k];
     }
 
