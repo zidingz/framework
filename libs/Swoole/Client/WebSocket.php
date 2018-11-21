@@ -94,14 +94,14 @@ class WebSocket
 
     /**
      * Connect client to server
-     * @param $timeout
-     * @return $this
+     * @param float $timeout
+     * @return bool
      */
     public function connect($timeout = 0.5)
     {
         if (extension_loaded('swoole'))
         {
-            $type = SWOOLE_TCP;
+            $type = preg_match('/^[0-9\.]+$/', $this->host) ? SWOOLE_SOCK_TCP : SWOOLE_SOCK_UNIX_STREAM;
             if ($this->ssl)
             {
                 $type |= SWOOLE_SSL;
