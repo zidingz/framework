@@ -4,7 +4,6 @@ namespace Swoole;
 class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
 {
     protected $array;
-    protected $index = 0;
 
     function __construct($array = array())
     {
@@ -23,18 +22,16 @@ class ArrayObject implements \ArrayAccess, \Serializable, \Countable, \Iterator
 
     function valid()
     {
-        return array_key_exists($this->index, $this->array);
+        return array_key_exists($this->key(), $this->array);
     }
 
     function rewind()
     {
-        $this->index = 0;
         return reset($this->array);
     }
 
     function next()
     {
-        $this->index++;
         return next($this->array);
     }
 
