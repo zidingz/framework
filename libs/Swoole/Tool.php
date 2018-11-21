@@ -716,4 +716,26 @@ class Tool
     {
         return date(self::DATE_FORMAT_HUMEN, $tm);
     }
+
+    /**
+     * 检查地址是否未私有
+     * @param string $ip
+     * @return bool
+     */
+    static function isPrivateIP(string $ip)
+    {
+        if (strncmp($ip, "10.", 3) == 0 or strncmp($ip, "192.168.", 8) == 0)
+        {
+            return true;
+        }
+        if (strncmp($ip, "172.", 4) == 0)
+        {
+            $arr = explode('.', $ip);
+            if ($arr[1] >= 16 and $arr[1] <= 31)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }
