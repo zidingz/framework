@@ -123,11 +123,30 @@ class CURL
     }
 
     /**
-     * 设置SSL模式
+     * @param $cert
+     * @param $key
+     */
+    function setSSLCert($cert, $key)
+    {
+        curl_setopt($this->ch, CURLOPT_SSLCERT, $cert);
+        curl_setopt($this->ch, CURLOPT_SSLKEY, $key);
+    }
+
+    /**
+     * @param string $ca
+     */
+    function setCa($ca)
+    {
+        curl_setopt($this->ch, CURLOPT_CAINFO, $ca);
+    }
+
+
+    /**
+     * @param bool $verify
      */
     function setSSLVerify($verify = true)
     {
-        curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, $verify);
+        curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 2);
         curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, $verify);
     }
 
