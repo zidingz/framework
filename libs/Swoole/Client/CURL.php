@@ -143,11 +143,28 @@ class CURL
 
     /**
      * @param bool $verify
+     * TRUE by default as of cURL 7.10. Default bundle installed as of cURL 7.10.
      */
     function setSSLVerify($verify = true)
     {
-        curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, 2);
         curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, $verify);
+    }
+
+    /*
+
+    */
+    /**
+     * @param bool $verify
+     * 1 to check the existence of a common name in the SSL peer certificate.
+     * 2 to check the existence of a common name and also verify that it matches the hostname provided.
+     * 0 to not check the names.
+     * In production environments the value of this option should be kept at 2 (default value).
+     * Support for value 1 removed in cURL 7.28.1.
+     */
+    function setSSLVerifyHost($verify = true)
+    {
+        $_verify = $verify ? 2 : 0;
+        curl_setopt($this->ch, CURLOPT_SSL_VERIFYHOST, $_verify);
     }
 
     function setMethod($method)
