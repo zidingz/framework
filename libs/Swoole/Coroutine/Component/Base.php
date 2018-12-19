@@ -14,7 +14,7 @@ abstract class Base
     protected $config;
     protected $type;
 
-    protected $current_entity = 0
+    protected $current_entity = 0;
     static $threshold_percent = 1.3;
     static $threshold_num = 10;
 
@@ -82,8 +82,8 @@ abstract class Base
         if ($pool_size == 1) {
             return true;
         }
-        if ($this->current_entity > 0 && $pool_size > self::$threshold_coro_num) {
-            if ($pool_size / $this->current_entity > self::$threshold) {
+        if ($this->current_entity > 0 && $pool_size > self::$threshold_num) {
+            if ($pool_size / $this->current_entity > self::$threshold_percent) {
                 return false;
             }
         }
