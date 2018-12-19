@@ -14,6 +14,10 @@ abstract class Base
     protected $config;
     protected $type;
 
+    protected $current_entity = 0
+    static $threshold_percent = 1.3;
+    static $threshold_num = 10;
+
     function __construct($config)
     {
         if (empty($config['object_id']))
@@ -44,7 +48,7 @@ abstract class Base
             }
             break;
         }
-
+        $this->current_entity ++;
         Context::put($this->type, $object);
         return $object;
     }
@@ -59,14 +63,31 @@ abstract class Base
         $object = Context::get($this->type);
         if ($object)
         {
-            $this->pool->push($object);
+            if ($this->isReuse()) {
+                $this->pool->push($object);
+            }
             Context::delete($this->type);
         }
+        $this->current_entity ++;
     }
 
     protected function _getObject()
     {
         return Context::get($this->type);
+    }
+
+    private function isReuse()
+    {
+        $pool_size = $this->pool->count();
+        if ($pool_size == 1) {
+            return true;
+        }
+        if ($this->current_entity > 0 && $pool_size > self::$threshold_coro_num) {
+            if ($pool_size / $this->current_entity > self::$threshold) {
+                return false;
+            }
+        }
+        return true;
     }
 
     abstract function create();
