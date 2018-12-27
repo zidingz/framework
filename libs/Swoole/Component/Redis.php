@@ -135,6 +135,26 @@ class Redis
         return false;
     }
 
+    public function sScan($key, &$iterator, $pattern = '', $count = 0)
+    {
+        return $this->_redis->sScan($key,$iterator,$pattern,$count);
+    }
+
+    public function scan( &$iterator, $pattern = null, $count = 0 )
+    {
+        return $this->_redis->scan($iterator,$pattern,$count);
+    }
+
+    public function zScan($key, &$iterator, $pattern = '', $count = 0)
+    {
+        return $this->_redis->zScan($key,$iterator,$pattern,$count);
+    }
+
+    public function hScan($key, &$iterator, $pattern = '', $count = 0)
+    {
+        return $this->_redis->hScan($key,$iterator,$pattern,$count);
+    }
+
     static function write($fp, $content)
     {
         $length = strlen($content);
