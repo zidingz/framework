@@ -97,7 +97,8 @@ class Redis
         }
         catch (\RedisException $e)
         {
-            \Swoole::$php->log->error(__CLASS__ . " Swoole Redis Exception" . var_export($e, 1));
+            \Swoole::$php->log->error(__CLASS__ . " Swoole Redis Exception, msg:".$e->getMessage()." code:
+            ".$e->getCode()." line :".$e->getLine(). " file: ".$e->getFile());
             return false;
         }
     }
