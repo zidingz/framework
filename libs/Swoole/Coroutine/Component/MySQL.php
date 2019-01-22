@@ -69,7 +69,10 @@ class MySQL extends Base implements IDatabase
         {
             return false;
         }
-
+        if (empty($val))
+        {
+            return $val;
+        }
         return $db->escape($val);
     }
 
