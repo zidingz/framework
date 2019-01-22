@@ -25,7 +25,7 @@ class Redis extends Base
         }
         if (!empty($this->config['password']))
         {
-            $this->_redis->auth($this->config['password']);
+            $redis->auth($this->config['password']);
         }
         if (isset($this->config['database']))
         {
