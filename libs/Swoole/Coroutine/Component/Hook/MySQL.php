@@ -67,11 +67,11 @@ class MySQL extends Base
      */
     function __call($method, $args = array())
     {
-        $redis = $this->_getObject();
-        if (!$redis)
+        $obj = $this->_getObject();
+        if (!$obj)
         {
             return false;
         }
-        return $redis->{$method}(...$args);
+        return $obj->{$method}(...$args);
     }
 }
