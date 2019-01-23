@@ -319,6 +319,18 @@ class Swoole
         });
     }
 
+    static function coroInit()
+    {
+        self::getInstance()->callHook(self::HOOK_INIT);
+        self::getInstance()->callHook(self::HOOK_BEFORE_ACTION);
+    }
+
+    static function coroClean()
+    {
+        self::getInstance()->callHook(self::HOOK_AFTER_ACTION);
+        self::getInstance()->callHook(self::HOOK_CLEAN);
+    }
+
     static function setCoroutineStreamHook($type = null)
     {
         if ($type)
