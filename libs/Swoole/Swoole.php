@@ -109,6 +109,8 @@ class Swoole
      * @var bool
      */
     static $enableCoroutine = false;
+    static $coroutineStreamHook = [];
+    static $coroutineStreamHookSupported = ['redis','mysql'];
     protected static $coroutineInit = false;
     const coroModuleDb = 1;
     const coroModuleRedis = 2;
@@ -317,6 +319,22 @@ class Swoole
         });
     }
 
+    static function setCoroutineStreamHook($type = null)
+    {
+        if ($type)
+        {
+            if (!in_array($type, self::$coroutineStreamHookSupported))
+            {
+                throw new RuntimeException("stream hook type [$type] not support");
+            }
+            self::$coroutineStreamHook[$type] = $type;
+        }
+        foreach (self::$coroutineStreamHookSupported as $_type)
+        {
+            self::$coroutineStreamHook[$_type] = $_type;
+        }
+    }
+
     /**
      * 执行Hook函数列表
      * @param $type
@@ -490,16 +508,23 @@ class Swoole
             {
                 $object = require $user_factory_file;
             }
-            //Swoole 2.0 协程模式
+            //Swoole协程模式
             elseif (self::$enableCoroutine)
             {
-                $system_factory_2x_file = LIBPATH . '/factory_2x/' . $module . '.php';
+                if (!empty(self::$coroutineStreamHook[$module]))
+                {
+                    $system_factory_file = LIBPATH . '/factory_hook/' . $module . '.php';
+                }
+                else
+                {
+                    $system_factory_file = LIBPATH . '/factory_2x/' . $module . '.php';
+                }
                 //不存在，继续使用 1.x 的工厂
-                if (!is_file($system_factory_2x_file))
+                if (!is_file($system_factory_file))
                 {
                     goto get_factory_file;
                 }
-                $object = require $system_factory_2x_file;
+                $object = require $system_factory_file;
             }
             //系统默认
             else
@@ -763,33 +788,33 @@ class Swoole
     /**
      * 加载所有模块
      */
-    function loadAllModules()
+    function loadAllModules($type = null)
     {
-        //redis
-        $redis_conf = $this->config['redis'];
-        if (!empty($redis_conf))
+        $support = ['db','redis','cache'];
+        if (!empty($type) and in_array($type,$support))
         {
-            foreach ($redis_conf as $k => $v)
+            $conf = $this->config[$type];
+            if (!empty($conf))
             {
-                $this->loadModule('redis', $k);
+                foreach ($conf as $k => $v)
+                {
+                    $this->loadModule($type, $k);
+                }
             }
         }
-        //cache
-        $cache_conf = $this->config['cache'];
-        if (!empty($cache_conf))
+        else
         {
-            foreach ($cache_conf as $k => $v)
+
+            foreach ($support as $_type)
             {
-                $this->loadModule('cache', $k);
-            }
-        }
-        //db
-        $db_conf = $this->config['db'];
-        if (!empty($db_conf))
-        {
-            foreach ($db_conf as $k => $v)
-            {
-                $this->loadModule('db', $k);
+                $conf = $this->config[$_type];
+                if (!empty($conf))
+                {
+                    foreach ($conf as $k => $v)
+                    {
+                        $this->loadModule($_type, $k);
+                    }
+                }
             }
         }
     }

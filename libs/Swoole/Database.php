@@ -82,6 +82,9 @@ class Database
             case self::TYPE_COMYSQL:
                 $this->_db = new Coroutine\Component\MySQL($db_config);
                 break;
+            case self::TYPE_COHOOKMYSQL:
+                $this->_db = new Coroutine\Component\HOOK\MySQL($db_config);
+                break;
             default:
                 $this->_db = new Database\PdoDB($db_config);
                 break;

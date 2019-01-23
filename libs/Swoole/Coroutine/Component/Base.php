@@ -37,7 +37,7 @@ abstract class Base
             {
                 $object = $this->pool->pop();
                 //必须要 Swoole 2.1.1 以上版本
-                if ($object->connected === false)
+                if (property_exists($object, "connected") and $object->connected === false)
                 {
                     continue;
                 }

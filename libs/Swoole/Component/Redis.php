@@ -77,7 +77,7 @@ class Redis
         try
         {
             $this->_redis = new \Redis();
-            if ($this->config['pconnect'])
+            if (!empty($this->config['pconnect']))
             {
                 $this->_redis->pconnect($this->config['host'], $this->config['port'], $this->config['timeout']);
             }
