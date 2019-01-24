@@ -110,7 +110,7 @@ class Swoole
      */
     static $enableCoroutine = false;
     static $coroutineStreamHook = [];
-    static $coroutineStreamHookSupported = ['redis','mysql'];
+    static $coroutineStreamHookSupported = ['redis','db'];
     protected static $coroutineInit = false;
     const coroModuleDb = 1;
     const coroModuleRedis = 2;
