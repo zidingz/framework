@@ -155,7 +155,7 @@ class Memcache
         }
     }
 
-    public function request($key, $cmd)
+    public function request($key, $cmd, $times = 1)
     {
         if ($this->consistentHash)
         {
@@ -179,7 +179,19 @@ class Memcache
 
             return false;
         }
-        $data = $connection->recv();
+
+        $data = "";
+        if ($times > 1)
+        {
+            for ($i = 0; $i < $times; $i++)
+            {
+                $data .= $connection->recv();
+            }
+        }
+        else
+        {
+            $data = $connection->recv();
+        }
         if ($data == false)
         {
             $connection->close();
@@ -229,7 +241,8 @@ class Memcache
 
     function getMulti(array $keys)
     {
-        $result = $this->request($keys[0], "get " . implode(' ', $keys) . "\r\n");
+        $count = count($keys) * 2 + 1;
+        $result = $this->request($keys[0], "get " . implode(' ', $keys) . "\r\n", $count);
         if ($result === false)
         {
             return false;
@@ -259,7 +272,8 @@ class Memcache
 
     function get($key, &$flag = array())
     {
-        $result = $this->request($key, "get $key\r\n");
+        $result = $this->request($key, "get $key\r\n", 3);
+
         if ($result === false)
         {
             return false;
