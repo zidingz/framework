@@ -3,7 +3,7 @@
 namespace Swoole\Coroutine\Component;
 
 use Swoole;
-use Swoole\Coroutine\Context;
+use Swoole\Coroutine\BaseContext;
 
 abstract class Base
 {
@@ -59,7 +59,7 @@ abstract class Base
             break;
         }
         $this->current_entity ++;
-        Context::put($this->type, $object);
+        BaseContext::put($this->type, $object);
         return $object;
     }
 
@@ -70,20 +70,20 @@ abstract class Base
         {
             return;
         }
-        $object = Context::get($this->type);
+        $object = BaseContext::get($this->type);
         if ($object)
         {
             if ($this->isReuse()) {
                 $this->pool->insert(['priority' => time(), 'obj' => $object]);
             }
-            Context::delete($this->type);
+            BaseContext::delete($this->type);
         }
         $this->current_entity ++;
     }
 
     protected function _getObject()
     {
-        return Context::get($this->type);
+        return BaseContext::get($this->type);
     }
 
     private function isReuse()

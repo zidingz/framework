@@ -4,7 +4,7 @@ namespace Swoole\Coroutine;
 
 use Swoole\Coroutine;
 
-class Context
+class BaseContext
 {
     protected static $pool = [];
 

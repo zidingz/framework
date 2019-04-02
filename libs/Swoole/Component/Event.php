@@ -11,6 +11,7 @@ class Event
      */
     protected $_queue;
     protected $_handles = array();
+    protected $_tmp_handles = array();
 
     /**
      * @var \swoole_atomic
@@ -36,7 +37,7 @@ class Event
     {
         if (!isset($this->_handles[$type]))
         {
-            $handlers = array();
+            $this->_tmp_handles = array();
             $path = \Swoole::$app_path.'/events/'.$type.'.php';
             if (is_file($path))
             {
@@ -50,7 +51,7 @@ class Event
                             $object = new $h;
                             if ($object instanceof IFace\EventHandler)
                             {
-                                $handlers[] = $object;
+                                $this->_tmp_handles[] = $object;
                                 continue;
                             }
                         }
@@ -58,7 +59,7 @@ class Event
                     }
                 }
             }
-            $this->_handles[$type] = $handlers;
+            $this->_handles[$type] = $this->_tmp_handles;
         }
 
         foreach($this->_handles[$type] as $handler)

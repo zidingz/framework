@@ -3,7 +3,7 @@
 namespace Swoole\Coroutine\Component\Hook;
 
 use Swoole\Coroutine\Component\Base;
-use Swoole\Coroutine\Context;
+use Swoole\Coroutine\BaseContext;
 use Swoole\Database\MySQLi as CoMysql;
 
 
@@ -49,7 +49,7 @@ class MySQL extends Base
             if ($result === false)
             {
                 $db->close();
-                Context::delete($this->type);
+                BaseContext::delete($this->type);
                 $db = $this->_createObject();
                 continue;
             }
