@@ -528,23 +528,6 @@ class RPC
     }
 
     /**
-     * 设置apitoken
-     * @param string $apiToken 接口调用令牌
-     */
-    function setApiToken($apiToken)
-    {
-        $this->apiToken = $apiToken;
-    }
-
-    /**
-     * 设置logintoken
-     * @param string $loginToken 登录令牌
-     */
-    function setLoginToken($loginToken)
-    {
-        $this->loginToken = $loginToken;
-    }
-
     /**
      * RPC调用
      *
@@ -562,17 +545,6 @@ class RPC
             //调用端环境变量
             $send['env'] = $this->env;
         }
-
-        if (isset($this->apiToken) and !empty($this->apiToken)) {
-            $send['apitoken'] = $this->apiToken;
-            $this->apiToken = null;
-        }
-
-        if (isset($this->loginToken) and !empty($this->loginToken)) {
-            $send['logintoken'] = $this->loginToken;
-            $this->loginToken = null;
-        }
-
         $this->request($send, $retObj);
         $retObj->callback = $callback;
         return $retObj;
