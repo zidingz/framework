@@ -107,6 +107,7 @@ class SelectDB
             $this->use_index='';
             $this->join='';
             $this->union='';
+            $this->is_execute = 0;
         }
         else
         $this->$what = '';
