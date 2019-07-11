@@ -2,7 +2,7 @@
 
 namespace Swoole\Coroutine\Component;
 
-use Swoole\Coroutine\Context;
+use Swoole\Coroutine\BaseContext;
 use Swoole\Coroutine\MySQL as CoMySQL;
 use Swoole\IDatabase;
 use Swoole\IDbRecord;
@@ -49,7 +49,7 @@ class MySQL extends Base implements IDatabase
             if ($result === false)
             {
                 $db->close();
-                Context::delete($this->type);
+                BaseContext::delete($this->type);
                 $db = $this->_createObject();
                 continue;
             }
@@ -69,7 +69,10 @@ class MySQL extends Base implements IDatabase
         {
             return false;
         }
-
+        if (empty($val))
+        {
+            return $val;
+        }
         return $db->escape($val);
     }
 

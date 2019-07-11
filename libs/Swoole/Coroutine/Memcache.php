@@ -20,6 +20,16 @@ class Memcache
     const STATS = 10;
     const END = 11;
 
+    const VAL_IS_STRING  = 0;
+    const VAL_IS_LONG    = 1;
+    const VAL_IS_DOUBLE  = 2;
+    const VAL_IS_BOOL    = 3;
+    const VAL_IS_SERIALIZED = 4;
+    //TODO inplement with following type
+    const VAL_IS_IGBINARY   = 5;
+    const VAL_IS_JSON       = 6;
+    const VAL_IS_MSGPACK    = 7;
+
     public $errCode;
 
     protected $servers = array();
@@ -56,8 +66,10 @@ class Memcache
         }
     }
 
-    public function add($key, $value, $expire = 0, $flag = 0)
+
+    public function add($key, $value, $expire = 0)
     {
+        list($value, $flag) = $this->payloadValue($value);
         $result = $this->request($key, "add $key $flag $expire " . strlen($value) . "\r\n$value\r\n");
         if ($result === false)
         {
@@ -73,128 +85,9 @@ class Memcache
         }
     }
 
-    /**
-     * websocket decode
-     * @param $buffer
-     * @return array|false
-     */
-    public static function decode($buffer)
+    public function set($key, $value, $expire = 0)
     {
-        if (substr($buffer, 0, 4) == 'STAT')
-        {
-            $stats = array();
-
-            $lines = explode("\r\n", $buffer);
-            foreach ($lines as $line)
-            {
-                if (substr($line, 0, 4) == 'STAT')
-                {
-                    list(, $key, $value) = explode(' ', $line);
-                    $stats[$key] = $value;
-                }
-            }
-
-            return ['data' => $stats, 'type' => self::STATS];
-        }
-        elseif (substr($buffer, 0, 5) == 'VALUE')
-        {
-            $lines = explode("\r\n", $buffer);
-            $lines = array_slice($lines, 0, count($lines) - 2);
-
-            $data = array();
-            foreach ($lines as $index => $line)
-            {
-                /**
-                 * @var $key
-                 * @var $flag
-                 * @var $bytes
-                 */
-                if (($index % 2) == 0)
-                {
-                    list(, $key, $flag, $bytes) = explode(' ', $line);
-                }
-                else
-                {
-                    $data[$key] = array('value' => $line, 'flag' => $flag, 'bytes' => $bytes);
-                }
-            }
-
-            return ['data' => $data, 'type' => self::VALUE];
-        }
-        elseif (substr($buffer, 0, 6) == 'STORED')
-        {
-            return ['type' => self::STORED];
-        }
-        elseif (substr($buffer, 0, 10) == 'NOT_STORED')
-        {
-            return ['type' => self::NOT_STORED];
-        }
-        elseif (substr($buffer, 0, 7) == 'DELETED')
-        {
-            return ['type' => self::DELETED];
-        }
-        elseif (substr($buffer, 0, 9) == 'NOT_FOUND')
-        {
-            return ['type' => self::NOT_FOUND];
-        }
-        elseif (substr($buffer, 0, 3) == 'END')
-        {
-            return ['type' => self::END];
-        }
-        elseif (substr($buffer, 0, 7) == 'VERSION')
-        {
-            list(, $version) = explode(' ', trim($buffer, "\r\n"));
-
-            return ['type' => self::END, 'data' => $version];
-        }
-        else
-        {
-            list($value,) = explode("\r\n", $buffer);
-
-            return ['type' => self::OK, 'data' => $value];
-        }
-    }
-
-    public function request($key, $cmd)
-    {
-        if ($this->consistentHash)
-        {
-            $server = $this->consistentHash();
-        }
-        elseif (count($this->servers) == 1)
-        {
-            $server = $this->servers[0];
-        }
-        else
-        {
-            $hash = swoole_hashcode($key, 1);
-            $server = $this->servers[$hash % count($this->servers)];
-        }
-
-        $serverKey = $server['host'] . ':' . $server['port'];
-        $connection = $this->_getConnection($serverKey);
-        if ($connection->send($cmd) == false)
-        {
-            $connection->close();
-
-            return false;
-        }
-        $data = $connection->recv();
-        if ($data == false)
-        {
-            $connection->close();
-
-            return false;
-        }
-
-        //释放连接
-        $this->_freeConnection($serverKey, $connection);
-
-        return $this->decode($data);
-    }
-
-    public function set($key, $value, $expire = 0, $flag = 0)
-    {
+        list($value, $flag) = $this->payloadValue($value);
         $result = $this->request($key, "set $key $flag $expire " . strlen($value) . "\r\n$value\r\n");
         if ($result === false)
         {
@@ -210,8 +103,9 @@ class Memcache
         }
     }
 
-    public function replace($key, $value, $flag = 0, $expire = 0)
+    public function replace($key, $value, $expire = 0)
     {
+        list($value, $flag) = $this->payloadValue($value);
         $result = $this->request($key, "replace $key $flag $expire " . strlen($value) . "\r\n$value\r\n");
         if ($result === false)
         {
@@ -229,7 +123,8 @@ class Memcache
 
     function getMulti(array $keys)
     {
-        $result = $this->request($keys[0], "get " . implode(' ', $keys) . "\r\n");
+        $count = count($keys) * 2 + 1;
+        $result = $this->request($keys[0], "get " . implode(' ', $keys) . "\r\n", $count);
         if ($result === false)
         {
             return false;
@@ -246,7 +141,7 @@ class Memcache
         {
             if (isset($result['data'][$k]['value']))
             {
-                $_retval[$k] = $result['data'][$k]['value'];
+                $_retval[$k] = $this->parseResultToValue($result['data'][$k]);
             }
             else
             {
@@ -259,7 +154,8 @@ class Memcache
 
     function get($key, &$flag = array())
     {
-        $result = $this->request($key, "get $key\r\n");
+        $result = $this->request($key, "get $key\r\n", 3);
+
         if ($result === false)
         {
             return false;
@@ -271,7 +167,7 @@ class Memcache
 
             return false;
         }
-        return $result['data'][$key]['value'];
+        return $this->parseResultToValue($result['data'][$key]);
     }
 
     public function increment($key, $by = 1)
@@ -355,6 +251,151 @@ class Memcache
         return [$serverKey => $result['data']];
     }
 
+    //TODO other methods implement in memcached
+
+    /**
+     * @param $key
+     * @param $cmd
+     * @param int $times
+     * @return array|bool|false
+     */
+    protected function request($key, $cmd, $times = 1)
+    {
+        if ($this->consistentHash)
+        {
+            $server = $this->consistentHash();
+        }
+        elseif (count($this->servers) == 1)
+        {
+            $server = $this->servers[0];
+        }
+        else
+        {
+            $hash = swoole_hashcode($key, 1);
+            $server = $this->servers[$hash % count($this->servers)];
+        }
+
+        $serverKey = $server['host'] . ':' . $server['port'];
+        $connection = $this->_getConnection($serverKey);
+        if ($connection->send($cmd) == false)
+        {
+            $connection->close();
+
+            return false;
+        }
+
+        $data = "";
+        if ($times > 1)
+        {
+            for ($i = 0; $i < $times; $i++)
+            {
+                $tmp = $connection->recv();
+                if ($tmp == false)
+                {
+                    return false;
+                }
+                $data .= $tmp;
+            }
+        }
+        else
+        {
+            $data = $connection->recv();
+        }
+        if ($data == false)
+        {
+            $connection->close();
+
+            return false;
+        }
+
+        //释放连接
+        $this->_freeConnection($serverKey, $connection);
+
+        return $this->decode($data);
+    }
+
+
+    /**
+     * @param $buffer
+     * @return array
+     */
+    protected static function decode($buffer)
+    {
+        if (substr($buffer, 0, 4) == 'STAT')
+        {
+            $stats = array();
+
+            $lines = explode("\r\n", $buffer);
+            foreach ($lines as $line)
+            {
+                if (substr($line, 0, 4) == 'STAT')
+                {
+                    list(, $key, $value) = explode(' ', $line);
+                    $stats[$key] = $value;
+                }
+            }
+
+            return ['data' => $stats, 'type' => self::STATS];
+        }
+        elseif (substr($buffer, 0, 5) == 'VALUE')
+        {
+            $lines = explode("\r\n", $buffer);
+            $lines = array_slice($lines, 0, count($lines) - 2);
+
+            $data = array();
+            foreach ($lines as $index => $line)
+            {
+                /**
+                 * @var $key
+                 * @var $flag
+                 * @var $bytes
+                 */
+                if (($index % 2) == 0)
+                {
+                    list(, $key, $flag, $bytes) = explode(' ', $line);
+                }
+                else
+                {
+                    $data[$key] = array('value' => $line, 'flag' => $flag, 'bytes' => $bytes);
+                }
+            }
+
+            return ['data' => $data, 'type' => self::VALUE];
+        }
+        elseif (substr($buffer, 0, 6) == 'STORED')
+        {
+            return ['type' => self::STORED];
+        }
+        elseif (substr($buffer, 0, 10) == 'NOT_STORED')
+        {
+            return ['type' => self::NOT_STORED];
+        }
+        elseif (substr($buffer, 0, 7) == 'DELETED')
+        {
+            return ['type' => self::DELETED];
+        }
+        elseif (substr($buffer, 0, 9) == 'NOT_FOUND')
+        {
+            return ['type' => self::NOT_FOUND];
+        }
+        elseif (substr($buffer, 0, 3) == 'END')
+        {
+            return ['type' => self::END];
+        }
+        elseif (substr($buffer, 0, 7) == 'VERSION')
+        {
+            list(, $version) = explode(' ', trim($buffer, "\r\n"));
+
+            return ['type' => self::END, 'data' => $version];
+        }
+        else
+        {
+            list($value,) = explode("\r\n", $buffer);
+
+            return ['type' => self::OK, 'data' => $value];
+        }
+    }
+
     protected static function hash($key)
     {
         $value = 0;
@@ -373,6 +414,12 @@ class Memcache
         $value += ($value << 15);
 
         return $value;
+    }
+
+    protected function setTimeout($timeout)
+    {
+        if ($timeout)
+            $this->timeout = $timeout;
     }
 
     protected function _getConnection($serverKey)
@@ -411,6 +458,93 @@ class Memcache
             $this->pool[$serverKey] = new \SplQueue();
         }
         $this->pool[$serverKey]->push($conn);
+    }
+
+    protected function payloadValue($value)
+    {
+        if(is_string($value))
+        {
+            $val = strval($value);
+            $flag = self::VAL_IS_STRING;
+        }
+        else if(is_long($value))
+        {
+            $val = strval($value);
+            $flag = self::VAL_IS_LONG;
+        }
+        else if(is_double($value))
+        {
+            $val = strval($value);
+            $flag = self::VAL_IS_DOUBLE;
+        }
+        else if(is_bool($value))
+        {
+            $val = $value ? "1" : "0";
+            $flag = self::VAL_IS_BOOL;
+        }
+        else
+        {
+            $val = serialize($value);
+            $flag = self::VAL_IS_SERIALIZED;
+        }
+
+        return [$val, $flag];
+    }
+
+    protected function parseResultToValue($result)
+    {
+        if(!isset($result['flag']))
+        {
+            return false;
+        }
+
+        $flag = intval($result['flag']);
+        switch($flag)
+        {
+            case self::VAL_IS_STRING:
+                $value = $result['value'];
+                break;
+
+            case self::VAL_IS_LONG:
+                $value = intval($result['value']);
+                break;
+
+            case self::VAL_IS_DOUBLE:
+                {
+                    if ($result['value'] === "Infinity")
+                    {
+                        $value = INF;
+                    }
+                    else if ($result['value'] === "-Infinity")
+                    {
+                        $value = -INF;
+                    }
+                    else if ($result['value'] === "NaN")
+                    {
+                        $value = NAN;
+                    }
+                    else
+                    {
+                        $value = doubleval($result['value']);
+                    }
+                }
+                break;
+
+            case self::VAL_IS_BOOL:
+                $value = $result['value'] ? true : false;
+                break;
+            //TODO
+            case self::VAL_IS_SERIALIZED:
+            case self::VAL_IS_IGBINARY:
+            case self::VAL_IS_JSON:
+            case self::VAL_IS_MSGPACK:
+                $value = unserialize($result['value']);
+                break;
+            default:
+                $value = false;
+        }
+
+        return $value;
     }
 
     /**

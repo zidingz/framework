@@ -68,6 +68,7 @@ class Database
      * 协程版本
      */
 	const TYPE_COMYSQL = 4;
+	const TYPE_COHOOKMYSQL = 5;
 
     function __construct($db_config)
     {
@@ -81,6 +82,9 @@ class Database
                 break;
             case self::TYPE_COMYSQL:
                 $this->_db = new Coroutine\Component\MySQL($db_config);
+                break;
+            case self::TYPE_COHOOKMYSQL:
+                $this->_db = new Coroutine\Component\Hook\MySQL($db_config);
                 break;
             default:
                 $this->_db = new Database\PdoDB($db_config);

@@ -23,6 +23,10 @@ class Redis extends Base
         {
             return false;
         }
+        if (!empty($this->config['password']))
+        {
+            $redis->auth($this->config['password']);
+        }
         if (isset($this->config['database']))
         {
             if (!$redis->select(intval($this->config['database'])))
