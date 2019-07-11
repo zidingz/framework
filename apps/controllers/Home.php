@@ -1,14 +1,16 @@
 <?php
-namespace App\Controller;
-use Swoole;
 
-class Home extends Swoole\Controller
+namespace App\Controller;
+
+use SPF;
+
+class Home extends SPF\Controller
 {
-    function __construct($swoole)
+    function __construct($app)
     {
-        parent::__construct($swoole);
-        Swoole::$php->session->start();
-        Swoole\Auth::loginRequire();
+        parent::__construct($app);
+        $this->session->start();
+        SPF\Auth::loginRequire();
     }
 
     function index()

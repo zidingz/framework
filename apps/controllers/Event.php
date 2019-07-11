@@ -1,9 +1,9 @@
 <?php
 namespace App\Controller;
 
-use Swoole;
+use SPF;
 
-class Event extends Swoole\Controller
+class Event extends SPF\Controller
 {
     function test()
     {

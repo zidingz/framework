@@ -1,8 +1,8 @@
 <?php
-global $php;
+$app = SPF\App::getInstance();
 if (empty($php->config['db'][$php->factory_key]))
 {
-    throw new Swoole\Exception\Factory("codb->{$php->factory_key} is not found.");
+    throw new SPF\Exception\Factory("codb->{$php->factory_key} is not found.");
 }
-$codb = new Swoole\Client\CoMySQL($php->factory_key);
+$codb = new SPF\Client\CoMySQL($php->factory_key);
 return $codb;

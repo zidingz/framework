@@ -1,12 +1,12 @@
 <?php
 namespace App\Controller;
-use Swoole;
+use SPF;
 
-class Form extends Swoole\Controller
+class Form extends SPF\Controller
 {
     function index()
     {
-        $this->swoole->addCatcher(function ($e) {
+        $this->app->addCatcher(function ($e) {
             if ($e instanceof Swoole\Exception\InvalidParam)
             {
                 die("缺少 {$e->key} 表单.");

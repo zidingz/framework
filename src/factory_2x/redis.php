@@ -20,5 +20,5 @@ if (empty($config['timeout']))
 //用于隔离多实例
 $config['object_id'] = $php->factory_key;
 
-$redis = new Swoole\Coroutine\Component\Redis($config);
+$redis = new SPF\Coroutine\Component\Redis($config);
 return $redis;

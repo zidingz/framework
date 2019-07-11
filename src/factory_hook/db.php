@@ -3,11 +3,11 @@ global $php;
 $configs = $php->config['db'];
 if (empty($configs[$php->factory_key]))
 {
-    throw new Swoole\Exception\Factory("db->{$php->factory_key} is not found.");
+    throw new SPF\Exception\Factory("db->{$php->factory_key} is not found.");
 }
 $config = $configs[$php->factory_key];
 
-$config['type'] = \Swoole\Database::TYPE_COHOOKMYSQL;
+$config['type'] = \SPF\Database::TYPE_COHOOKMYSQL;
 if (!empty($config['passwd']))
 {
     $config['password'] = $config['passwd'];
@@ -22,6 +22,6 @@ if (!empty($config['name']))
 //用于隔离多实例
 $config['object_id'] = $php->factory_key;
 
-$db = new Swoole\Database($config);
+$db = new SPF\Database($config);
 
 return $db;

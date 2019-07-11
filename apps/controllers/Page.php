@@ -1,14 +1,14 @@
 <?php
 namespace App\Controller;
 use Hoa\Core\Exception\Exception;
-use Swoole;
+use SPF;
 use App;
 
-class Page extends Swoole\Controller
+class Page extends SPF\Controller
 {
-    function __construct($swoole)
+    function __construct($app)
     {
-        parent::__construct($swoole);
+        parent::__construct($app);
     }
 
     //hello world
@@ -42,12 +42,9 @@ class Page extends Swoole\Controller
     function cache_set()
     {
         $result = $this->cache->set("swoole_var_1", "swoole");
-        if($result)
-        {
+        if ($result) {
             echo "cache set success. Key=swoole_var_1";
-        }
-        else
-        {
+        } else {
             echo "cache set failed.";
         }
     }
@@ -95,7 +92,7 @@ class Page extends Swoole\Controller
     {
         $this->session->start();
         $this->http->header('Content-Type', 'image/jpeg');
-        $verifyCode = Swoole\Image::verifycode_chinese('/usr/share/fonts/truetype/wqy/wqy-microhei.ttc');
+        $verifyCode = SPF\Image::verifycode_chinese('/usr/share/fonts/truetype/wqy/wqy-microhei.ttc');
 //        debug($verifyCode);
 //        $verifyCode = Swoole\Image::verifycode_gd();
 //        $verifyCode = Swoole\Image::verifycode_imagick();

@@ -1,8 +1,8 @@
 <?php
 namespace App\Controller;
-use Swoole;
+use SPF;
 
-class Coro extends Swoole\Controller
+class Coro extends SPF\Controller
 {
     function rpc()
     {

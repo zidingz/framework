@@ -7,5 +7,5 @@ else
 {
     $config = Swoole::$php->config['upload'];
 }
-$upload = new Swoole\Upload($config);
+$upload = new SPF\Upload($config);
 return $upload;

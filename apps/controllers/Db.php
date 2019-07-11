@@ -1,8 +1,8 @@
 <?php
 namespace App\Controller;
-use Swoole;
+use SPF;
 
-class Db extends Swoole\Controller
+class Db extends SPF\Controller
 {
     function apt_test()
     {

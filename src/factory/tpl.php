@@ -1,27 +1,19 @@
 <?php
-$tpl = new Swoole\Template();
-global $php;
-$tpl->assign_by_ref('php', $php->env);
+$tpl = new SPF\Template();
+$app = SPF\App::getInstance();
+$tpl->assign_by_ref('php', $app->env);
 
-if (defined('TPL_DIR'))
-{
+if (defined('TPL_DIR')) {
     $tpl->template_dir = TPL_DIR;
-}
-elseif (is_dir(Swoole::$app_path . '/templates'))
-{
-    $tpl->template_dir = Swoole::$app_path . '/templates';
-}
-else
-{
+} elseif (is_dir($app->app_path . '/templates')) {
+    $tpl->template_dir = $app->app_path . '/templates';
+} else {
     $tpl->template_dir = WEBPATH . "/templates";
 }
 define('TPL_BASE', $tpl->template_dir);
-if (DEBUG == 'on')
-{
+if (SPF\App::$debug) {
     $tpl->compile_check = true;
-}
-else
-{
+} else {
     $tpl->compile_check = false;
 }
 return $tpl;

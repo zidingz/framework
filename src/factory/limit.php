@@ -1,2 +1,2 @@
 <?php
-return new Swoole\Limit(Swoole::$php->config['limit']);
+return new SPF\Limit(Swoole::$php->config['limit']);

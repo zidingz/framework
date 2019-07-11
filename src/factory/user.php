@@ -1,4 +1,4 @@
 <?php
 global $php;
-$user = new Swoole\Auth($php->config['user']);
+$user = new SPF\Auth($php->config['user']);
 return $user;

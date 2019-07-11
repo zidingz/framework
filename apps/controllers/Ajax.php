@@ -1,8 +1,8 @@
 <?php
 namespace App\Controller;
-use Swoole;
+use SPF\Controller;
 
-class Ajax extends Swoole\Controller
+class Ajax extends Controller
 {
     public $is_ajax = true;
 

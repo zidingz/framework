@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
-use Swoole;
+use SPF;
 
-class Cache extends Swoole\Controller
+class Cache extends SPF\Controller
 {
     function get()
     {

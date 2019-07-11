@@ -12,7 +12,7 @@ function smarty_function_getall($params, &$smarty)
 		return false;
 	}
 	global $php;
-	$select = new Swoole\SelectDB($php->db);
+	$select = new SPF\SelectDB($php->db);
 	$select->call_by = 'func';
 	if(!isset($params['order'])) $params['order'] = 'id desc';
 	$select->put($params);

@@ -1,8 +1,10 @@
 <?php
-namespace App\Model;
-use Swoole;
 
-class User extends Swoole\Model
+namespace App\Model;
+
+use SPF;
+
+class User extends SPF\Model
 {
     /**
      * 表名

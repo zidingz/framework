@@ -1,8 +1,8 @@
 <?php
 namespace App\Controller;
-use Swoole;
+use SPF;
 
-class Http extends Swoole\Controller
+class Http extends SPF\Controller
 {
     function stop()
     {

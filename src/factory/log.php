@@ -3,7 +3,7 @@ global $php;
 $config = $php->config['log'];
 if (empty($config[$php->factory_key]))
 {
-    throw new Swoole\Exception\Factory("log->{$php->factory_key} is not found.");
+    throw new SPF\Exception\Factory("log->{$php->factory_key} is not found.");
 }
 $conf = $config[$php->factory_key];
 if (empty($conf['type']))

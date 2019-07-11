@@ -1,8 +1,8 @@
 <?php
 namespace App\Controller;
-use Swoole;
+use SPF;
 
-class Redis extends Swoole\Controller
+class Redis extends SPF\Controller
 {
     function __beforeAction()
     {

@@ -1,8 +1,8 @@
 <?php
 namespace App\Controller;
-use Swoole;
+use SPF;
 
-class User extends Swoole\Controller
+class User extends SPF\Controller
 {
     function login()
     {

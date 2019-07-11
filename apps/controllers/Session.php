@@ -1,8 +1,8 @@
 <?php
 namespace App\Controller;
-use Swoole;
+use SPF;
 
-class Session extends Swoole\Controller
+class Session extends SPF\Controller
 {
     function write()
     {
