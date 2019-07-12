@@ -1,6 +1,5 @@
 <?php
 namespace App\Controller;
-use Hoa\Core\Exception\Exception;
 use SPF;
 use App;
 

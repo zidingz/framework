@@ -151,6 +151,7 @@ class Controller extends BaseObject
     /**
      * 显示跟踪信息
      * @return string
+     * @throws SessionException
      */
     public function showTrace()
     {
@@ -172,7 +173,7 @@ class Controller extends BaseObject
         {
             $_trace['SESSION_ID'] = session_id();
         }
-        if ($this->app->db instanceof \SPF\Database)
+        if ($this->app->db instanceof Database)
         {
             $_trace['读取数据库'] = $this->app->db->read_times . '次';
             $_trace['写入数据库'] = $this->app->db->write_times . '次';
@@ -256,6 +257,11 @@ HTMLS;
         return $html;
     }
 
+    /**
+     * @param $data
+     * @param $params
+     * @throws InvalidParam
+     */
     function validate(&$data, $params)
     {
         foreach ($params as $k => $v)
@@ -275,7 +281,7 @@ HTMLS;
                 }
             }
 
-            $s = new StringObject($v);
+            $s = swoole_string($v);
             $conds = $s->split('|');
 
             if ($conds->contains('required'))

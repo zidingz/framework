@@ -1,12 +1,14 @@
 <?php
+
 namespace App\Controller;
+
 use SPF;
 
 class Db extends SPF\Controller
 {
     function apt_test()
     {
-        $apt = new Swoole\SelectDB($this->db);
+        $apt = new SPF\SelectDB($this->db);
         $apt->from('users');
         $apt->equal('id', 1);
         $res = $apt->getall();
@@ -24,7 +26,7 @@ class Db extends SPF\Controller
         /**
          * other
          */
-        $tables = $this->db("huya")->query("show tables")->fetchall();
+        $tables = $this->db("slave")->query("show tables")->fetchall();
         var_dump($tables);
     }
 
@@ -64,21 +66,20 @@ class Db extends SPF\Controller
         $model = Model('User');
         //level = 5
 //        $gets['id'] = $_GET['s'];
-        $gets['where'][]  = 'id > '.$_GET['s'].'';
+        $gets['where'][] = 'id > ' . $_GET['s'] . '';
         //$gets['where'][] = array('id', '>', $_GET['s']);
         //仅获取数据
         var_dump($model->gets($gets));
-        echo ($this->db->getSql());
+        echo($this->db->getSql());
         exit;
 
         //分页
-        $gets['page'] = empty($_GET['page'])?1:intval($_GET['page']);
+        $gets['page'] = empty($_GET['page']) ? 1 : intval($_GET['page']);
         $gets['pagesize'] = 5;
         $pager = null;
         $list = $model->gets($gets, $pager);
 
-        foreach($list as $li)
-        {
+        foreach ($list as $li) {
             echo "{$li['id']}: {$li['name']}<br/>\n";
         }
         //上一页/下一页
@@ -88,17 +89,17 @@ class Db extends SPF\Controller
     function codb()
     {
         $ret1 = $this->codb->query("show tables");
-        $ret2 = $this->codb->query("desc user_login");
+        $ret2 = $this->codb->query("desc users");
 
         $this->codb->wait(1.0);
 
-        var_dump($ret1->result->fetchall());
-        var_dump($ret2->result->fetchall());
+        var_dump($ret1->result->fetchAll());
+        var_dump($ret2->result->fetchAll());
     }
 
     function linked()
     {
-        $table = table('test_table');
+        $table = table('users');
 //        $this->db->debug = true;
         $selector = $table->select('realname, id');
         $list = $selector->paginate($_GET['page'], 10)
@@ -112,7 +113,7 @@ class Db extends SPF\Controller
 //        $pager->disable('last');
 //        $pager->disable('first');
 
-        echo Swoole\HTML::parseList($list, function ($k, $v) {
+        echo SPF\HTML::parseList($list, function ($k, $v) {
             return "$k: " . ($v['realname'] ? $v['realname'] : $v['id']);
         });
 

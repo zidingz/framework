@@ -20,15 +20,15 @@ class Auth
     public $errMessage;
 
     static $login_url = '/login.php?';
-    static $username = 'username';
-    static $password = 'password';
-    static $userid = 'id';
+    static $username_field = 'username';
+    static $password_field = 'password';
+    static $userid_field = 'id';
 
     static $lastlogin = 'lastlogin';
     static $lastip = 'lastip';
     static $session_prefix = '';
     static $mk_password = 'username,password';
-    static $password_hash = 'sha1';
+    protected static $password_hash = 'sha1';
 
     static $password_cost = 10;
     static $password_salt_size = 22;
@@ -119,11 +119,12 @@ class Auth
      * @param $username
      * @param $password
      * @return bool
+     * @throws \Exception
      */
     function login($username, $password)
     {
         Cookie::set(self::$session_prefix . 'username', $username, time() + self::$cookie_life, '/');
-        $this->user = $this->db->query('select ' . $this->select . ' from ' . $this->login_table . " where " . self::$username . "='$username' limit 1")->fetch();
+        $this->user = $this->db->query('select ' . $this->select . ' from ' . $this->login_table . " where " . self::$username_field . "='$username' limit 1")->fetch();
         if (empty($this->user))
         {
             $this->errCode = self::ERR_NO_EXIST;
@@ -132,7 +133,7 @@ class Auth
         else
         {
             //验证密码是否正确
-            if (self::verifyPassword($username, $password, $this->user[self::$password]))
+            if (self::verifyPassword($username, $password, $this->user[self::$password_field]))
             {
                 $_SESSION[self::$session_prefix . 'isLogin'] = true;
                 $_SESSION[self::$session_prefix . 'user_id'] = $this->user['id'];
@@ -170,8 +171,8 @@ class Auth
     function changePassword($uid, $old_pwd, $new_pwd)
     {
         $table = table($this->login_table, $this->login_db);
-        $table->primary = self::$userid;
-        $_res = $table->gets(array('select' => self::$username . ',' . self::$password, 'limit' => 1, self::$userid => $uid));
+        $table->primary = self::$userid_field;
+        $_res = $table->gets(array('select' => self::$username_field . ',' . self::$password_field, 'limit' => 1, self::$userid_field => $uid));
         if (count($_res) < 1)
         {
             $this->errMessage = '用户不存在';
@@ -180,7 +181,7 @@ class Auth
         }
 
         $user = $_res[0];
-        if ($user[self::$password] != self::makePasswordHash($user[self::$username], $old_pwd))
+        if ($user[self::$password_field] != self::makePasswordHash($user[self::$username_field], $old_pwd))
         {
             $this->errMessage = '原密码不正确';
             $this->errCode = 2;
@@ -188,7 +189,7 @@ class Auth
         }
         else
         {
-            $table->set($uid, array(self::$password => self::makePasswordHash($user[self::$username], $new_pwd)), self::$userid);
+            $table->set($uid, array(self::$password_field => self::makePasswordHash($user[self::$username_field], $new_pwd)), self::$userid_field);
             return true;
         }
     }
@@ -225,6 +226,14 @@ class Auth
         }
         unset($_SESSION[self::$session_prefix . 'save_key']);
         return true;
+    }
+
+    /**
+     * @param string $method
+     */
+    public static function setHashMethod(string $method)
+    {
+        self::$password_hash = $method;
     }
 
     /**
@@ -276,7 +285,6 @@ class Auth
             }
             $options = [
                 'cost' => self::$password_cost,
-                'salt' => mcrypt_create_iv(self::$password_salt_size, MCRYPT_DEV_URANDOM),
             ];
             return password_hash($password, PASSWORD_BCRYPT, $options);
         }

@@ -1,11 +1,9 @@
 <?php
-if (empty(Swoole::$php->config['upload']))
-{
+$app = SPF\App::getInstance();
+if (empty($app->config['upload'])) {
     throw new Exception("require upload config");
-}
-else
-{
-    $config = Swoole::$php->config['upload'];
+} else {
+    $config = $app->config['upload'];
 }
 $upload = new SPF\Upload($config);
 return $upload;

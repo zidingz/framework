@@ -1,6 +1,9 @@
 <?php
+
 namespace SPF\Database;
+
 use SPF;
+
 /**
  * MySQL数据库封装类
  * @author  Tianfeng.Han
@@ -21,8 +24,7 @@ class MySQLi implements SPF\IDatabase
 
     function __construct($db_config)
     {
-        if (empty($db_config['port']))
-        {
+        if (empty($db_config['port'])) {
             $db_config['port'] = self::DEFAULT_PORT;
         }
         $this->config = $db_config;
@@ -52,20 +54,15 @@ class MySQLi implements SPF\IDatabase
     {
         $db_config = &$this->config;
         $host = $db_config['host'];
-        if (!empty($db_config['persistent']))
-        {
+        if (!empty($db_config['persistent'])) {
             $host = 'p:' . $host;
         }
-        if (isset($db_config['passwd']))
-        {
+        if (isset($db_config['passwd'])) {
             $db_config['password'] = $db_config['passwd'];
         }
-        if (isset($db_config['dbname']))
-        {
+        if (isset($db_config['dbname'])) {
             $db_config['name'] = $db_config['dbname'];
-        }
-        elseif (isset($db_config['database']))
-        {
+        } elseif (isset($db_config['database'])) {
             $db_config['name'] = $db_config['database'];
         }
         $this->mysqli = mysqli_connect(
@@ -75,13 +72,11 @@ class MySQLi implements SPF\IDatabase
             $db_config['name'],
             $db_config['port']
         );
-        if (!$this->mysqli)
-        {
+        if (!$this->mysqli) {
             trigger_error("mysqli connect to server[$host:{$db_config['port']}] failed: " . $this->mysqli->connect_error, E_USER_WARNING);
             return false;
         }
-        if (!empty($db_config['charset']))
-        {
+        if (!empty($db_config['charset'])) {
             $this->mysqli->set_charset($db_config['charset']);
         }
         return true;
@@ -106,8 +101,7 @@ class MySQLi implements SPF\IDatabase
     {
         $msg = $this->mysqli->error . "<hr />$sql<hr />\n";
         $msg .= "Server: {$this->config['host']}:{$this->config['port']}. <br/>\n";
-        if ($this->mysqli->connect_errno)
-        {
+        if ($this->mysqli->connect_errno) {
             $msg .= "ConnectError[{$this->mysqli->connect_errno}]: {$this->mysqli->connect_error}<br/>\n";
         }
         $msg .= "Message: {$this->mysqli->error} <br/>\n";
@@ -115,25 +109,24 @@ class MySQLi implements SPF\IDatabase
         return $msg;
     }
 
+    /**
+     * @param $call
+     * @param $params
+     * @return bool|mixed
+     */
     protected function tryReconnect($call, $params)
     {
         $result = false;
-        for ($i = 0; $i < 2; $i++)
-        {
+        for ($i = 0; $i < 2; $i++) {
             $result = call_user_func_array($call, $params);
-            if ($result === false)
-            {
-                if ($this->mysqli->errno == 2013 or $this->mysqli->errno == 2006 or ($this->mysqli->errno == 0 and !$this->mysqli->ping()))
-                {
+            if ($result === false) {
+                if ($this->mysqli->errno == 2013 or $this->mysqli->errno == 2006 or ($this->mysqli->errno == 0 and !$this->mysqli->ping())) {
                     $r = $this->checkConnection();
                     $call[0] = $this->mysqli;
-                    if ($r === true)
-                    {
+                    if ($r === true) {
                         continue;
                     }
-                }
-                else
-                {
+                } else {
                     SPF\Error::info(__CLASS__ . " SQL Error", $this->errorMessage($params[0]));
                     return false;
                 }
@@ -152,14 +145,12 @@ class MySQLi implements SPF\IDatabase
     function query($sql, $resultmode = null)
     {
         $result = $this->tryReconnect(array($this->mysqli, 'query'), array($sql, $resultmode));
-        if (!$result)
-        {
+        if (!$result) {
             trigger_error(__CLASS__ . " SQL Error:" . $this->errorMessage($sql), E_USER_WARNING);
 
             return false;
         }
-        if (is_bool($result))
-        {
+        if (is_bool($result)) {
             return $result;
         }
         return new MySQLiRecord($result);
@@ -172,17 +163,15 @@ class MySQLi implements SPF\IDatabase
      */
     function multi_query($sql)
     {
-        $result = $this->tryReconnect(array('parent', 'multi_query'), array($sql));
-        if (!$result)
-        {
+        $result = $this->tryReconnect(array($this->mysqli, 'multi_query'), array($sql));
+        if (!$result) {
             SPF\Error::info(__CLASS__ . " SQL Error", $this->errorMessage($sql));
             return false;
         }
 
         $result = call_user_func_array(array('parent', 'use_result'), array());
         $output = array();
-        while ($row = $result->fetch_assoc())
-        {
+        while ($row = $result->fetch_assoc()) {
             $output[] = $row;
         }
         $result->free();
@@ -190,11 +179,9 @@ class MySQLi implements SPF\IDatabase
         while (call_user_func_array(array('parent', 'more_results'), array()) && call_user_func_array(array(
                 'parent',
                 'next_result'
-            ), array()))
-        {
+            ), array())) {
             $extraResult = call_user_func_array(array('parent', 'use_result'), array());
-            if ($extraResult instanceof \mysqli_result)
-            {
+            if ($extraResult instanceof \mysqli_result) {
                 $extraResult->free();
             }
         }
@@ -209,10 +196,9 @@ class MySQLi implements SPF\IDatabase
      */
     function queryAsync($sql)
     {
-        $result = $this->tryReconnect(array('parent', 'query'), array($sql, MYSQLI_ASYNC));
-        if (!$result)
-        {
-            SPF\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
+        $result = $this->tryReconnect(array($this->mysqli, 'query'), array($sql, MYSQLI_ASYNC));
+        if (!$result) {
+            SPF\Error::info(__CLASS__ . " SQL Error", $this->errorMessage($sql));
             return false;
         }
         return $result;
@@ -223,12 +209,19 @@ class MySQLi implements SPF\IDatabase
      */
     protected function checkConnection()
     {
-        if (!@$this->mysqli->ping())
-        {
+        if (!@$this->mysqli->ping()) {
             $this->close();
             return $this->connect();
         }
         return true;
+    }
+
+    /**
+     * @return \mysqli
+     */
+    function getConnection()
+    {
+        return $this->mysqli;
     }
 
     /**
@@ -284,8 +277,7 @@ class MySQLiRecord implements SPF\IDbRecord
     function fetchall()
     {
         $data = array();
-        while ($record = $this->result->fetch_assoc())
-        {
+        while ($record = $this->result->fetch_assoc()) {
             $data[] = $record;
         }
         return $data;

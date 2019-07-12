@@ -1,5 +1,6 @@
 <?php
 namespace SPF;
+use RuntimeException;
 
 /**
  * 会话控制类
@@ -95,13 +96,13 @@ class Session
     /**
      * 启动会话
      * @param bool $readonly
-     * @throws SessionException
+     * @throws RuntimeException
      */
     public function start($readonly = false)
     {
         if (empty(App::getInstance()->request))
         {
-            throw new SessionException("The method must be used when requested.");
+            throw new RuntimeException("The method must be used when requested.");
         }
 
         $this->isStart = true;
@@ -194,9 +195,4 @@ class Session
         $key = self::$cache_prefix . $this->sessID;
         return $this->cache->set($key, serialize($_SESSION), $this->session_lifetime);
     }
-}
-
-class SessionException extends \Exception
-{
-
 }

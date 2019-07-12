@@ -1,18 +1,18 @@
 <?php
+
 namespace App\Controller;
+
 use SPF;
+use SPF\Exception\InvalidParam;
 
 class Form extends SPF\Controller
 {
     function index()
     {
         $this->app->addCatcher(function ($e) {
-            if ($e instanceof Swoole\Exception\InvalidParam)
-            {
+            if ($e instanceof InvalidParam) {
                 die("缺少 {$e->key} 表单.");
-            }
-            else
-            {
+            } else {
                 return false;
             }
         });

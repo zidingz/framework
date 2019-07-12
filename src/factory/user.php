@@ -1,4 +1,4 @@
 <?php
-global $php;
-$user = new SPF\Auth($php->config['user']);
+$app = SPF\App::getInstance();
+$user = new SPF\Auth($app->config['user']);
 return $user;

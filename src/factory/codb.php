@@ -1,8 +1,8 @@
 <?php
 $app = SPF\App::getInstance();
-if (empty($php->config['db'][$php->factory_key]))
+if (empty($app->config['db'][$app->factory_key]))
 {
-    throw new SPF\Exception\Factory("codb->{$php->factory_key} is not found.");
+    throw new SPF\Exception\Factory("codb->{$app->factory_key} is not found.");
 }
-$codb = new SPF\Client\CoMySQL($php->factory_key);
+$codb = new SPF\Client\CoMySQL($app->factory_key);
 return $codb;

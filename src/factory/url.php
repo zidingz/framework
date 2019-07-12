@@ -1,5 +1,5 @@
 <?php
-global $php;
-$config = $php->config['url'][$php->factory_key];
+$app = SPF\App::getInstance();
+$config = $app->config['url'][$app->factory_key];
 return new SPF\URL($config);
 

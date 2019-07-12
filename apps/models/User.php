@@ -10,7 +10,7 @@ class User extends SPF\Model
      * 表名
      * @var string
      */
-    public $table = 'user_login';
+    public $table = 'users';
 
     function test()
     {

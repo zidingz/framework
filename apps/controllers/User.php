@@ -7,7 +7,7 @@ class User extends SPF\Controller
     function login()
     {
         //使用crypt密码
-        Swoole\Auth::$password_hash = Swoole\Auth::HASH_CRYPT;
+        SPF\Auth::setHashMethod(SPF\Auth::HASH_CRYPT);
 
         $this->session->start();
         //已经登录了，跳转到
@@ -39,7 +39,7 @@ class User extends SPF\Controller
     {
         $this->session->start();
         var_dump($_SESSION);
-        Swoole\Auth::loginRequire();
+        SPF\Auth::loginRequire();
     }
 
     function logout()

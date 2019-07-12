@@ -981,7 +981,3 @@ class SelectDB
     }
 }
 
-class SQLException extends \Exception
-{
-
-}

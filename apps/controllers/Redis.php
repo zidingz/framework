@@ -4,15 +4,15 @@ use SPF;
 
 class Redis extends SPF\Controller
 {
-    function __beforeAction()
-    {
-        echo __METHOD__."\n";
-    }
-
-    function __afterAction()
-    {
-        echo __METHOD__."\n";
-    }
+//    function __beforeAction()
+//    {
+//        echo __METHOD__."\n";
+//    }
+//
+//    function __afterAction()
+//    {
+//        echo __METHOD__."\n";
+//    }
 
     function test()
     {

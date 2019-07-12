@@ -40,13 +40,13 @@ function smarty_core_assemble_plugin_filepath($params, &$smarty)
 			$_return = $_plugin_filepath;
 			break;
 		}
-	}
-	if($_return === false) {
-		//Swoole tag libs
-		$file = LIBPATH.'/taglib/'.$_plugin_filename;;
-		if(file_exists($file))
-			$_return = $file;
-	}
+    }
+    if ($_return === false) {
+        //Swoole tag libs
+        $file = dirname(__DIR__) . '/taglib/' . $_plugin_filename;;
+        if (file_exists($file))
+            $_return = $file;
+    }
 
 	if($_return === false) {
 		// still not found, try PHP include_path

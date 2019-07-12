@@ -1,5 +1,10 @@
 <?php
+
 namespace SPF\Client;
+
+use SPF;
+use SPF\Tool;
+
 /**
  * Swoole WebService客户端
  * @author Tianfeng.Han
@@ -14,77 +19,59 @@ class Rest
     public $http;
     public $debug;
 
-    function __construct($url,$user='',$password='')
+    /**
+     * Rest constructor.
+     * @param $url
+     * @param string $user
+     * @param string $password
+     * @throws \Exception
+     */
+    function __construct($url, $user = '', $password = '')
     {
-        $this->server_url = $url."?user=$user&pass=".\Auth::mkpasswd($user,$password).'&';
+        $this->server_url = $url . "?user=$user&pass=" . SPF\Auth::makePasswordHash($user, $password) . '&';
         $this->client_type = 'curl';
         $this->http = new CURL($this->debug);
-        if($this->keep_alive)
-        {
-            $header[] = "Connection: keep-alive";
-            $header[] = "Keep-Alive: 300";
-            $this->http->set_header($header);
+        if ($this->keep_alive) {
+            $this->http->setHeader('Connection', 'keep-alive');
+            $this->http->setHeader('Keep-Alive', 300);
         }
     }
 
-    function call($param,$post=null)
+    /**
+     * @param $param
+     * @param null $post
+     * @return mixed
+     */
+    function call($param, $post = null)
     {
-        foreach($param as &$m)
-        {
-            if(is_array($m) or is_object($m)) $m = serialize($m);
+        foreach ($param as &$m) {
+            if (is_array($m) or is_object($m)) $m = serialize($m);
         }
-        $url = $this->server_url.\SPF\Tool::combine_query($param);
-        if($post===null) $res = $this->http->get($url);
-        else $res = $this->http->post($url,$post);
-        if($this->debug) echo $url,BL,$res;
+        $url = $this->server_url . Tool::combine_query($param);
+        if ($post === null) $res = $this->http->get($url);
+        else $res = $this->http->post($url, $post);
+        if ($this->debug) echo $url, BL, $res;
         return json_decode($res);
     }
 
-    function method($class,$method,$attrs,$param)
+    function method($class, $method, $attrs, $param)
     {
         $attrs['class'] = $class;
         $attrs['method'] = $method;
-        return $this->call($attrs,$param);
+        return $this->call($attrs, $param);
     }
 
-    function func($func,$param)
+    function func($func, $param)
     {
         $param['func'] = $func;
         return $this->call($param);
     }
-    function create($class,$param=array())
+
+    function create($class, $param = array())
     {
-        $obj = new RestObject($class,$this);
+        $obj = new RestObject($class, $this);
         $obj->attrs = $param;
         return $obj;
     }
 }
 
-class RestObject
-{
-    public $server_url;
-    private $class;
-    private $rest;
-    private $attrs;
-
-    function __construct($class,$rest)
-    {
-        $this->class = $class;
-        $this->rest = $rest;
-    }
-
-    function __get($attr)
-    {
-        return $this->attrs[$attr];
-    }
-
-    function __set($attr,$value)
-    {
-        $this->attrs[$attr] = $value;
-        return true;
-    }
-    function __call($method,$param)
-    {
-        return $this->rest->method($this->class,$method,$this->attrs,$param);
-    }
-}

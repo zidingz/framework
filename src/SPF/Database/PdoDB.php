@@ -1,6 +1,5 @@
 <?php
 namespace SPF\Database;
-use Swoole;
 
 /**
  * PDO数据库封装类

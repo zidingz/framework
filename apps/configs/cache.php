@@ -1,7 +1,7 @@
 <?php
 $cache['session'] = array(
     'type' => 'FileCache',
-    'cache_dir' => WEBPATH . '/cache/filecache/',
+    'cache_dir' => \SPF\App::getInstance()->app_path . '/cache/filecache/',
 );
 $cache['master'] = array(
     'type' => 'Memcache',

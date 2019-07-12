@@ -1,24 +1,20 @@
 <?php
-global $php;
+$app = SPF\App::getInstance();
 
-$config = $php->config['redis'][$php->factory_key];
-if (empty($config) or empty($config['host']))
-{
-    throw new Exception("require redis[$php->factory_key] config.");
+$config = $app->config['redis'][$app->factory_key];
+if (empty($config) or empty($config['host'])) {
+    throw new Exception("require redis[$app->factory_key] config.");
 }
 
-if (empty($config['port']))
-{
+if (empty($config['port'])) {
     $config['port'] = 6379;
 }
 
-if (empty($config["pconnect"]))
-{
+if (empty($config["pconnect"])) {
     $config["pconnect"] = false;
 }
 
-if (empty($config['timeout']))
-{
+if (empty($config['timeout'])) {
     $config['timeout'] = 0.5;
 }
 
