@@ -76,7 +76,7 @@ class Server extends Base implements Driver
     {
         if (!self::$optionKit)
         {
-            SPF\Loader::addNameSpace('GetOptionKit', LIBPATH . '/module/GetOptionKit/src/GetOptionKit');
+            SPF\Loader::addNameSpace('GetOptionKit', dirname(dirname(__DIR__)) . '/module/GetOptionKit/src/GetOptionKit');
             self::$optionKit = new \GetOptionKit\GetOptionKit;
         }
         foreach (self::$defaultOptions as $k => $v)
@@ -131,7 +131,7 @@ class Server extends Base implements Driver
 
         if (!self::$optionKit)
         {
-            SPF\Loader::addNameSpace('GetOptionKit', LIBPATH . '/module/GetOptionKit/src/GetOptionKit');
+            SPF\Loader::addNameSpace('GetOptionKit', dirname(dirname(__DIR__)) . '/module/GetOptionKit/src/GetOptionKit');
             self::$optionKit = new \GetOptionKit\GetOptionKit;
         }
 
@@ -161,7 +161,7 @@ class Server extends Base implements Driver
             {
                 call_user_func(self::$beforeReloadCallback, $opt);
             }
-            App::getInstance()->os->kill($server_pid, SIGUSR1);
+            SPF\App::getInstance()->os->kill($server_pid, SIGUSR1);
             exit;
         }
         elseif ($argv[1] == 'stop')
@@ -174,13 +174,13 @@ class Server extends Base implements Driver
             {
                 call_user_func(self::$beforeStopCallback, $opt);
             }
-            App::getInstance()->os->kill($server_pid, SIGTERM);
+            SPF\App::getInstance()->os->kill($server_pid, SIGTERM);
             exit;
         }
         elseif ($argv[1] == 'start')
         {
             //已存在ServerPID，并且进程存在
-            if (!empty($server_pid) and App::getInstance()->os->kill($server_pid, 0))
+            if (!empty($server_pid) and SPF\App::getInstance()->os->kill($server_pid, 0))
             {
                 exit("Server is already running.\n");
             }

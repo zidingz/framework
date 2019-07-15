@@ -28,7 +28,7 @@ class HttpServer extends SPF\Protocol\WebServer implements  SPF\IFace\Protocol
     function __construct($config = array())
     {
         parent::__construct($config);
-        $mimes = require(LIBPATH . '/data/mimes.php');
+        $mimes = require(dirname(dirname(__DIR__)) . '/data/mimes.php');
         $this->mime_types = array_flip($mimes);
         $this->config = $config;
         $this->parser = new SPF\Http\Parser;
@@ -444,8 +444,8 @@ class HttpServer extends SPF\Protocol\WebServer implements  SPF\IFace\Protocol
     {
         $response = new SPF\Response;
         $this->currentResponse = $response;
-        App::getInstance()->request = $request;
-        App::getInstance()->response = $response;
+        SPF\App::getInstance()->request = $request;
+        SPF\App::getInstance()->response = $response;
 
         //请求路径
         if ($request->meta['path'][strlen($request->meta['path']) - 1] == '/')

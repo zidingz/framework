@@ -1,5 +1,6 @@
 <?php
 namespace SPF\Client;
+use SPF;
 /**
  * CURL http客户端程序
  *
@@ -271,7 +272,7 @@ class CURL
             $this->errMsg = curl_error($this->ch) . '[' . $this->errCode . ']';
             if ($this->debug)
             {
-                App::getInstance()->log->warn($this->errMsg);
+                SPF\App::getInstance()->log->warn($this->errMsg);
             }
             return false;
         }
@@ -473,7 +474,7 @@ class CURL
             $this->errMsg = curl_error($this->ch) . '[' . $this->errCode . ']';
             if ($this->debug)
             {
-                App::getInstance()->log->warn($this->errMsg);
+                SPF\App::getInstance()->log->warn($this->errMsg);
             }
             return false;
         }

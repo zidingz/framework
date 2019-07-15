@@ -8,7 +8,7 @@ class RandomKey
         static $characters = null;
         if (!$characters)
         {
-            $characters = require LIBPATH.'/data/chinese_characters.php';
+            $characters = require dirname(__DIR__).'/data/chinese_characters.php';
         }
         $unidec = $characters[array_rand($characters, 1)];
         $unichr = '&#' . $unidec . ';';

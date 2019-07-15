@@ -1,5 +1,6 @@
 <?php
 namespace SPF\Queue;
+use SPF;
 
 /**
  * Redis内存队列
@@ -28,7 +29,7 @@ class Redis implements \SPF\IFace\Queue
      */
     function pop()
     {
-        $ret = App::getInstance()->redis($this->redis_factory_key)->lPop($this->key);
+        $ret = SPF\App::getInstance()->redis($this->redis_factory_key)->lPop($this->key);
         if ($ret)
         {
             return unserialize($ret);
@@ -46,6 +47,6 @@ class Redis implements \SPF\IFace\Queue
      */
     function push($data)
     {
-        return App::getInstance()->redis($this->redis_factory_key)->lPush($this->key, serialize($data));
+        return SPF\App::getInstance()->redis($this->redis_factory_key)->lPush($this->key, serialize($data));
     }
 }

@@ -2,7 +2,7 @@
 namespace SPF\Protocol;
 use SPF;
 
-require_once LIBPATH . '/function/cli.php';
+require_once dirname(dirname(__DIR__)) . '/function/cli.php';
 
 class AppFPM extends FastCGI
 {
@@ -23,9 +23,9 @@ class AppFPM extends FastCGI
                 throw new \Exception(__CLASS__.": require apps_path");
             }
         }
-        $php = App::getInstance();
-        $php->addHook(Swoole::HOOK_CLEAN, function(){
-            $php = App::getInstance();
+        $php = SPF\App::getInstance();
+        $php->addHook(SPF\App::HOOK_CLEAN, function(){
+            $php = SPF\App::getInstance();
             //模板初始化
             if(!empty($php->tpl))
             {
@@ -36,6 +36,6 @@ class AppFPM extends FastCGI
 
     function onRequest(SPF\Request $request)
     {
-        return App::getInstance()->handlerServer($request);
+        return SPF\App::getInstance()->handlerServer($request);
     }
 }

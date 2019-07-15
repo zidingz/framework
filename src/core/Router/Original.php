@@ -9,7 +9,7 @@ class Original implements Router
 {
     function handle(&$uri)
     {
-        $request = App::getInstance()->request;
+        $request = \SPF\App::getInstance()->request;
         $array = App::$default_controller;
         if (!empty($request->get["c"]))
         {

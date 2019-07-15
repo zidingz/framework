@@ -20,7 +20,7 @@ class Redis implements SPF\IFace\Cache
             $config['redis_id'] = 'master';
         }
         $this->config = $config;
-        $this->redis = App::getInstance()->redis($config['redis_id']);
+        $this->redis = SPF\App::getInstance()->redis($config['redis_id']);
     }
 
     /**

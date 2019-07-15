@@ -40,7 +40,7 @@ class Redis
             $inc = $this->_redis->incr($main_key);
             if (empty($inc))
             {
-                App::getInstance()->log->put("redis::incr() failed. Error: ".$this->_redis->getLastError());
+                SPF\App::getInstance()->log->put("redis::incr() failed. Error: ".$this->_redis->getLastError());
                 return false;
             }
             return $inc;
@@ -56,7 +56,7 @@ class Redis
             $init = $this->_redis->set($main_key, $init_id);
             if ($init == false)
             {
-                App::getInstance()->log->put("redis::set() failed. Error: ".$this->_redis->getLastError());
+                SPF\App::getInstance()->log->put("redis::set() failed. Error: ".$this->_redis->getLastError());
                 return false;
             }
             else
@@ -97,7 +97,7 @@ class Redis
         }
         catch (\RedisException $e)
         {
-            App::getInstance()->log->error(__CLASS__ . " Swoole Redis Exception, msg:".$e->getMessage()." code:
+            SPF\App::getInstance()->log->error(__CLASS__ . " Swoole Redis Exception, msg:".$e->getMessage()." code:
             ".$e->getCode()." line :".$e->getLine(). " file: ".$e->getFile());
             return false;
         }
@@ -120,7 +120,7 @@ class Redis
                     throw $e;
                 }
 
-                App::getInstance()->log->error(__CLASS__ . " [" . posix_getpid() . "] Swoole Redis[{$this->config['host']}:{$this->config['port']}]
+                SPF\App::getInstance()->log->error(__CLASS__ . " [" . posix_getpid() . "] Swoole Redis[{$this->config['host']}:{$this->config['port']}]
                  Exception(Msg=" . $e->getMessage() . ", Code=" . $e->getCode() . "), Redis->{$method}, Params=" . var_export($args, 1));
                 if ($this->_redis->isConnected())
                 {

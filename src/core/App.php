@@ -475,9 +475,9 @@ class App
             } //Swoole协程模式
             elseif (self::$enableCoroutine) {
                 if (!empty(self::$coroutineStreamHook[$module])) {
-                    $system_factory_file = LIBPATH . '/factory_hook/' . $module . '.php';
+                    $system_factory_file = dirname(__DIR__) . '/factory_hook/' . $module . '.php';
                 } else {
-                    $system_factory_file = LIBPATH . '/factory_2x/' . $module . '.php';
+                    $system_factory_file = dirname(__DIR__) . '/factory_2x/' . $module . '.php';
                 }
                 //不存在，继续使用 1.x 的工厂
                 if (!is_file($system_factory_file)) {

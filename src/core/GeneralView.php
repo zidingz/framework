@@ -295,11 +295,11 @@ class GeneralView
         }
         if (empty($config['tpl.add']))
         {
-            $config['tpl.add'] = LIBPATH . '/data/tpl/admin_entity_add.html';
+            $config['tpl.add'] = dirname(__DIR__) . '/data/tpl/admin_entity_add.html';
         }
         if (empty($config['tpl.modify']))
         {
-            $config['tpl.modify'] = LIBPATH . '/data/tpl/admin_entity_modify.html';
+            $config['tpl.modify'] = dirname(__DIR__) . '/data/tpl/admin_entity_modify.html';
         }
 
         $_model = model($config['model']);
@@ -366,11 +366,11 @@ class GeneralView
         $this->swoole->tpl->assign('act_name', $config['name']);
         if (empty($config['tpl.add']))
         {
-            $config['tpl.add'] = LIBPATH . '/data/tpl/admin_entity_center_add.html';
+            $config['tpl.add'] = dirname(__DIR__) . '/data/tpl/admin_entity_center_add.html';
         }
         if (empty($config['tpl.list']))
         {
-            $config['tpl.list'] = LIBPATH . '/data/tpl/admin_entity_center_list.html';
+            $config['tpl.list'] = dirname(__DIR__) . '/data/tpl/admin_entity_center_list.html';
         }
         if (isset($config['limit']) and $config['limit'] === true)
         {
@@ -445,11 +445,11 @@ class GeneralView
         $this->swoole->tpl->assign('act_name', $config['name']);
         if (empty($config['tpl.add']))
         {
-            $config['tpl.add'] = LIBPATH . '/data/tpl/admin_catelog_center_add.html';
+            $config['tpl.add'] = dirname(__DIR__) . '/data/tpl/admin_catelog_center_add.html';
         }
         if (empty($config['tpl.list']))
         {
-            $config['tpl.list'] = LIBPATH . '/data/tpl/admin_catelog_center_list.html';
+            $config['tpl.list'] = dirname(__DIR__) . '/data/tpl/admin_catelog_center_list.html';
         }
         if (isset($config['limit']) and $config['limit'] === true)
         {
@@ -541,7 +541,7 @@ class GeneralView
         $this->swoole->tpl->assign('pager', array('total' => $pager->total, 'render' => $pager->render()));
         if (empty($config['tpl.list']))
         {
-            $config['tpl.list'] = LIBPATH . '/data/tpl/admin_attachment.html';
+            $config['tpl.list'] = dirname(__DIR__) . '/data/tpl/admin_attachment.html';
         }
         $this->swoole->tpl->display($config['tpl.list']);
     }

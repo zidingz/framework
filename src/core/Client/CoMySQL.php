@@ -2,6 +2,7 @@
 
 namespace SPF\Client;
 
+use SPF;
 use SPF\Async\MySQL;
 use SPF\Database\MySQLi;
 use SPF\Database\MySQLiRecord;
@@ -23,7 +24,7 @@ class CoMySQL
 
     function __construct($db_key = 'master')
     {
-        $this->config = App::getInstance()->config['db'][$db_key];
+        $this->config = SPF\App::getInstance()->config['db'][$db_key];
         //不能使用长连接，避免进程内占用大量连接
         $this->config['persistent'] = false;
     }

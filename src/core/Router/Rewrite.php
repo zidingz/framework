@@ -1,6 +1,7 @@
 <?php
 namespace SPF\Router;
 
+use SPF;
 use SPF\App;
 use SPF\IFace\Router;
 
@@ -8,8 +9,8 @@ class Rewrite implements Router
 {
     function handle(&$uri)
     {
-        $rewrite = App::getInstance()->config['rewrite'];
-        $request = App::getInstance()->request;
+        $rewrite = SPF\App::getInstance()->config['rewrite'];
+        $request = SPF\App::getInstance()->request;
 
         if (empty($rewrite) or !is_array($rewrite))
         {

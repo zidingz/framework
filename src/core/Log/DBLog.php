@@ -1,5 +1,6 @@
 <?php
 namespace SPF\Log;
+use SPF;
 
 /**
  * 数据库日志记录类
@@ -22,11 +23,11 @@ class DBLog extends \SPF\Log implements \SPF\IFace\Log
         $this->table = $config['table'];
         if (isset($config['db']))
         {
-            $this->db = App::getInstance()->db($config['db']);
+            $this->db = SPF\App::getInstance()->db($config['db']);
         }
         else
         {
-            $this->db = App::getInstance()->db('master');
+            $this->db = SPF\App::getInstance()->db('master');
         }
         parent::__construct($config);
     }
@@ -38,7 +39,7 @@ class DBLog extends \SPF\Log implements \SPF\IFace\Log
         if ($msg)
         {
             $put['msg'] = $msg;
-            App::getInstance()->db->insert($put, $this->table);
+            SPF\App::getInstance()->db->insert($put, $this->table);
         }
     }
 

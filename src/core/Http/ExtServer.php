@@ -33,7 +33,7 @@ class ExtServer implements SPF\IFace\Http
 
     function __construct($config)
     {
-        $mimes = require LIBPATH . '/data/mimes.php';
+        $mimes = require dirname(dirname(__DIR__)) . '/data/mimes.php';
         $this->mimes = $mimes;
         $this->types = array_flip($mimes);
 
@@ -208,7 +208,7 @@ class ExtServer implements SPF\IFace\Http
             Context::put('response', $resp);
         }
 
-        $php = App::getInstance();
+        $php = SPF\App::getInstance();
         $php->request = new SPF\Request();
         $php->response = new SPF\Response();
         $this->assign($php->request);
@@ -259,7 +259,7 @@ class ExtServer implements SPF\IFace\Http
 
     function __clean()
     {
-        $php = App::getInstance();
+        $php = SPF\App::getInstance();
         //模板初始化
         if (!empty($php->tpl))
         {
