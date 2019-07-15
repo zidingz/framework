@@ -1,7 +1,7 @@
 <?php
 namespace SPF\Http;
 
-use Swoole;
+use SPF;
 
 class WebSocketParser
 {

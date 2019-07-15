@@ -1,6 +1,6 @@
 <?php
 namespace SPF\Protocol;
-use Swoole;
+use SPF;
 
 class AppServerException extends \Exception
 {
@@ -26,9 +26,9 @@ class AppServer extends HttpServer
                 throw new AppServerException("AppServer require apps_path");
             }
         }
-        $php = Swoole::getInstance();
+        $php = App::getInstance();
         $php->addHook(Swoole::HOOK_CLEAN, function(){
-            $php = Swoole::getInstance();
+            $php = App::getInstance();
             //模板初始化
             if (!empty($php->tpl))
             {
@@ -44,6 +44,6 @@ class AppServer extends HttpServer
      */
     function onRequest(SPF\Request $request)
     {
-        return Swoole::getInstance()->handlerServer($request);
+        return App::getInstance()->handlerServer($request);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 namespace SPF\Cache;
-use Swoole;
+use SPF;
 
 /**
  * 使用Redis作为Cache

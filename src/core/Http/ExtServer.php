@@ -1,7 +1,7 @@
 <?php
 namespace SPF\Http;
 
-use Swoole;
+use SPF;
 use SPF\Coroutine\Context;
 
 /**
@@ -208,7 +208,7 @@ class ExtServer implements SPF\IFace\Http
             Context::put('response', $resp);
         }
 
-        $php = Swoole::getInstance();
+        $php = App::getInstance();
         $php->request = new SPF\Request();
         $php->response = new SPF\Response();
         $this->assign($php->request);
@@ -259,7 +259,7 @@ class ExtServer implements SPF\IFace\Http
 
     function __clean()
     {
-        $php = Swoole::getInstance();
+        $php = App::getInstance();
         //模板初始化
         if (!empty($php->tpl))
         {

@@ -1,6 +1,6 @@
 <?php
 namespace SPF\Queue;
-use Swoole;
+use SPF;
 
 /**
  * 这里没办法保证原子性，请线上服务使用redis，httpsqs或系统的ipcs消息队列

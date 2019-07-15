@@ -1,6 +1,6 @@
 <?php
 namespace SPF;
-use Swoole;
+use SPF;
 
 class Response
 {

@@ -1,7 +1,7 @@
 <?php
 namespace SPF\Http;
 
-use Swoole;
+use SPF;
 
 /**
  * Class Http_LAMP

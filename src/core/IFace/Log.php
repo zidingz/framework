@@ -1,6 +1,6 @@
 <?php
 namespace SPF\IFace;
-use Swoole;
+use SPF;
 
 interface Log
 {

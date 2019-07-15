@@ -12,8 +12,8 @@ class Redis extends Base
     function __construct($config)
     {
         parent::__construct($config);
-        \Swoole::getInstance()->beforeAction([$this, '_createObject'],\Swoole::coroModuleRedis);
-        \Swoole::getInstance()->afterAction([$this, '_freeObject'],\Swoole::coroModuleRedis);
+        \SPF\App::getInstance()->beforeAction([$this, '_createObject'],\Swoole::coroModuleRedis);
+        \SPF\App::getInstance()->afterAction([$this, '_freeObject'],\Swoole::coroModuleRedis);
     }
 
 

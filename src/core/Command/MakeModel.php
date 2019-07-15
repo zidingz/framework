@@ -52,7 +52,7 @@ class MakeModel extends Command
     static function init($name, $table, $file)
     {
         $code = "<?php\nnamespace App\\Model;\n\n";
-        $code .= "use Swoole\\Model;\n\n";
+        $code .= "use SPF\\Model;\n\n";
         $code .= "class $name extends Model\n{\n\tpublic \$table = '{$table}';\n\n}";
         return file_put_contents($file, $code);
     }

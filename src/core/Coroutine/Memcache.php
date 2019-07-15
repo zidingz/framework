@@ -2,7 +2,7 @@
 
 namespace SPF\Coroutine;
 
-use Swoole;
+use SPF;
 
 class Memcache
 {

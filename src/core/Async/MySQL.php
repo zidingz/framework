@@ -1,7 +1,7 @@
 <?php
 namespace SPF\Async;
 
-use Swoole;
+use SPF;
 
 class MySQL extends Pool
 {

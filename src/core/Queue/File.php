@@ -1,6 +1,6 @@
 <?php
 namespace SPF\Queue;
-use Swoole;
+use SPF;
 
 /**
  * 文件存储的队列

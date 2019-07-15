@@ -1,7 +1,7 @@
 <?php
 namespace SPF\Async;
 
-use Swoole;
+use SPF;
 
 class WebSocket extends SPF\Client\WebSocket
 {

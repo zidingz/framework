@@ -1,6 +1,6 @@
 <?php
 namespace SPF\Protocol;
-use Swoole;
+use SPF;
 
 abstract class WebServer extends Base
 {

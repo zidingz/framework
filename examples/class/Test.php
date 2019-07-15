@@ -1,7 +1,7 @@
 <?php
 namespace BL;
 
-use Swoole\Protocol\SOAServer;
+use SPF\Protocol\SOAServer;
 
 class Test
 {

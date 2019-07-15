@@ -643,7 +643,7 @@ class App
             return $response;
         }
 
-        $php = Swoole::getInstance();
+        $php = App::getInstance();
 
         //将对象赋值到控制器
         $php->request = $request;

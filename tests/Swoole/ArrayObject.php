@@ -1,8 +1,8 @@
 <?php
 declare(strict_types = 1);
 
-use Swoole\StringObject;
-use Swoole\ArrayObject;
+use SPF\StringObject;
+use SPF\ArrayObject;
 
 use PHPUnit\Framework\TestCase;
 

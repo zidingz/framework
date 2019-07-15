@@ -1,6 +1,6 @@
 <?php
 namespace SPF\Protocol;
-use Swoole;
+use SPF;
 
 class FlashPolicy extends Base implements SPF\IFace\Protocol
 {

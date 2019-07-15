@@ -1,6 +1,6 @@
 <?php
 namespace SPF\Component;
-use Swoole;
+use SPF;
 
 /**
  * Class Redis

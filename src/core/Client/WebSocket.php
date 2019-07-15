@@ -1,7 +1,7 @@
 <?php
 namespace SPF\Client;
 
-use Swoole;
+use SPF;
 
 class WebSocket
 {

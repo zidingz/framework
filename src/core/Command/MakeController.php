@@ -46,7 +46,7 @@ class MakeController extends Command
     static function init($name, $file)
     {
         $code = "<?php\nnamespace App\\Controller;\n\n";
-        $code .= "use Swoole\\Controller;\n\n";
+        $code .= "use SPF\\Controller;\n\n";
         $code .= "class $name extends Controller\n{\n\n}";
         return file_put_contents($file, $code);
     }

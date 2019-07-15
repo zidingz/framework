@@ -2,7 +2,7 @@
 
 namespace SPF\Coroutine\Component;
 
-use Swoole;
+use SPF;
 use SPF\Coroutine\BaseContext;
 
 abstract class Base

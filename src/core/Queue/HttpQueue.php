@@ -1,7 +1,7 @@
 <?php
 namespace SPF\Queue;
 
-use Swoole;
+use SPF;
 
 class HttpQueue implements SPF\IFace\Queue
 {

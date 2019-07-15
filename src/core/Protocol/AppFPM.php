@@ -1,6 +1,6 @@
 <?php
 namespace SPF\Protocol;
-use Swoole;
+use SPF;
 
 require_once LIBPATH . '/function/cli.php';
 
@@ -23,9 +23,9 @@ class AppFPM extends FastCGI
                 throw new \Exception(__CLASS__.": require apps_path");
             }
         }
-        $php = Swoole::getInstance();
+        $php = App::getInstance();
         $php->addHook(Swoole::HOOK_CLEAN, function(){
-            $php = Swoole::getInstance();
+            $php = App::getInstance();
             //模板初始化
             if(!empty($php->tpl))
             {
@@ -36,6 +36,6 @@ class AppFPM extends FastCGI
 
     function onRequest(SPF\Request $request)
     {
-        return Swoole::getInstance()->handlerServer($request);
+        return App::getInstance()->handlerServer($request);
     }
 }

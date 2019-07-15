@@ -1,6 +1,6 @@
 <?php
 namespace SPF\Log;
-use Swoole;
+use SPF;
 
 class EchoLog extends SPF\Log implements SPF\IFace\Log
 {

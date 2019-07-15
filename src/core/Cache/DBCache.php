@@ -1,6 +1,6 @@
 <?php
 namespace SPF\Cache;
-use Swoole;
+use SPF;
 /**
  * 数据库缓存
  * @author Tianfeng.Han

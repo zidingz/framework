@@ -3,5 +3,5 @@
 define('WEBPATH', getenv('PWD'));
 require_once __DIR__ . '/vendor/autoload.php';
 
-Swoole\Loader::vendorInit();
-Swoole::getInstance()->runConsole();
+SPF\Loader::vendorInit();
+SPF\App::getInstance()->runConsole();

@@ -1,7 +1,7 @@
 <?php
 namespace SPF\Coroutine;
 
-use Swoole;
+use SPF;
 use SPF\Protocol\RPCServer;
 
 class RPC extends SPF\Client\RPC

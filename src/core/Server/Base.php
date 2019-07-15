@@ -1,7 +1,7 @@
 <?php
 namespace SPF\Server;
 
-use Swoole;
+use SPF;
 
 abstract class Base implements Driver
 {

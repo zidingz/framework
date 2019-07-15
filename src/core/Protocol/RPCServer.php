@@ -1,7 +1,7 @@
 <?php
 namespace SPF\Protocol;
 
-use Swoole;
+use SPF;
 /**
  * RPC服务器
  * @package SPF\Network

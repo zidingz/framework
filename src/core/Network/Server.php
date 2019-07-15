@@ -1,7 +1,7 @@
 <?php
 namespace SPF\Network;
 
-use Swoole;
+use SPF;
 use SPF\Server\Base;
 use SPF\Server\Driver;
 

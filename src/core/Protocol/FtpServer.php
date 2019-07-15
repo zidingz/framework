@@ -1,6 +1,6 @@
 <?php
 namespace SPF\Protocol;
-use Swoole;
+use SPF;
 
 class FtpServer extends Base
 {
