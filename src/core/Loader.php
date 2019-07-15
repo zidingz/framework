@@ -52,9 +52,9 @@ class Loader
         }
         else
         {
-            $model_file = \Swoole::$app_path . '/models/' . $model_name . '.model.php';
+            $model_file = \SPF\App::$app_path . '/models/' . $model_name . '.model.php';
             if(!file_exists($model_file)){
-                $model_file = \Swoole::$app_path . '/Models/' . $model_name . '.model.php';
+                $model_file = \SPF\App::$app_path . '/Models/' . $model_name . '.model.php';
             }
             if (!file_exists($model_file))
             {

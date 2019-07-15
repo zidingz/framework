@@ -38,7 +38,7 @@ class Event
         if (!isset($this->_handles[$type]))
         {
             $this->_tmp_handles = array();
-            $path = \Swoole::$app_path.'/events/'.$type.'.php';
+            $path = \SPF\App::$app_path.'/events/'.$type.'.php';
             if (is_file($path))
             {
                 $_conf = include $path;

@@ -54,7 +54,7 @@ $res = $table->gets(array(
 ));
 var_dump($res);
 
-//$table->sets(array('password' => \Swoole\Auth::makePasswordHash('test', 123456)), array(
+//$table->sets(array('password' => \SPF\Auth::makePasswordHash('test', 123456)), array(
 //    'id' => 1,
 //));
 //var_dump($table->del(3));

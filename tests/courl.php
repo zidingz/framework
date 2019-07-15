@@ -4,7 +4,7 @@ define('WEBPATH', realpath(__DIR__ . '/..'));
 //包含框架入口文件
 require WEBPATH . '/libs/lib_config.php';
 
-$courl = new \Swoole\Client\CoURL();
+$courl = new \SPF\Client\CoURL();
 
 $ret1 = $courl->get("http://cn.bing.com/", function($ret) {
     var_dump(strlen($ret->result));

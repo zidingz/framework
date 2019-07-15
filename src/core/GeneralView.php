@@ -12,7 +12,7 @@ namespace SPF;
 class GeneralView
 {
     /**
-     * @var \Swoole
+     * @var \SPF\App
      */
     protected $swoole;
     public $action = 'list';

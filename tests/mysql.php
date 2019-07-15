@@ -12,7 +12,7 @@ $config = array(
     'database' => 'test',
 );
 
-$db = new \Swoole\Database($config);
+$db = new \SPF\Database($config);
 $db->connect();
 $res = $db->query("select * from test");
 var_dump($res);

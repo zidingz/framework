@@ -20,7 +20,7 @@ class MyFastCGI extends Swoole\Protocol\FastCGI
 }
 	
 $AppSvr = new MyFastCGI();
-$AppSvr->setLogger(new \Swoole\Log\EchoLog(true));
+$AppSvr->setLogger(new \SPF\Log\EchoLog(true));
 
 /**
  * 如果你没有安装swoole扩展，这里还可选择
@@ -28,7 +28,7 @@ $AppSvr->setLogger(new \Swoole\Log\EchoLog(true));
  * SelectTCP 使用select做事件循环，支持windows平台
  * EventTCP 使用libevent，需要安装libevent扩展
  */
-$server = new \Swoole\Network\SelectTCP('0.0.0.0', 9001);
+$server = new \SPF\Network\SelectTCP('0.0.0.0', 9001);
 
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程

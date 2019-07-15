@@ -6,7 +6,7 @@ require WEBPATH . '/libs/lib_config.php';
 
 $n = 4;
 
-$array = new \Swoole\ArrayObject();
+$array = new \SPF\ArrayObject();
 $array['test1'] = 123;
 $array['test2'] = 456;
 $array['test3'] = 789;

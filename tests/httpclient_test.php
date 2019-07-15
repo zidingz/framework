@@ -13,7 +13,7 @@ function test(Swoole\Async\HttpClient $class, $body, $header)
 
 for ($i = 0; $i < 10; $i++)
 {
-    $httpclient = new \Swoole\Async\HttpClient ("http://news.163.com/15/0122/13/AGILC6J90001124J.html");
+    $httpclient = new \SPF\Async\HttpClient ("http://news.163.com/15/0122/13/AGILC6J90001124J.html");
     $httpclient->id = $i;
     $httpclient->onReady("test");
     $httpclient->get();

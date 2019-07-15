@@ -80,7 +80,7 @@ Swoole\Error::$echo_html = false;
 
 $AppSvr = new WebSocket();
 $AppSvr->loadSetting(__DIR__."/swoole.ini"); //加载配置文件
-$AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
+$AppSvr->setLogger(new \SPF\Log\EchoLog(true)); //Logger
 
 /**
  * 如果你没有安装swoole扩展，这里还可选择

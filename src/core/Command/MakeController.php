@@ -24,11 +24,11 @@ class MakeController extends Command
     {
         $args = $input->getArguments();
         $name = ucfirst($args['name']);
-        if (!is_dir(\Swoole::$app_path.'/controllers'))
+        if (!is_dir(\SPF\App::$app_path.'/controllers'))
         {
-            MakeApplication::init(\Swoole::$app_path);
+            MakeApplication::init(\SPF\App::$app_path);
         }
-        $file = \Swoole::$app_path . '/controllers/' . $name . '.php';
+        $file = \SPF\App::$app_path . '/controllers/' . $name . '.php';
         if (is_file($file))
         {
             $output->writeln("<error>Controller[$name](file=$file) already exists!</error>");
