@@ -131,7 +131,7 @@ class Server extends Base implements Driver
 
         if (!self::$optionKit)
         {
-            SPF\App::getInstance()->loader->('GetOptionKit', dirname(dirname(__DIR__)) . '/module/GetOptionKit/src/GetOptionKit');
+            SPF\App::getInstance()->loader->addNameSpace('GetOptionKit', dirname(dirname(__DIR__)) . '/module/GetOptionKit/src/GetOptionKit');
             self::$optionKit = new \GetOptionKit\GetOptionKit;
         }
 
