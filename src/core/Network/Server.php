@@ -231,17 +231,26 @@ class Server extends Base implements Driver
             self::$swooleMode = SWOOLE_PROCESS;
         }
 
-        if (self::$useSwooleHttpServer)
+        if (!empty(self::$options['host']) and !empty(self::$options['port']))
         {
-            $this->sw = new \swoole_http_server($host, $port, self::$swooleMode, $flag);
+            $this->host = self::$options['host'];
+            $this->port = self::$options['port'];
         }
         else
         {
-            $this->sw = new \swoole_server($host, $port, self::$swooleMode, $flag);
+            $this->host = $host;
+            $this->port = $port;
         }
 
-        $this->host = $host;
-        $this->port = $port;
+        if (self::$useSwooleHttpServer)
+        {
+            $this->sw = new \swoole_http_server($this->host, $this->port, self::$swooleMode, $flag);
+        }
+        else
+        {
+            $this->sw = new \swoole_server($this->host, $this->port, self::$swooleMode, $flag);
+        }
+
         SPF\Error::$stop = false;
         SPF\JS::$return = true;
         $this->runtimeSetting = array(
