@@ -309,10 +309,6 @@ HTMLS;
             {
                 goto type_incorrectly;
             }
-            if ($conds->contains('date'))
-            {
-                var_dump(Validate::check('date', $data[$k]), $data[$k]);
-            }
             //时间
             if ($conds->contains('time') and Validate::check('time', $data[$k]) === false)
             {
