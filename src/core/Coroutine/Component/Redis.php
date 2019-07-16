@@ -2,20 +2,28 @@
 
 namespace SPF\Coroutine\Component;
 
-use SPF\Coroutine\Redis as CoRedis;
+use Swoole\Coroutine\Redis as CoRedis;
+use SPF;
 
 class Redis extends Base
 {
     protected $type = 'redis';
 
+    /**
+     * Redis constructor.
+     * @param $config
+     * @throws SPF\Exception\InvalidParam
+     */
     function __construct($config)
     {
         parent::__construct($config);
-        \SPF\App::getInstance()->beforeAction([$this, '_createObject'],\SPF\App::coroModuleRedis);
-        \SPF\App::getInstance()->afterAction([$this, '_freeObject'],\SPF\App::coroModuleRedis);
+        SPF\App::getInstance()->beforeAction([$this, '_createObject'], SPF\App::coroModuleRedis);
+        SPF\App::getInstance()->afterAction([$this, '_freeObject'], SPF\App::coroModuleRedis);
     }
 
-
+    /**
+     * @return bool|CoRedis
+     */
     function create()
     {
         $redis = new CoRedis($this->config);
@@ -72,9 +80,12 @@ class Redis extends Base
     }
 
     /**
+     * @param $key
+     * @param $offset
+     * @param $value
      * @return mixed
      */
-    public function setBit($offset, $value)
+    public function setBit($key, $offset, $value)
     {
         /**
          * @var $redis CoRedis
@@ -84,10 +95,13 @@ class Redis extends Base
         {
             return false;
         }
-        return $redis->setBit($offset, $value);
+        return $redis->setBit($key, $offset, $value);
     }
 
     /**
+     * @param $key
+     * @param $ttl
+     * @param $value
      * @return mixed
      */
     public function setEx($key, $ttl, $value)
@@ -105,6 +119,9 @@ class Redis extends Base
     }
 
     /**
+     * @param $key
+     * @param $ttl
+     * @param $value
      * @return mixed
      */
     public function psetEx($key, $ttl, $value)
@@ -122,9 +139,12 @@ class Redis extends Base
     }
 
     /**
+     * @param $key
+     * @param $index
+     * @param $value
      * @return mixed
      */
-    public function lSet($index, $value)
+    public function lSet($key, $index, $value)
     {
         /**
          * @var $redis CoRedis
@@ -135,10 +155,11 @@ class Redis extends Base
             return false;
         }
 
-        return $redis->lSet($index, $value);
+        return $redis->lSet($key,$index, $value);
     }
 
     /**
+     * @param $params
      * @return mixed
      */
     public function mGet($params)
@@ -156,6 +177,7 @@ class Redis extends Base
     }
 
     /**
+     * @param array $args
      * @return mixed
      */
     public function del(...$args)
@@ -173,6 +195,7 @@ class Redis extends Base
     }
 
     /**
+     * @param array $arg
      * @return mixed
      */
     public function hDel(...$arg)
@@ -181,8 +204,7 @@ class Redis extends Base
          * @var $redis CoRedis
          */
         $redis = $this->_getObject();
-        if (!$redis)
-        {
+        if (!$redis) {
             return false;
         }
 
@@ -190,6 +212,9 @@ class Redis extends Base
     }
 
     /**
+     * @param $key
+     * @param $hashKey
+     * @param $value
      * @return mixed
      */
     public function hSet($key, $hashKey, $value)
@@ -207,6 +232,8 @@ class Redis extends Base
     }
 
     /**
+     * @param $key
+     * @param $hashKeys
      * @return mixed
      */
     public function hMSet($key, $hashKeys)
@@ -224,6 +251,9 @@ class Redis extends Base
     }
 
     /**
+     * @param $key
+     * @param $hashKey
+     * @param $value
      * @return mixed
      */
     public function hSetNx($key, $hashKey, $value)
@@ -241,6 +271,7 @@ class Redis extends Base
     }
 
     /**
+     * @param array $args
      * @return mixed
      */
     public function delete(...$args)
@@ -1231,6 +1262,7 @@ class Redis extends Base
     }
 
     /**
+     * @param array $args
      * @return mixed
      */
     public function rPush(...$args)
@@ -1244,7 +1276,7 @@ class Redis extends Base
             return false;
         }
 
-        return $redis->lPush(...$args);
+        return $redis->rPush(...$args);
     }
 
     /**
