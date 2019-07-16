@@ -280,7 +280,7 @@ class RPCServer extends Base implements SPF\IFace\Protocol
         {
             throw new \Exception("$path is not real path.");
         }
-        SPF\Loader::addNameSpace($name, $path);
+        SPF\App::getInstance()->loader->addNameSpace($name, $path);
     }
 
     /**
