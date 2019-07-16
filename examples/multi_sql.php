@@ -4,7 +4,7 @@ define('WEBPATH', dirname(__DIR__));
 require __DIR__ . '/../libs/lib_config.php';
 
 define('SPLIT_LINE', str_repeat('-',120)."\n");
-$client = new \Swoole\Client\CoMySQL('master');
+$client = new \SPF\Client\CoMySQL('master');
 
 $ret1 = $client->query("show tables");
 $ret2 = $client->query("desc user_login", function ($result) {

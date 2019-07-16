@@ -15,7 +15,7 @@ Swoole\Network\Server::setPidFile(__DIR__ . '/app_server.pid');
 Swoole\Network\Server::start(function ()
 {
     $AppSvr = new RPCServer;
-    $AppSvr->setLogger(new \Swoole\Log\EchoLog(true)); //Logger
+    $AppSvr->setLogger(new \SPF\Log\EchoLog(true)); //Logger
 
     /**
      * 注册一个自定义的命名空间到SOA服务器
@@ -46,7 +46,7 @@ Swoole\Network\Server::start(function ()
             'open_length_check' => 1,
             'package_max_length' => $AppSvr->packet_maxlen,
             'package_length_type' => 'N',
-            'package_body_offset' => \Swoole\Protocol\RPCServer::HEADER_SIZE,
+            'package_body_offset' => \SPF\Protocol\RPCServer::HEADER_SIZE,
             'package_length_offset' => 0,
         )
     );

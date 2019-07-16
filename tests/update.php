@@ -4,7 +4,7 @@ define('WEBPATH', realpath(__DIR__ . '/..'));
 //包含框架入口文件
 require WEBPATH . '/libs/lib_config.php';
 
-$sdb = new \Swoole\SelectDB(Swoole::$php->db);
+$sdb = new \SPF\SelectDB(Swoole::$php->db);
 $sdb->from('userinfo');
 $sdb->where('name="rango"');
 $sdb->update(['lastlogin_ip' => 2]);

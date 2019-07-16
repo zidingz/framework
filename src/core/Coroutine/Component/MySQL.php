@@ -14,8 +14,8 @@ class MySQL extends Base implements IDatabase
     function __construct($config)
     {
         parent::__construct($config);
-        \SPF\App::getInstance()->beforeAction([$this, '_createObject'], \Swoole::coroModuleDb);
-        \SPF\App::getInstance()->afterAction([$this, '_freeObject'],\Swoole::coroModuleDb);
+        \SPF\App::getInstance()->beforeAction([$this, '_createObject'], \SPF\App::coroModuleDb);
+        \SPF\App::getInstance()->afterAction([$this, '_freeObject'],\SPF\App::coroModuleDb);
     }
 
     function create()
