@@ -1244,7 +1244,7 @@ class Redis extends Base
             return false;
         }
 
-        return $redis->lPush(...$args);
+        return $redis->rPush(...$args);
     }
 
     /**
