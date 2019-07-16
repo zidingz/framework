@@ -19,11 +19,12 @@ class Template extends \Smarty
 
     function __construct()
     {
-        $this->compile_dir = WEBPATH . "/cache/templates_c";
-        $this->config_dir = WEBPATH . "/configs";
-        $this->cache_dir = WEBPATH . "/cache/pagecache";
+        $this->compile_dir = App::getInstance()->app_path . "/cache/templates_c";
+        $this->config_dir = App::getInstance()->app_path . "/configs";
+        $this->cache_dir = App::getInstance()->app_path . "/cache/pagecache";
         $this->left_delimiter = "{{";
         $this->right_delimiter = "}}";
+        parent::__construct();
     }
 
     function __init()
@@ -33,7 +34,7 @@ class Template extends \Smarty
 
     function set_template_dir($dir)
     {
-        $this->template_dir = WEBPATH . '/' . $dir;
+        $this->template_dir = App::getInstance()->app_path . '/' . $dir;
     }
 
     function set_cache($time = 3600)

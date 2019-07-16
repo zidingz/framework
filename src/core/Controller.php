@@ -25,7 +25,7 @@ class Controller extends BaseObject
     function __construct(App $app)
     {
         $this->app = $app;
-        $this->model = $app->model;
+        $this->model = $app->modelLoader;
         $this->config = $app->config;
         $this->template_dir = $app->app_path . '/templates/';
         if (!defined('TPL_PATH')) {

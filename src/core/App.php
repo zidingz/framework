@@ -4,6 +4,7 @@ namespace SPF;
 
 use Exception;
 use SPF\Exception\NotFound;
+use Symfony;
 
 /**
  * Swoole系统核心类，外部使用全局变量$php引用
@@ -26,11 +27,11 @@ use SPF\Exception\NotFound;
  * @property Auth $user
  * @property URL $url
  * @property Limit $limit
- * @method Database      db
- * @method \MongoClient          mongo
- * @method \redis                redis
- * @method IFace\Cache   cache
- * @method URL           url
+ * @method Database      db($key = 'master')
+ * @method \MongoClient          mongo($key = 'master')
+ * @method \redis              redis($key = 'master')
+ * @method IFace\Cache   cache($key = 'master')
+ * @method URL           url($key = 'master')
  * @method Platform\Linux os
  */
 class App
@@ -158,12 +159,12 @@ class App
      */
     public $error_callback;
 
-    public $load;
+    public $loader;
 
     /**
      * @var ModelLoader
      */
-    public $model;
+    public $modelLoader;
     public $env;
 
     protected $hooks = array();
@@ -190,14 +191,14 @@ class App
             Error::info("core error", __CLASS__ . ": $dir is not exists.");
         }
 
-        //将此目录作为App命名空间的根目录
-        Loader::addNameSpace('App', $this->app_path . '/classes');
-        spl_autoload_register([Loader::class, 'autoload']);
-
-        $this->load = new Loader($this);
-        $this->model = new ModelLoader($this);
+        $this->loader = new Loader($this);
+        $this->modelLoader = new ModelLoader($this);
         $this->config = new Config;
         $this->config->setPath($this->app_path . '/configs');
+
+        //将此目录作为App命名空间的根目录
+        $this->loader->addNameSpace('App', $this->app_path . '/classes');
+        spl_autoload_register([$this->loader, 'autoload']);
 
         //添加默认路由器
         $this->addRouter(new Router\Rewrite());
@@ -877,25 +878,10 @@ class App
      */
     function runConsole()
     {
-        $app = new  Symfony\Component\Console\Application("<info>Swoole Framework</info> Console Tool.");
+        $app = new Symfony\Component\Console\Application("<info>Swoole Framework</info> Console Tool.");
         $app->add(new Command\MakeController());
         $app->add(new Command\MakeModel());
         $app->add(new Command\MakeConfig());
         $app->run();
-    }
-
-    function reloadController($mvc, $controller_file)
-    {
-        if (extension_loaded('runkit') and $this->server->config['apps']['auto_reload']) {
-            clearstatcache();
-            $fstat = stat($controller_file);
-            //修改时间大于加载时的时间
-            if (isset($this->env['controllers'][$mvc['controller']]) && $fstat['mtime'] > $this->env['controllers'][$mvc['controller']]['time']) {
-                runkit_import($controller_file, RUNKIT_IMPORT_CLASS_METHODS | RUNKIT_IMPORT_OVERRIDE);
-                $this->env['controllers'][$mvc['controller']]['time'] = time();
-            } else {
-                $this->env['controllers'][$mvc['controller']]['time'] = time();
-            }
-        }
     }
 }

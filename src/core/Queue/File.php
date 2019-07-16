@@ -1,5 +1,7 @@
 <?php
+
 namespace SPF\Queue;
+
 use SPF;
 
 /**
@@ -16,38 +18,41 @@ class File implements SPF\IFace\Queue
 
     function __construct($config)
     {
-        if(!empty($config['name'])) $this->name = $config['name'];
-        $this->file = WEBPATH.'/cache/'.$config['name'].'.fc';
+        if (!empty($config['name'])) $this->name = $config['name'];
+        $this->file = SPF\App::getInstance()->app_path . '/cache/' . $config['name'] . '.fc';
         $this->load();
     }
+
     /**
      * 加载队列
-     * @return none
      */
     function load()
     {
         $content = trim(file_get_contents($this->file));
-        $this->data = explode("\n",$content);
+        $this->data = explode("\n", $content);
     }
+
     /**
      * 保存队列
-     * @return none
      */
     function save()
     {
-        file_put_contents($this->file,implode("\n",$this->data));
+        file_put_contents($this->file, implode("\n", $this->data));
     }
+
     /**
      * 入队
      * @see libs/system/IQueue#put($data)
+     * @param $data
      */
     function push($data)
     {
-        if(is_array($data) or is_object($data)) $data = serialize($data);
+        if (is_array($data) or is_object($data)) $data = serialize($data);
         //入队
         $this->data[] = $data;
-        if($this->put_save) $this->save();
+        if ($this->put_save) $this->save();
     }
+
     /**
      * 出对
      * @see libs/system/IQueue#get()
@@ -57,6 +62,7 @@ class File implements SPF\IFace\Queue
         //出对
         return array_shift($this->data);
     }
+
     function __destruct()
     {
         $this->save();

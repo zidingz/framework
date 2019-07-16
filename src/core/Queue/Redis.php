@@ -5,7 +5,7 @@ use SPF;
 /**
  * Redis内存队列
  */
-class Redis implements \SPF\IFace\Queue
+class Redis implements SPF\IFace\Queue
 {
     protected $redis_factory_key;
     protected $key = 'swoole:queue';

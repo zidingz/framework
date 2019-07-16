@@ -16,7 +16,7 @@ define("BL", "<br />" . NL);
  */
 function model($model_name, $db_key = 'master')
 {
-    return SPF\App::getInstance()->model->loadModel($model_name, $db_key);
+    return SPF\App::getInstance()->modelLoader->loadModel($model_name, $db_key);
 }
 
 /**
@@ -27,7 +27,7 @@ function model($model_name, $db_key = 'master')
  */
 function table($table_name, $db_key = 'master')
 {
-    return SPF\App::getInstance()->model->loadTable($table_name, $db_key);
+    return SPF\App::getInstance()->modelLoader->loadTable($table_name, $db_key);
 }
 
 /**
