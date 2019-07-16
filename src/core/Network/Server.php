@@ -112,8 +112,11 @@ class Server extends Base implements Driver
 
     /**
      * 显示命令行指令
+     * @param $startFunction
+     * @param null $usage
+     * @throws \Exception
      */
-    static function start($startFunction)
+    static function start($startFunction, $usage = null)
     {
         if (empty(self::$pidFile))
         {
@@ -188,7 +191,15 @@ class Server extends Base implements Driver
         else
         {
             usage:
-            $kit->specs->printOptions("php {$argv[0]} start|stop|reload");
+            if ($usage != null)
+            {
+                $tips = $usage;
+            }
+            else
+            {
+                $tips = "php {$argv[0]} start|stop|reload";
+            }
+            $kit->specs->printOptions($tips);
             exit;
         }
         self::$options = $opt;
