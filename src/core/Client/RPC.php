@@ -392,7 +392,7 @@ class RPC
     function auth($user, $password)
     {
         $this->putEnv('user', $user);
-        $this->putEnv('password', $password);
+        $this->putEnv('password', sha1($user . '|' . $password));
     }
 
     /**
