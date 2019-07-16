@@ -305,6 +305,7 @@ class RPC
      * @param $send
      * @param RPC_Result $retObj
      * @return bool
+     * @throws \Exception
      */
     protected function request($send, $retObj)
     {

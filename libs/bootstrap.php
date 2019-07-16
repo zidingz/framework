@@ -5,6 +5,7 @@
  * @author 韩天峰
  */
 define("LIBPATH", __DIR__);
+
 if (PHP_OS == 'WINNT')
 {
     define("NL", "\r\n");
@@ -17,17 +18,12 @@ define("BL", "<br />" . NL);
 
 require_once __DIR__ . '/Swoole/Swoole.php';
 require_once __DIR__ . '/Swoole/Loader.php';
+
 /**
  * 注册顶层命名空间到自动载入器
  */
 Swoole\Loader::addNameSpace('Swoole', __DIR__.'/Swoole');
 spl_autoload_register('\\Swoole\\Loader::autoload');
-
-/**
- * 产生类库的全局变量
- */
-global $php;
-$php = Swoole::getInstance();
 
 function createModel($model_name)
 {
@@ -143,26 +139,21 @@ function swoole_error_handler($errno, $errstr, $errfile, $errline)
     $info .= '<b>Code:</b> '.$errno."<br />\n";
     echo Swoole\Error::info($title, $info);
 }
-if (!function_exists("_string"))
+
+/**
+ * @param  string $str
+ * @return Swoole\StringObject
+ */
+function _string($str)
 {
-    /**
-     * @param  string $str
-     * @return Swoole\StringObject
-     */
-    function _string($str)
-    {
-        return new Swoole\StringObject($str);
-    }
+    return new Swoole\StringObject($str);
 }
 
-if (!function_exists("_array"))
+/**
+ * @param  array $array
+ * @return Swoole\ArrayObject
+ */
+function _array($array)
 {
-    /**
-     * @param  array $array
-     * @return Swoole\ArrayObject
-     */
-    function _array($array)
-    {
-        return new Swoole\ArrayObject($array);
-    }
+    return new Swoole\ArrayObject($array);
 }

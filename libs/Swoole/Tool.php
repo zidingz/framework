@@ -738,4 +738,23 @@ class Tool
         }
         return false;
     }
+
+    /**
+     * @param $data
+     * @return string
+     */
+    static function packJson($data)
+    {
+        $json = json_encode($data);
+        return pack('N', _string($json)->len()) . $json;
+    }
+
+    /**
+     * @param $str
+     * @return mixed
+     */
+    static function unpackJson($str)
+    {
+        return json_decode(substr($str, 4), true);
+    }
 }

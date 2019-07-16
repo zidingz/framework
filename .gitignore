@@ -8,3 +8,5 @@
 /uploads
 /composer.lock
 /nbproject
+/.buildpath
+/.project
