@@ -76,7 +76,7 @@ class RPCServer extends Base implements SPF\IFace\Protocol
     function onShutdown($server)
     {
         $this->log("Worker is stop");
-        Swoole::$php->log->flush();
+        SPF\App::getInstance()->log->flush();
     }
 
     function onTimer($serv, $interval)
@@ -301,12 +301,10 @@ class RPCServer extends Base implements SPF\IFace\Protocol
      */
     protected function verifyUser($user, $password)
     {
-        if (!isset($this->userList[$user]))
-        {
+        if (!isset($this->userList[$user])) {
             return false;
         }
-        if ($this->userList[$user] != $password)
-        {
+        if ($this->userList[$user] != sha1($user . '|' . $password)) {
             return false;
         }
         return true;
