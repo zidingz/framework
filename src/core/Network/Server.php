@@ -314,6 +314,15 @@ class Server extends Base implements Driver
         }
     }
 
+    function onManagerStart($server)
+    {
+        SPF\Console::setProcessName($this->getProcessName() . ': manager');
+        if (method_exists($this->protocol, 'onManagerStart'))
+        {
+            $this->protocol->onManagerStart($server);
+        }
+    }
+
     function onManagerStop()
     {
 
@@ -378,12 +387,9 @@ class Server extends Base implements Driver
             $this->runtimeSetting['task_worker_num'] = intval(self::$options['tasker']);
         }
         $this->sw->set($this->runtimeSetting);
-        $this->sw->on('ManagerStart', function ($serv)
-        {
-            SPF\Console::setProcessName($this->getProcessName() . ': manager');
-        });
         $this->sw->on('Start', array($this, 'onMasterStart'));
         $this->sw->on('Shutdown', array($this, 'onMasterStop'));
+        $this->sw->on('ManagerStart', array($this, 'onManagerStart'));
         $this->sw->on('ManagerStop', array($this, 'onManagerStop'));
         $this->sw->on('WorkerStart', array($this, 'onWorkerStart'));
 
