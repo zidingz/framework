@@ -655,11 +655,11 @@ class App
                 //捕获echo输出的内容
                 if (self::$enableOutputBuffer) {
                     ob_start();
-                    $response->body = $php->runMVC();
+                    $response->body = $php->handle();
                     $response->body .= ob_get_contents();
                     ob_end_clean();
                 } else {
-                    $response->body = $php->runMVC();
+                    $response->body = $php->handle();
                 }
             } catch (Exception\Response $e) {
                 if ($request->finish != 1) {

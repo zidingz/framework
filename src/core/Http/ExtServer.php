@@ -220,13 +220,13 @@ class ExtServer implements SPF\IFace\Http
                 {
                     ob_start();
                     /*---------------------处理MVC----------------------*/
-                    $body = $php->runMVC();
+                    $body = $php->handle();
                     $echo_output = ob_get_contents();
                     ob_end_clean();
                 }
                 else
                 {
-                    $body = $php->runMVC();
+                    $body = $php->handle();
                 }
 
                 if (!isset($resp->header['Cache-Control']))

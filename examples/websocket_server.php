@@ -46,7 +46,7 @@ class WebSocket extends SPF\Protocol\WebSocket
         $this->log("onMessage: ".$client_id.' = '.$ws['message']);
 
         $this->message = $ws['message'];
-        $response = SPF\App::$app->runMVC();
+        $response = SPF\App::$app->handle();
 
         $this->send($client_id, $response);
         //$this->broadcast($client_id, $ws['message']);
