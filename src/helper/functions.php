@@ -100,7 +100,7 @@ function swoole_error_handler($errno, $errstr, $errfile, $errline)
             break;
     }
 
-    $title = 'Swoole ' . $level;
+    $title = 'SPF ' . $level;
     $info .= '<b>File:</b> ' . $errfile . "<br />\n";
     $info .= '<b>Line:</b> ' . $errline . "<br />\n";
     $info .= '<b>Info:</b> ' . $errstr . "<br />\n";

@@ -5,7 +5,7 @@ namespace SPF;
  * 一种简单的数据格式
  * Class Csv
  *
- * @package Swoole
+ * @package SPF
  */
 class Csv
 {

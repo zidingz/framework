@@ -4,7 +4,7 @@ define('WEBPATH', realpath(__DIR__ . '/..'));
 //包含框架入口文件
 require WEBPATH . '/libs/lib_config.php';
 
-function test(Swoole\Async\HttpClient $class, $body, $header)
+function test(SPF\Async\HttpClient $class, $body, $header)
 {
     echo $class->id . " finish\n";
     //var_dump($header);

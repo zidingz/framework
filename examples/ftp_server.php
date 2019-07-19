@@ -3,7 +3,7 @@ define('DEBUG', 'on');
 define("WEBPATH", realpath(__DIR__.'/../'));
 require __DIR__ . '/../libs/lib_config.php';
 
-$ftpSvr = new Swoole\Protocol\FtpServer();
+$ftpSvr = new SPF\Protocol\FtpServer();
 $ftpSvr->users['test'] = array(
     'password' => 'test',
     'home' => '/tmp/',
@@ -16,6 +16,6 @@ $ftpSvr->users['test'] = array(
 //    'chroot' => true,
 //);
 
-$server = Swoole\Network\Server::autoCreate('0.0.0.0', 21);
+$server = SPF\Network\Server::autoCreate('0.0.0.0', 21);
 $server->setProtocol($ftpSvr);
 $server->run(array('worker_num' => 1));

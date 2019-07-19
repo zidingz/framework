@@ -3,7 +3,7 @@ namespace SPF;
 
 /**
  * Class Log
- * @package Swoole
+ * @package SPF
  * @method info
  * @method notice
  * @method warn

@@ -3,7 +3,7 @@ namespace SPF;
 
 /**
  * 频率限制组件
- * @package Swoole
+ * @package SPF
  */
 class Limit
 {

@@ -4,7 +4,7 @@ define('WEBPATH', realpath(__DIR__ . '/..'));
 //包含框架入口文件
 require WEBPATH . '/libs/lib_config.php';
 
-$mc = new Swoole\Coroutine\Memcache();
+$mc = new SPF\Coroutine\Memcache();
 $mc->addServer('127.0.0.1', 11211);
 
 go(function () use ($mc) {

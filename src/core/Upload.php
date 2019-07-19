@@ -4,7 +4,7 @@ namespace SPF;
  * 文件上传类
  * 限制尺寸，压缩，生成缩略图，限制格式
  * @author Tianfeng.Han
- * @package Swoole
+ * @package SPF
  * @subpackage SwooleSystem
  */
 class Upload

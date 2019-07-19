@@ -7,7 +7,7 @@ use SPF;
 /**
  * Memcache封装类，支持memcache和memcached两种扩展
  * @author Tianfeng.Han
- * @package Swoole
+ * @package SPF
  * @subpackage cache
  */
 class Memcache implements SPF\IFace\Cache

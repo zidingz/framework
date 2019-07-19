@@ -9,7 +9,7 @@ $config = array(
     'port' => '6379',
 );
 
-$pool = new Swoole\Async\Redis($config, 10);
+$pool = new SPF\Async\Redis($config, 10);
 
 $pool->get("key", function ($redis, $result) use ($pool)
 {

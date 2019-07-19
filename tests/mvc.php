@@ -3,7 +3,7 @@ define('DEBUG', 'on');
 define('WEBPATH', realpath(__DIR__ . '/..'));
 //包含框架入口文件
 require WEBPATH . '/libs/lib_config.php';
-//Swoole::$php->db->debug = true;
+//SPF::$php->db->debug = true;
 //
 //$rs = $php->db->query("show tables")->fetchall();
 //var_dump($rs);
@@ -16,14 +16,14 @@ require WEBPATH . '/libs/lib_config.php';
 //
 //exit;
 
-$r = Swoole::$php->db->query("show tables")->fetchall();
+$r = SPF\App::$app->db->query("show tables")->fetchall();
 var_dump($r);
 
-$r = Swoole::$php->db('slave')->query("show tables")->fetchall();
+$r = SPF\App::$app->db('slave')->query("show tables")->fetchall();
 var_dump($r);
 
-Swoole::$php->unloadModule('db', 'slave');
-var_dump(Swoole::$php);
+SPF\App::$app->unloadModule('db', 'slave');
+var_dump(SPF\App::$app);
 exit;
 
 $a = model('User');

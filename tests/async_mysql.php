@@ -11,7 +11,7 @@ $config = array(
     'database' => 'chelun',
 );
 
-$pool = new Swoole\Async\MySQL($config, 20);
+$pool = new SPF\Async\MySQL($config, 20);
 //$sql1 = "INSERT INTO `test`.`userinfo`
 // (`id`, `name`, `passwd`, `regtime`, `lastlogin_ip`)
 // VALUES ('0', 'womensss', 'world', '2015-06-15 13:50:34', '4')";

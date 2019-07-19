@@ -62,7 +62,7 @@ class Error extends \Exception
         }
         if (self::$stop)
         {
-            exit(Error::info('Swoole Error', $this->error_msg));
+            exit(Error::info('SPF Error', $this->error_msg));
         }
 	}
 

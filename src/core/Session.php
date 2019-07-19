@@ -4,9 +4,9 @@ use RuntimeException;
 
 /**
  * 会话控制类
- * 通过Swoole\Cache系统实现会话控制，可支持FileCache, DBCache, Memcache以及更多
+ * 通过SPF\Cache系统实现会话控制，可支持FileCache, DBCache, Memcache以及更多
  * @author Tianfeng.Han
- * @package Swoole
+ * @package SPF
  */
 class Session
 {

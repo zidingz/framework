@@ -22,4 +22,4 @@ if (!is_file($aof_file))
 {
     echo "redis aof file[$aof_file] not exist.\n";
 }
-Swoole\Component\Redis::syncFromAof($aof_file, $redis_server);
+SPF\Component\Redis::syncFromAof($aof_file, $redis_server);

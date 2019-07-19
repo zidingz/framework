@@ -74,7 +74,7 @@ abstract class WebServer extends Base
      */
     function loadSetting($ini_file)
     {
-        if (!is_file($ini_file)) exit("Swoole AppServer配置文件错误($ini_file)\n");
+        if (!is_file($ini_file)) exit("SPF AppServer配置文件错误($ini_file)\n");
         $config = parse_ini_file($ini_file, true);
         /*--------------Server------------------*/
         //开启http keepalive

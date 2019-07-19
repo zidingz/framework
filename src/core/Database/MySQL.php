@@ -27,7 +27,7 @@ class MySQL implements \SPF\IDatabase
     /**
      * 连接数据库
      *
-     * @see Swoole.IDatabase::connect()
+     * @see SPF.IDatabase::connect()
      */
     function connect()
     {

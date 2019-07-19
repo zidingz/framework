@@ -4,7 +4,7 @@ namespace SPF;
 /**
  * 页面缓存类
  * Class PageCache
- * @package Swoole
+ * @package SPF
  */
 class PageCache
 {

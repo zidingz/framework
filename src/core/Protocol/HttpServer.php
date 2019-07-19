@@ -7,7 +7,7 @@ use SPF;
  * HTTP Server
  * @author Tianfeng.Han
  * @link http://www.swoole.com/
- * @package Swoole
+ * @package SPF
  * @subpackage net.protocol
  */
 class HttpServer extends SPF\Protocol\WebServer implements  SPF\IFace\Protocol
@@ -48,7 +48,7 @@ class HttpServer extends SPF\Protocol\WebServer implements  SPF\IFace\Protocol
 
         SPF\Error::$echo_html = true;
         $this->swoole_server = $serv;
-        Swoole::$php->server = $this;
+        SPF\App::$app->server = $this;
         $this->log(self::SOFTWARE . "[#{$worker_id}]. running. on {$this->server->host}:{$this->server->port}");
         set_error_handler(array($this, 'onErrorHandle'), E_USER_ERROR);
         register_shutdown_function(array($this, 'onErrorShutDown'));

@@ -42,7 +42,7 @@ function smarty_core_assemble_plugin_filepath($params, &$smarty)
 		}
     }
     if ($_return === false) {
-        //Swoole tag libs
+        //SPF tag libs
         $file = dirname(__DIR__) . '/taglib/' . $_plugin_filename;;
         if (file_exists($file))
             $_return = $file;

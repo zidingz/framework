@@ -2,7 +2,7 @@
 
 namespace SPF\Coroutine\Component;
 
-use Swoole\Coroutine\Redis as CoRedis;
+use SPF\Coroutine\Redis as CoRedis;
 use SPF;
 
 class Redis extends Base

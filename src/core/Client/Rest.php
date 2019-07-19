@@ -6,9 +6,9 @@ use SPF;
 use SPF\Tool;
 
 /**
- * Swoole WebService客户端
+ * SPF WebService客户端
  * @author Tianfeng.Han
- * @package Swoole
+ * @package SPF
  * @subpackage Client
  */
 class Rest

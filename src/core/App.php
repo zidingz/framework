@@ -286,13 +286,13 @@ class App
         $app = self::getInstance();
 
         if (!self::$coroutineInit) {
-            if (Swoole::$enableCoroutine === false) {
-                throw new RuntimeException("Swoole::\$enableCoroutine cannot be false.");
+            if (self::$enableCoroutine === false) {
+                throw new RuntimeException("App::\$enableCoroutine cannot be false.");
             }
             $app->loadAllModules();
         }
 
-        return Coroutine::create(function () use ($func, $app) {
+        return go(function () use ($func, $app) {
             $app->callHook(self::HOOK_INIT);
             $app->callHook(self::HOOK_BEFORE_ACTION);
             $func();

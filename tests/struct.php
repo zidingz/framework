@@ -4,7 +4,7 @@ define('WEBPATH', realpath(__DIR__ . '/..'));
 //包含框架入口文件
 require WEBPATH . '/libs/lib_config.php';
 
-class BStruct extends Swoole\Memory\Struct
+class BStruct extends SPF\Memory\Struct
 {
     /**
      * @fieldtype char[64]
@@ -17,7 +17,7 @@ class BStruct extends Swoole\Memory\Struct
     public $num;
 }
 
-class AStruct extends Swoole\Memory\Struct
+class AStruct extends SPF\Memory\Struct
 {
     /**
      * @fieldtype int32

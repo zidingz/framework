@@ -6,7 +6,7 @@ use SPF\Coroutine\Context;
 
 /**
  * Class Http_LAMP
- * @package Swoole
+ * @package SPF
  */
 class ExtServer implements SPF\IFace\Http
 {
@@ -50,7 +50,7 @@ class ExtServer implements SPF\IFace\Http
 
     protected function getRequest()
     {
-        if (Swoole::$enableCoroutine)
+        if (SPF\App::$enableCoroutine)
         {
             return Context::get('request');
         }
@@ -62,7 +62,7 @@ class ExtServer implements SPF\IFace\Http
 
     protected function getResponse()
     {
-        if (Swoole::$enableCoroutine)
+        if (SPF\App::$enableCoroutine)
         {
             return Context::get('response');
         }
@@ -202,7 +202,7 @@ class ExtServer implements SPF\IFace\Http
         $this->response = $resp;
 
         //保存协程上下文
-        if (Swoole::$enableCoroutine)
+        if (SPF\App::$enableCoroutine)
         {
             Context::put('request', $req);
             Context::put('response', $resp);
@@ -216,7 +216,7 @@ class ExtServer implements SPF\IFace\Http
         {
             try
             {
-                if (Swoole::$enableOutputBuffer)
+                if (SPF\App::$enableOutputBuffer)
                 {
                     ob_start();
                     /*---------------------处理MVC----------------------*/
@@ -250,7 +250,7 @@ class ExtServer implements SPF\IFace\Http
             $resp->end($e->getMessage() . "<hr />" . nl2br($e->getTraceAsString()));
         }
         //保存协程上下文
-        if (Swoole::$enableCoroutine)
+        if (SPF\App::$enableCoroutine)
         {
             Context::delete('request');
             Context::delete('response');

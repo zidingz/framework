@@ -3,7 +3,7 @@ define('DEBUG', 'on');
 define("WEBPATH", str_replace("\\","/", __DIR__));
 require __DIR__ . '/../libs/lib_config.php';
 
-class WebSocket extends Swoole\Protocol\WebSocket
+class WebSocket extends SPF\Protocol\WebSocket
 {
     protected $message;
 
@@ -13,7 +13,7 @@ class WebSocket extends Swoole\Protocol\WebSocket
      */
     function onStart($serv, $worker_id = 0)
     {
-        Swoole::$php->router(array($this, 'router'));
+        SPF\App::$app->router(array($this, 'router'));
         parent::onStart($serv, $worker_id);
     }
 
@@ -46,7 +46,7 @@ class WebSocket extends Swoole\Protocol\WebSocket
         $this->log("onMessage: ".$client_id.' = '.$ws['message']);
 
         $this->message = $ws['message'];
-        $response = Swoole::$php->runMVC();
+        $response = SPF\App::$app->runMVC();
 
         $this->send($client_id, $response);
         //$this->broadcast($client_id, $ws['message']);
@@ -75,8 +75,8 @@ class WebSocket extends Swoole\Protocol\WebSocket
 }
 
 //require __DIR__'/phar://swoole.phar';
-Swoole\Config::$debug = true;
-Swoole\Error::$echo_html = false;
+SPF\Config::$debug = true;
+SPF\Error::$echo_html = false;
 
 $AppSvr = new WebSocket();
 $AppSvr->loadSetting(__DIR__."/swoole.ini"); //加载配置文件
@@ -89,7 +89,7 @@ $AppSvr->setLogger(new \SPF\Log\EchoLog(true)); //Logger
  * EventTCP 使用libevent，需要安装libevent扩展
  */
 $enable_ssl = false;
-$server = Swoole\Network\Server::autoCreate('0.0.0.0', 9443, $enable_ssl);
+$server = SPF\Network\Server::autoCreate('0.0.0.0', 9443, $enable_ssl);
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程
 $server->run(array(

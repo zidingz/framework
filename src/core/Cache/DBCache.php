@@ -4,7 +4,7 @@ use SPF;
 /**
  * 数据库缓存
  * @author Tianfeng.Han
- * @package Swoole
+ * @package SPF
  * @subpackage cache
  */
 class DBCache implements SPF\IFace\Cache

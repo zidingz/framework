@@ -4,7 +4,7 @@ use SPF\Exception\NotFound;
 
 /**
  * Class Factory
- * @package Swoole
+ * @package SPF
  * @method static getCache
  */
 class Factory

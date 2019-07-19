@@ -5,7 +5,7 @@ use SPF;
 
 /**
  * Class Http_LAMP
- * @package Swoole
+ * @package SPF
  */
 class PWS implements SPF\IFace\Http
 {

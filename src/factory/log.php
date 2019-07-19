@@ -10,7 +10,7 @@ if (empty($conf['type']))
 {
     $conf['type'] = 'EchoLog';
 }
-$class = 'Swoole\\Log\\' . $conf['type'];
+$class = 'SPF\\Log\\' . $conf['type'];
 $log = new $class($conf);
 if (!empty($conf['level']))
 {

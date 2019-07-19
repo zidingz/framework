@@ -6,7 +6,7 @@ namespace SPF;
  * 所有Swoole应用类的基类
  * Class Ojbect
  *
- * @package Swoole
+ * @package SPF
  * @property Database $db
  * @property Client\CoMySQL $codb
  * @property IFace\Cache $cache

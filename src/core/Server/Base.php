@@ -87,7 +87,7 @@ abstract class Base implements Driver
     {
         if (!($protocol instanceof SPF\IFace\Protocol))
         {
-            throw new \Exception("The protocol is not instanceof \\Swoole\\IFace\\Protocol");
+            throw new \Exception("The protocol is not instanceof \\SPF\\IFace\\Protocol");
         }
         $this->protocol = $protocol;
         $protocol->server = $this;

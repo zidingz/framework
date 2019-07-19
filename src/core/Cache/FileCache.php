@@ -8,7 +8,7 @@ use SPF;
  * 文件缓存类，提供类似memcache的接口
  * 警告：此类仅用于测试，不作为生产环境的代码，请使用Key-Value缓存系列！
  * @author Tianfeng.Han
- * @package Swoole
+ * @package SPF
  * @subpackage cache
  */
 class FileCache implements SPF\IFace\Cache

@@ -3,9 +3,9 @@ define('DEBUG', 'on');
 define('WEBPATH', dirname(__DIR__));
 require __DIR__ . '/../libs/lib_config.php';
 
-$client = Swoole\Client\RPC::getInstance();
+$client = SPF\Client\RPC::getInstance();
 //$client->setEncodeType(false, true);
-$client->setEncodeType(Swoole\Protocol\RPCServer::DECODE_SWOOLE, false);
+$client->setEncodeType(SPF\Protocol\RPCServer::DECODE_SWOOLE, false);
 $client->putEnv('app', 'test');
 $client->putEnv('appKey', 'test1234');
 $client->auth('chelun', 'chelun@123456');
