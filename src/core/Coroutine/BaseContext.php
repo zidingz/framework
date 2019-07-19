@@ -2,7 +2,7 @@
 
 namespace SPF\Coroutine;
 
-use SPF\Coroutine;
+use Swoole\Coroutine;
 
 class BaseContext
 {

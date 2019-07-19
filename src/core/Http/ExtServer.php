@@ -2,7 +2,7 @@
 namespace SPF\Http;
 
 use SPF;
-use SPF\Coroutine\Context;
+use SPF\Coroutine\BaseContext as Context;
 
 /**
  * Class Http_LAMP
@@ -216,6 +216,7 @@ class ExtServer implements SPF\IFace\Http
         {
             try
             {
+                $echo_output = "";
                 if (SPF\App::$enableOutputBuffer)
                 {
                     ob_start();
