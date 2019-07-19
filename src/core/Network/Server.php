@@ -11,6 +11,7 @@ use SPF\Server\Driver;
  */
 class Server extends Base implements Driver
 {
+    protected static $startFunction;
     protected static $beforeStopCallback;
     protected static $beforeReloadCallback;
 
@@ -94,6 +95,20 @@ class Server extends Base implements Driver
         self::$optionKit->add($specString, $description);
     }
 
+
+    static function setOption($key, $value)
+    {
+        self::$options[$key] = $value;
+    }
+
+    /**
+     * @param $function
+     */
+    static function setStartFunction(callable $function)
+    {
+        self::$startFunction = $function;
+    }
+
     /**
      * @param callable $function
      */
@@ -110,6 +125,23 @@ class Server extends Base implements Driver
         self::$beforeReloadCallback = $function;
     }
 
+    static function getServerPid()
+    {
+        if (empty(self::$pidFile))
+        {
+            throw new \Exception("require pidFile.");
+        }
+        $pid_file = self::$pidFile;
+        if (is_file($pid_file))
+        {
+            $server_pid = file_get_contents($pid_file);
+        }
+        else
+        {
+            $server_pid = 0;
+        }
+        return $server_pid;
+    }
     /**
      * 显示命令行指令
      * @param $startFunction
@@ -206,6 +238,78 @@ class Server extends Base implements Driver
         $startFunction($opt);
     }
 
+
+    static function startServer($isHttp = false)
+    {
+        if ($isHttp)
+        {
+            self::$useSwooleHttpServer = true;
+        }
+        $pid = self::getServerPid();
+        if (!empty($server_pid) and SPF\App::getInstance()->os->kill($server_pid, 0))
+        {
+            return self::cmdStatus(1, "Server is not running");
+        }
+        if (empty(self::$startFunction) or !is_callable(self::$startFunction))
+        {
+            throw new \Exception("startFunction is invalid");
+        }
+        $startFunction = self::$startFunction;
+        $startFunction();
+        return self::cmdStatus(0, "Server start success");
+    }
+
+    static function stop()
+    {
+        $pid = self::getServerPid();
+        if (empty($pid))
+        {
+            return self::cmdStatus(1, "get pid failed");
+        }
+
+        if (!empty($pid) and !SPF\App::getInstance()->os->kill($pid, 0))
+        {
+            return self::cmdStatus(1, "Server is not running");
+        }
+
+        if (self::$beforeStopCallback)
+        {
+            call_user_func(self::$beforeStopCallback);
+        }
+        SPF\App::getInstance()->os->kill($pid, SIGTERM);
+        return self::cmdStatus(0, "Server stop success");
+    }
+
+    static function reload()
+    {
+        $pid = self::getServerPid();
+
+        if (empty($pid))
+        {
+            return self::cmdStatus(1, "get pid failed");
+        }
+
+        if (!empty($pid) and !SPF\App::getInstance()->os->kill($pid, 0))
+        {
+            return self::cmdStatus(1, "Server is not running");
+        }
+
+        if (self::$beforeReloadCallback)
+        {
+            call_user_func(self::$beforeReloadCallback);
+        }
+        SPF\App::getInstance()->os->kill($pid, SIGUSR1);
+        return self::cmdStatus(0, "Server reload success");
+    }
+
+    static function cmdStatus($code, $msg)
+    {
+        return [
+            'code' => $code,
+            'msg' => $msg
+        ];
+    }
+
     /**
      * 自动推断扩展支持
      * 默认使用swoole扩展,其次是libevent,最后是select(支持windows)
@@ -278,12 +382,12 @@ class Server extends Base implements Driver
     {
         $this->runtimeSetting['daemonize'] = 1;
     }
-    
+
     function connections()
     {
         return $this->sw->connections;
     }
-    
+
     function connection_info($fd)
     {
         return $this->sw->connection_info($fd);
