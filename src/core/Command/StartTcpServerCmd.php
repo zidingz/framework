@@ -37,6 +37,7 @@ class StartTcpServerCmd extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $output->writeln("<info>Starting server...<info>");
         $options = $input->getOptions();
         self::addServerOption('host', $options);
         self::addServerOption('port', $options);
@@ -46,9 +47,7 @@ class StartTcpServerCmd extends Command
         self::addServerOption('thread', $options);
         self::addServerOption('task', $options);
         $ret = SPF\Network\Server::startServer();
-        if ($ret['code'] == 0) {
-            $output->writeln("<info>{$ret['msg']}<info>");
-        } else {
+        if ($ret['code'] != 0) {
             $output->writeln("<error>{$ret['msg']}<error>");
         }
     }
