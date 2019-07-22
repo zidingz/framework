@@ -11,7 +11,7 @@ function smarty_function_getall($params, &$smarty)
 		echo 'No record variable name!';
 		return false;
 	}
-	global $php;
+	$php = SPF\App::getInstance();;
 	$select = new SPF\SelectDB($php->db);
 	$select->call_by = 'func';
 	if(!isset($params['order'])) $params['order'] = 'id desc';

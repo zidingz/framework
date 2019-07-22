@@ -64,7 +64,7 @@ function debug()
  */
 function error($error_id, $stop = true)
 {
-    global $php;
+    $php = SPF\App::getInstance();;
     $error = new \SPF\Error($error_id);
     if (isset($php->error_call[$error_id])) {
         call_user_func($php->error_call[$error_id], $error);

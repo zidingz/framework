@@ -71,7 +71,7 @@ class Template extends \Smarty
     function display($template = null, $cache_id = null, $complile_id = null)
     {
         if ($template == null) {
-            global $php;
+            $php = SPF\App::getInstance();;
             $template = $php->env['mvc']['controller'] . '_' . $php->env['mvc']['view'] . '.html';
         }
         if ($this->if_pagecache) {

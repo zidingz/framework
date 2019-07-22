@@ -300,7 +300,7 @@ class Model
 		if (array_key_exists('page', $params))
 		{
 			$selectdb->paging();
-			global $php;
+			$php = SPF\App::getInstance();;
 			$php->env['page'] = $params['page'];
 			$php->env['start'] = 10 * intval($params['page'] / 10);
 			if ($selectdb->pages > 10 and $params['page'] < $php->env['start'])

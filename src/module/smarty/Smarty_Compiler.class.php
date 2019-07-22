@@ -1200,7 +1200,7 @@ class Smarty_Compiler extends Smarty {
 		$output = "<?php \n";
 		if($this->db=='')
 		{
-			global $php;
+			$php = SPF\App::getInstance();;
 			$php->autoload('db');
 			$this->db = $php->db;
 			$output.= "global \$php;\n";
@@ -1258,7 +1258,7 @@ class Smarty_Compiler extends Smarty {
 
 		if(!($this->swoole instanceof Swoole))
 		{
-			global $php;
+			$php = SPF\App::getInstance();;
 			$this->swoole = $php;
 		}
 

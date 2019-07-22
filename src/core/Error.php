@@ -54,7 +54,7 @@ class Error extends \Exception
 	        $this->error_msg = $error;
 	        parent::__construct($error);
 	    }
-		global $php;
+		$php = SPF\App::getInstance();;
 		//如果定义了错误监听程序
         if (isset($php->error_call[$this->error_id]))
         {
@@ -245,13 +245,13 @@ HTMLS;
 	 */
 	static function dbd($bool = true)
 	{
-		global $php;
+		$php = SPF\App::getInstance();;
 		if($bool) $php->db->debug = true;
 		else $php->db->debug = false;
 	}
 	static function tpld($bool = true)
 	{
-		global $php;
+		$php = SPF\App::getInstance();;
 		if($bool) $php->tpl->debugging = true;
 		else $php->tpl->debugging = false;
 	}

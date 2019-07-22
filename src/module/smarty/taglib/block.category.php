@@ -3,7 +3,7 @@ function smarty_block_category($params, $body, &$smarty)
 {
 	if (empty($body)) return;
 
-	global $php;
+	$php = SPF\App::getInstance();;
 	$category_ins = $php->createModel('Category');
 	
 	if(array_key_exists('app',$params))

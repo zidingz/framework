@@ -25,7 +25,7 @@ class DBCache implements SPF\IFace\Cache
             $table = $table['params']['table'];
         }
 
-        global $php;
+        $php = SPF\App::getInstance();;
         $this->model = new SPF\Model($php);
         $this->model->table = $table;
         $this->model->create_sql = "CREATE TABLE `{$table}` (

@@ -17,7 +17,7 @@ function smarty_block_app($params, $body, &$smarty)
 	else $func = 'getList';
 	
 	$fields = implode(',',SwooleTemplate::get_fields($body));
-	global $php;
+	$php = SPF\App::getInstance();;
 	$php->createModel($model);
 	
 	if(array_key_exists('titlelen',$params))

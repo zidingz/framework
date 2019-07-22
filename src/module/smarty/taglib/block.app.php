@@ -3,7 +3,7 @@ function smarty_block_app($params, $body, &$smarty)
 {
 	if (empty($body)) return;
 
-	global $php;
+	$php = SPF\App::getInstance();;
 	$app = model('App');
 	if(array_key_exists('name',$params))
 	{

@@ -1,5 +1,5 @@
 <?php
-global $php;
+$php = SPF\App::getInstance();;
 $config = $php->config['log'];
 if (empty($config[$php->factory_key]))
 {

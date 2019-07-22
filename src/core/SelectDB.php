@@ -732,7 +732,7 @@ class SelectDB
         if ($this->auto_cache or !empty($cache_id))
         {
             $cache_key = empty($cache_id) ? self::CACHE_PREFIX . '_one_' . md5($this->sql) : self::CACHE_PREFIX . '_all_' . $cache_id;
-            global $php;
+            $php = SPF\App::getInstance();;
             $record = $php->cache->get($cache_key);
             if (empty($data))
             {

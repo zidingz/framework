@@ -3,7 +3,7 @@ function smarty_function_getone($params, &$smarty)
 {
 	$record_name = $params['_name'];
 	if(!array_key_exists($record_name,$smarty->_tpl_vars) or array_key_exists('_force',$params)):
-		global $php;
+		$php = SPF\App::getInstance();;
 		$select = new SPF\SelectDB($php->db);
 		$select->call_by = 'func';
 		$select->put($params);
