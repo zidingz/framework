@@ -30,6 +30,7 @@ class ExtServer implements SPF\IFace\Http
     protected $config;
 
     static $gzip_extname = array('js' => true, 'css' => true, 'html' => true, 'txt' => true);
+    static $userRouter;
 
     function __construct($config)
     {
@@ -190,6 +191,36 @@ class ExtServer implements SPF\IFace\Http
         return true;
     }
 
+    function setRouter($function)
+    {
+        if (!is_callable($function)) {
+            throw  new \RuntimeException("function:$function is not callable", 1);
+        }
+        self::$userRouter = $function;
+    }
+
+    function swooleRouter($request)
+    {
+        $php = SPF\App::getInstance();
+        $php->request = new SPF\Request();
+        $php->response = new SPF\Response();
+        $this->assign($php->request);
+        if (SPF\App::$enableOutputBuffer)
+        {
+            ob_start();
+            /*---------------------处理MVC----------------------*/
+            $body = $php->handle();
+            $echo_output = ob_get_contents();
+            ob_end_clean();
+            $body = $echo_output.$body;
+        }
+        else
+        {
+            $body = $php->handle();
+        }
+        return $body;
+    }
+
     function onRequest(\swoole_http_request $req, \swoole_http_response $resp)
     {
         if ($this->document_root and is_file($this->document_root . $req->server['request_uri']))
@@ -208,28 +239,15 @@ class ExtServer implements SPF\IFace\Http
             Context::put('response', $resp);
         }
 
-        $php = SPF\App::getInstance();
-        $php->request = new SPF\Request();
-        $php->response = new SPF\Response();
-        $this->assign($php->request);
         try
         {
             try
             {
-                $echo_output = "";
-                if (SPF\App::$enableOutputBuffer)
-                {
-                    ob_start();
-                    /*---------------------处理MVC----------------------*/
-                    $body = $php->handle();
-                    $echo_output = ob_get_contents();
-                    ob_end_clean();
+                if (!empty(self::$userRouter)) {
+                    $body = call_user_func_array(self::$userRouter,[$req]);
+                } else {
+                    $body = $this->swooleRouter($req);
                 }
-                else
-                {
-                    $body = $php->handle();
-                }
-
                 if (!isset($resp->header['Cache-Control']))
                 {
                     $resp->header('Cache-Control', 'no-store, no-cache, must-revalidate');
@@ -238,7 +256,7 @@ class ExtServer implements SPF\IFace\Http
                 {
                     $resp->header('Pragma', 'no-cache');
                 }
-                $resp->end($echo_output.$body);
+                $resp->end($body);
             }
             catch (SPF\Exception\Response $e)
             {
