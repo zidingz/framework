@@ -245,7 +245,7 @@ class Server extends Base implements Driver
         {
             self::$useSwooleHttpServer = true;
         }
-        $pid = self::getServerPid();
+        $server_pid = self::getServerPid();
         if (!empty($server_pid) and SPF\App::getInstance()->os->kill($server_pid, 0))
         {
             return self::cmdStatus(1, "Server is not running");
