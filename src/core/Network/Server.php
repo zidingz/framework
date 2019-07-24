@@ -255,7 +255,7 @@ class Server extends Base implements Driver
             throw new \Exception("startFunction is invalid");
         }
         $startFunction = self::$startFunction;
-        $startFunction();
+        $startFunction($isHttp);
         return self::cmdStatus(0, "Server start success");
     }
 
