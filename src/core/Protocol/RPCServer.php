@@ -15,11 +15,7 @@ class RPCServer extends Base implements SPF\IFace\Protocol
      */
     const VERSION = 1005;
 
-    protected $_buffer  = array(); //buffer区
     protected $_headers = array(); //保存头
-
-    protected $errCode;
-    protected $errMsg;
 
     /**
      * 客户端环境变量
@@ -35,22 +31,10 @@ class RPCServer extends Base implements SPF\IFace\Protocol
     static $requestHeader;
 
     public $packet_maxlen       = 2465792; //2M默认最大长度
-    protected $buffer_maxlen    = 10240; //最大待处理区排队长度, 超过后将丢弃最早入队数据
-    protected $buffer_clear_num = 128; //超过最大长度后，清理100个数据
 
-    const ERR_HEADER            = 9001;   //错误的包头
-    const ERR_TOOBIG            = 9002;   //请求包体长度超过允许的范围
-    const ERR_SERVER_BUSY       = 9003;   //服务器繁忙，超过处理能力
-    const ERR_UNPACK            = 9204;   //解包失败
-    const ERR_PARAMS            = 9205;   //参数错误
-    const ERR_NOFUNC            = 9206;   //函数不存在
-    const ERR_CALL              = 9207;   //执行错误
-    const ERR_ACCESS_DENY       = 9208;   //访问被拒绝，客户端主机未被授权
-    const ERR_USER              = 9209;   //用户名密码错误
-
-    const HEADER_SIZE           = 16;
-    const HEADER_STRUCT         = "Nlength/Ntype/Nuid/Nserid";
-    const HEADER_PACK           = "NNNN";
+    const HEADER_SIZE           = 32;
+    const HEADER_STRUCT         = "Nlength/Ntype/Nuid/Nserid/Nerrno/Nreserve1/Nreserve2/Nreserve3";
+    const HEADER_PACK           = "NNNNNNNN";//4*8=32
 
     const DECODE_PHP            = 1;   //使用PHP的serialize打包
     const DECODE_JSON           = 2;   //使用json_encode打包
@@ -86,56 +70,27 @@ class RPCServer extends Base implements SPF\IFace\Protocol
 
     function onReceive($serv, $fd, $reactor_id, $data)
     {
-        if (!isset($this->_buffer[$fd]) or $this->_buffer[$fd] === '')
+        //解析包头
+        $header = unpack(self::HEADER_STRUCT, substr($data, 0, self::HEADER_SIZE));
+        //错误的包头 设置错误码 关闭连接
+        if ($header === false)
         {
-            //超过buffer区的最大长度了
-            if (count($this->_buffer) >= $this->buffer_maxlen)
-            {
-                $n = 0;
-                foreach ($this->_buffer as $k => $v)
-                {
-                    $this->close($k);
-                    $n++;
-                    //清理完毕
-                    if ($n >= $this->buffer_clear_num)
-                    {
-                        break;
-                    }
-                }
-                $this->log("clear $n buffer");
-            }
-            //解析包头
-            $header = unpack(self::HEADER_STRUCT, substr($data, 0, self::HEADER_SIZE));
-            //错误的包头
-            if ($header === false)
-            {
-                $this->close($fd);
-            }
-            $header['fd'] = $fd;
-            $this->_headers[$fd] = $header;
-            //长度错误
-            if ($header['length'] - self::HEADER_SIZE > $this->packet_maxlen or strlen($data) > $this->packet_maxlen)
-            {
-                return $this->sendErrorMessage($fd, self::ERR_TOOBIG);
-            }
-            //加入缓存区
-            $this->_buffer[$fd] = substr($data, self::HEADER_SIZE);
+            self::setErrorCode(self::ERR_HEADER);
+            return $this->close($fd);
         }
-        else
+        $header['fd'] = $fd;
+        $this->_headers[$fd] = $header;
+        //长度错误
+        if ($header['length'] - self::HEADER_SIZE > $this->packet_maxlen or strlen($data) > $this->packet_maxlen)
         {
-            $this->_buffer[$fd] .= $data;
+            self::setErrorCode(self::ERR_TOOBIG);
+            return $this->sendErrorMessage($fd, self::ERR_TOOBIG);
         }
-
-        //长度不足
-        if (strlen($this->_buffer[$fd]) < $this->_headers[$fd]['length'])
-        {
-            return true;
-        }
-
         //数据解包
-        $request = self::decode($this->_buffer[$fd], $this->_headers[$fd]['type']);
+        $request = self::decode(substr($data, self::HEADER_SIZE), $this->_headers[$fd]['type']);
         if ($request === false)
         {
+            self::setErrorCode(self::ERR_UNPACK);
             $this->sendErrorMessage($fd, self::ERR_UNPACK);
         }
         //执行远程调用
@@ -151,11 +106,16 @@ class RPCServer extends Base implements SPF\IFace\Protocol
             //socket信息
             self::$clientEnv['_socket'] = $this->server->connection_info($_header['fd']);
             $response = $this->call($request, $_header);
+            $response = $response !== false ? $response : '';
             //发送响应
-            $ret = $this->server->send($fd, self::encode($response, $_header['type'], $_header['uid'], $_header['serid']));
+            $ret = $this->server->send($fd, self::encode($response, $_header['type'], $_header['uid'],
+                $_header['serid'], self::getErrorCode()));
             if ($ret === false)
             {
-                trigger_error("SendToClient failed. code=".$this->server->getLastError()." params=".var_export($request, true)."\nheaders=".var_export($_header, true), E_USER_WARNING);
+                self::setErrorCode(self::ERR_UNPACK);
+                trigger_error("SendToClient failed. code=" . $this->server->getLastError() . " params="
+                    . var_export($request, true) . "\nheaders=" . var_export($_header, true),
+                    E_USER_WARNING);
             }
             //退出进程
             if (self::$stop)
@@ -163,8 +123,6 @@ class RPCServer extends Base implements SPF\IFace\Protocol
                 exit(0);
             }
         }
-        //清理缓存
-        unset($this->_buffer[$fd], $this->_headers[$fd]);
         return true;
     }
 
@@ -194,12 +152,17 @@ class RPCServer extends Base implements SPF\IFace\Protocol
     /**
      * 打包数据
      * @param $data
-     * @param $type
-     * @param $uid
-     * @param $serid
+     * @param int $type
+     * @param int $uid
+     * @param int $serid
+     * @param int $error    服务端错误码
+     * @param int $reserve1 保留字段
+     * @param int $reserve2
+     * @param int $reserve3
      * @return string
      */
-    static function encode($data, $type = self::DECODE_PHP, $uid = 0, $serid = 0)
+    static function encode($data, $type = self::DECODE_PHP, $uid = 0, $serid = 0, $error = 0, $reserve1 = 0,
+                           $reserve2 = 0, $reserve3 = 0)
     {
         //启用压缩
         if ($type & self::DECODE_GZIP)
@@ -229,7 +192,8 @@ class RPCServer extends Base implements SPF\IFace\Protocol
         {
             $body = gzencode($body);
         }
-        return pack(RPCServer::HEADER_PACK, strlen($body), $type, $uid, $serid) . $body;
+        return pack(RPCServer::HEADER_PACK, strlen($body), $type, $uid, $serid, $error, $reserve1,
+                $reserve2, $reserve3) . $body;
     }
 
     /**
@@ -264,7 +228,7 @@ class RPCServer extends Base implements SPF\IFace\Protocol
      */
     function onClose($serv, $fd, $from_id)
     {
-        unset($this->_buffer[$fd]);
+
     }
 
     /**
@@ -312,28 +276,32 @@ class RPCServer extends Base implements SPF\IFace\Protocol
 
     /**
      * 调用远程函数
+     *
      * @param $request
-     * @return array
+     * @param $header
+     * @return mixed|string
      */
     protected function call($request, $header)
     {
         if (empty($request['call']))
         {
-            return array('errno' => self::ERR_PARAMS);
+            self::setErrorCode(self::ERR_PARAMS);
+            return false;
         }
         /**
          * 侦测服务器是否存活
          */
         if ($request['call'] === 'PING')
         {
-            return array('errno' => 0, 'data' => 'PONG');
+            return 'PONG';
         }
         //验证客户端IP是否被允许访问
         if ($this->verifyIp)
         {
             if (!$this->verifyIp(self::$clientEnv['_socket']['remote_ip']))
             {
-                return array('errno' => self::ERR_ACCESS_DENY);
+                self::setErrorCode(self::ERR_ACCESS_DENY);
+                return false;
             }
         }
         //验证密码是否正确
@@ -342,7 +310,8 @@ class RPCServer extends Base implements SPF\IFace\Protocol
             if (empty(self::$clientEnv['user']) or empty(self::$clientEnv['password']))
             {
                 fail:
-                return array('errno' => self::ERR_USER);
+                self::setErrorCode(self::ERR_USER);
+                return false;
             }
             if (!$this->verifyUser(self::$clientEnv['user'], self::$clientEnv['password']))
             {
@@ -352,7 +321,8 @@ class RPCServer extends Base implements SPF\IFace\Protocol
         //函数不存在
         if (!is_callable($request['call']))
         {
-            return array('errno' => self::ERR_NOFUNC);
+            self::setErrorCode(self::ERR_NOFUNC);
+            return false;
         }
         //前置方法
         if (method_exists($this, 'beforeRequest'))
@@ -369,9 +339,10 @@ class RPCServer extends Base implements SPF\IFace\Protocol
         //禁止接口返回NULL，客户端得到NULL时认为RPC调用失败
         if ($ret === NULL)
         {
-            return array('errno' => self::ERR_CALL);
+            self::setErrorCode(self::ERR_CALL);
+            return false;
         }
-        return array('errno' => 0, 'data' => $ret);
+        return $ret;
     }
 
     /**
@@ -381,7 +352,6 @@ class RPCServer extends Base implements SPF\IFace\Protocol
     protected function close($fd)
     {
         $this->server->close($fd);
-        unset($this->_buffer[$fd], $this->_headers[$fd]);
     }
 
     /**
