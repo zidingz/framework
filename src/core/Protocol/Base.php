@@ -8,6 +8,8 @@ use SPF;
  */
 abstract class Base implements SPF\IFace\Protocol
 {
+    const ERR_SUCCESS           = 0;      //成功
+
     const ERR_HEADER            = 9001;   //错误的包头
     const ERR_TOOBIG            = 9002;   //请求包体长度超过允许的范围
     const ERR_SERVER_BUSY       = 9003;   //服务器繁忙，超过处理能力

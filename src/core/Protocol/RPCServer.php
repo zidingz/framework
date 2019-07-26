@@ -342,6 +342,7 @@ class RPCServer extends Base implements SPF\IFace\Protocol
             self::setErrorCode(self::ERR_CALL);
             return false;
         }
+        self::setErrorCode(self::ERR_SUCCESS);
         return $ret;
     }
 
