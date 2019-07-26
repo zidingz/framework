@@ -14,7 +14,7 @@ use ReflectionType;
 use Throwable;
 use SFP\Exception\LogicException;
 
-class Tests
+class RpcTests
 {
     /**
      * @var Parser
