@@ -409,7 +409,7 @@ class RPC
             $retObj->code = RPC_Result::ERR_UNPACK;
         }
         //调用成功
-        elseif ($header['errno'] === self::OK)
+        elseif (isset($header['errno']) && $header['errno'] === self::OK)
         {
             $retObj->code = self::OK;
             $retObj->data = $retData;
@@ -417,10 +417,11 @@ class RPC
         //服务器返回失败
         else
         {
-            $retObj->code = $header['errno'];
+            $retObj->code = $header['errno'] ?? RPC_Result::ERR_SERVER;
             $retObj->data = [
-                'code' => $header['errno'],
-                'msg' => RPCServer::getErrorMsg($header['errno']),
+                'code' => $header['errno'] ?? RPC_Result::ERR_SERVER,
+                'msg' => RPCServer::getErrorMsg($header['errno'] ?? RPC_Result::ERR_SERVER),
+                'data' => $retData
             ];
         }
         unset($this->waitList[$retObj->requestId]);

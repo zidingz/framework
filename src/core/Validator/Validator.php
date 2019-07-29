@@ -7,11 +7,28 @@ use SPF\Exception\ValidateException;
 
 class Validator
 {
+    /**
+     * User defined validate rules.
+     * 
+     * @var array
+     */
     protected static $rules = [];
 
+    /**
+     * User defined validate failed error messages.
+     * 
+     * @var array
+     */
     protected static $messages = [
         '*' => 'The %s argument must be %s',
     ];
+
+    /**
+     * Validate class with method, params map.
+     * 
+     * @var array
+     */
+    protected static $validateMap = [];
 
     /**
      * Add new rule, event replace the framework rules.
@@ -38,28 +55,48 @@ class Validator
     }
 
     /**
+     * Set the validate class with method, params.
+     * 
+     * @param array $map
+     */
+    public static function setValidateMap(array $map)
+    {
+        static::$validateMap = $map;
+    }
+
+    /**
+     * Get the validate class with method, params map.
+     */
+    public static function getValidateMap()
+    {
+        return static::$validateMap;
+    }
+
+    /**
      * Validate arguments.
      * 
      * @param array $args
      * @param array $rules
      */
-    public static function validate($args, $rules)
+    public static function validate($args, $argRules)
     {
         $errors = [];
-        foreach($args as $field => $value) {
-            if (!isset($rules[$field])) {
+        foreach($args as $idx => $value) {
+            if (!isset($argRules[$idx])) {
                 continue;
             }
-            foreach($rules[$field] as $rule => $params) {
+            $field = $argRules[$idx]['field'];
+            $rules = $argRules[$idx]['rules'];
+            foreach($rules as $rule => $params) {
                 if (isset(static::$rules[$rule])) {
                     // Use the user defined rules
-                    if (call_user_func(static::$rules[$rule], $rules[$field], $value, $params, $args) === false) {
+                    if (call_user_func(static::$rules[$rule], $rules, $value, $params, $args) === false) {
                         $errors[$field][$rule] = static::formatFailMessage($rule, $field, $value, $params, $args);
                     }
                 } elseif (method_exists(ValidateRules::class, 'validate'.ucfirst($rule))) {
                     // Use the framework provided rules
                     $callable = ValidateRules::class.'::validate'.ucfirst($rule);
-                    if (call_user_func($callable, $rules[$field], $value, $params, $args) === false) {
+                    if (call_user_func($callable, $rules, $value, $params, $args) === false) {
                         $errors[$field][$rule] = static::formatFailMessage($rule, $field, $value, $params, $args);
                     }
                 } else {
