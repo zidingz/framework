@@ -414,6 +414,8 @@ class RPCServer extends Base implements SPF\IFace\Protocol
      */
     protected function validateRequest($class, $method, $args)
     {
+        $method = strtolower($method);
+
         $map = Validator::getValidateMap();
         if (!isset($map[$class]) || empty($map[$class][$method])) {
             return ;
