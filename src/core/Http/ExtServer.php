@@ -31,6 +31,7 @@ class ExtServer implements SPF\IFace\Http
 
     static $gzip_extname = array('js' => true, 'css' => true, 'html' => true, 'txt' => true);
     static $userRouter;
+    static $clientEnv = null;
 
     function __construct($config)
     {
@@ -221,6 +222,13 @@ class ExtServer implements SPF\IFace\Http
         return $body;
     }
 
+    static function setEnv($request)
+    {
+        self::$clientEnv = null;//reset last env
+        self::$clientEnv['server'] = $request->cookie;
+        self::$clientEnv['cookie'] = $request->server;
+    }
+
     function onRequest(\swoole_http_request $req, \swoole_http_response $resp)
     {
         if ($this->document_root and is_file($this->document_root . $req->server['request_uri']))
@@ -238,7 +246,7 @@ class ExtServer implements SPF\IFace\Http
             Context::put('request', $req);
             Context::put('response', $resp);
         }
-
+        self::setEnv($req);
         try
         {
             try

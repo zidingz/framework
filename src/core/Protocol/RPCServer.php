@@ -99,6 +99,7 @@ class RPCServer extends Base implements SPF\IFace\Protocol
             //当前请求的头
             self::$requestHeader = $_header = $this->_headers[$fd];
             //调用端环境变量
+            self::$clientEnv = null;//reset env
             if (!empty($request['env']))
             {
                 self::$clientEnv = $request['env'];
