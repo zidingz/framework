@@ -12,9 +12,9 @@ use ReflectionClass;
 use ReflectionParameter;
 use ReflectionType;
 use Throwable;
-use SFP\Exception\LogicException;
+use SPF\Exception\LogicException;
 
-class Tests
+class RpcTests
 {
     /**
      * @var Parser

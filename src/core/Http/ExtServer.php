@@ -3,6 +3,7 @@ namespace SPF\Http;
 
 use SPF;
 use SPF\Coroutine\BaseContext as Context;
+use SPF\Validator\Validator;
 
 /**
  * Class Http_LAMP
@@ -292,5 +293,24 @@ class ExtServer implements SPF\IFace\Http
         {
             $php->tpl->clear_all_assign();
         }
+    }
+
+    /**
+     * 验证请求参数是否合法
+     * 
+     * @param string $class
+     * @param string $method
+     * @param array $args
+     */
+    protected static function validateRequest($class, $method, $args)
+    {
+        $method = strtolower($method);
+
+        $map = Validator::getValidateMap();
+        if (!isset($map[$class]) || empty($map[$class][$method])) {
+            return;
+        }
+
+        Validator::validate($args, $map[$class][$method]);
     }
 }

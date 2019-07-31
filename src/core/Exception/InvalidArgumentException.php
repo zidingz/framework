@@ -1,6 +1,6 @@
 <?php
 
-namespace SFP\Exception;
+namespace SPF\Exception;
 
 class InvalidArgumentException extends LogicException
 {

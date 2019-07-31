@@ -8,17 +8,18 @@ use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use SFP\Exceptions\InvalidArgumentException;
-use SPF\Generator\Tests;
+use SPF\Exceptions\InvalidArgumentException;
+use SPF\Generator\RpcTests;
+use Throwable;
 
 /**
- * Automatic generate test case command.
+ * Automatic generate rpc test case command.
  */
-class GenerateTests extends Command
+class GenerateRpcTests extends Command
 {
     protected function configure()
     {
-        $this->setName('generate:tests')
+        $this->setName('generate:rpc:tests')
             ->setDescription('automatic generate test cases')
             ->setHelp('You can automatic generate test cases using this command')
             ->setDefinition(
@@ -47,8 +48,15 @@ class GenerateTests extends Command
         $output->writeln("<info>Select output path: $target<info>");
         $output->writeln("<info>Select mode: $mode<info>");
         
-        $generator = new Tests($output, $io);
-        $generator->handle($src, $target, $mode);
+        $generator = new RpcTests($output, $io);
+        try {
+            $generator->handle($src, $target, $mode);
+        } catch (Throwable $e) {
+            $output->writeln('<error>' . $e->getMessage() . '</error>');
+            foreach (explode("\n", $e->getTraceAsString()) as $line) {
+                $output->writeln("<comment>  {$line}</comment>");
+            }
+        }
     }
 
     /**

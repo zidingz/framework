@@ -2,6 +2,8 @@
 namespace SPF\Protocol;
 
 use SPF;
+use SPF\Exception\ValidateException;
+use SPF\Validator\Validator;
 /**
  * RPC服务器
  * @package SPF\Network
@@ -328,10 +330,28 @@ class RPCServer extends Base implements SPF\IFace\Protocol
         //前置方法
         if (method_exists($this, 'beforeRequest'))
         {
-            $this->beforeRequest($request);
+            try {
+                $this->beforeRequest($request);
+            } catch (ValidateException $e) {
+                self::setErrorCode(self::ERR_PARAMS);
+                return [
+                    'errno' => self::ERR_PARAMS,
+                    'error' => $e->getMessage(),
+                    'errors' => $e->getErrors(),
+                ];
+            }
         }
-        //调用接口方法
-        $ret = call_user_func_array($request['call'], $request['params']);
+        try {
+            //调用接口方法
+            $ret = call_user_func_array($request['call'], $request['params']);
+        } catch (\Throwable $e) {
+            self::setErrorCode(self::ERR_CALL);
+            return [
+                'errno' => self::ERR_CALL,
+                'error' => $e->getMessage(),
+            ];
+        }
+        
         //后置方法
         if (method_exists($this, 'afterRequest'))
         {
@@ -384,5 +404,24 @@ class RPCServer extends Base implements SPF\IFace\Protocol
     {
         $this->userList[$user] = $password;
         $this->verifyUser = true;
+    }
+
+    /**
+     * 验证请求参数是否合法
+     * 
+     * @param string $class
+     * @param string $method
+     * @param array $args
+     */
+    protected function validateRequest($class, $method, $args)
+    {
+        $method = strtolower($method);
+
+        $map = Validator::getValidateMap();
+        if (!isset($map[$class]) || empty($map[$class][$method])) {
+            return ;
+        }
+
+        Validator::validate($args, $map[$class][$method]);
     }
 }
