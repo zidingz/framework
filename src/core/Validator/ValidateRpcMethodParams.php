@@ -10,6 +10,10 @@ use PhpParser\Lexer;
 use PhpParser\Node\Stmt;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use ReflectionClass;
+use ReflectionMethod;
+use ReflectionType;
+use ReflectionProperty;
 
 class ValidateRpcMethodParams
 {
@@ -44,18 +48,32 @@ class ValidateRpcMethodParams
      * 
      * @var array
      */
-    protected $allowedReturnType = [
+    protected static $allowedReturnType = [
         'int', 'array', 'string', 'float', 'bool',
     ];
+
+    /**
+     * Allowed class method return structObject
+     * 
+     * @var bool
+     */
+    protected static $allowReturnStructObject = true;
 
     /**
      * Allowed class method param type
      * 
      * @var array
      */
-    protected $allowedParamType = [
+    protected static $allowedParamType = [
         'int', 'array', 'string', 'float', 'bool', 'callable',
     ];
+
+    /**
+     * Allowed class method param structObject
+     * 
+     * @var bool
+     */
+    protected static $allowParamStructObject = true;
 
     /**
      * @param OutputInterface $output
@@ -68,6 +86,46 @@ class ValidateRpcMethodParams
         $this->output = $output;
 
         $this->initParser();
+    }
+
+    /**
+     * Set allowed params types.
+     * 
+     * @param array $types
+     */
+    public static function setAllowedParamType(array $types)
+    {
+        static::$allowedParamType = $types;
+    }
+
+    /**
+     * Set allowed return types.
+     * 
+     * @param array $types
+     */
+    public static function setAllowedReturnType(array $types)
+    {
+        static::$allowedReturnType = $types;
+    }
+
+    /**
+     * Set allow return structObject type.
+     * 
+     * @param bool $allow
+     */
+    public static function setAllowReturnStructObject(bool $allow = false)
+    {
+        static::$allowReturnStructObject = $allow;
+    }
+
+    /**
+     * Set allow param structObject type.
+     * 
+     * @param bool $allow
+     */
+    public static function setAllowParamStuctObject(bool $allow = false)
+    {
+        static::$allowParamStructObject = $allow;
     }
 
     /**
@@ -114,60 +172,20 @@ class ValidateRpcMethodParams
             // get the class name
             if (($node instanceof Stmt\Class_) || ($node instanceof Stmt\Interface_) || ($node instanceof Stmt\Trait_)) {
                 $class = (string) $node->name;
+                $classFullName = $this->getClassFullName($class, $namespace);
+
                 $classCount++;
 
                 // if class great than 1, then throw error
                 if ($classCount > 1) {
-                    $classFullName = $this->getClassFullName($class, $namespace);
 
                     $this->writeln("<error>同一个文件 [{$file}] 中不允许定义超过一个类 [{$classFullName}]</error>");
                     $this->errorCount++;
                 }
-            }
 
-            // get method params`s type and return type
-            if ($node instanceof Stmt\ClassMethod) {
-                $methodName = (string) $node->name;
-                $classFullName = $this->getClassFullName($class, $namespace);
-                
-                $allowedParamType = $this->getAllowedParamType();
-                $allowedParamTypeString = implode(', ', $allowedParamType);
-                foreach($node->params as $param) {
-                    $paramName = (string)$param->var->name;
-                    $paramType = (string)$param->type;
-                    if (!$paramType) {
-                        $this->writeln(
-                            "<error>方法 <comment>[{$classFullName}::{$methodName}]</comment> 的参数 ".
-                            "<comment>{$paramName}</comment> 类型不能为空</error>"
-                        );
-                        $this->errorCount++;
-                    } elseif (!in_array($paramType, $allowedParamType)) {
-                        $this->writeln(
-                            "<error>方法 <comment>[{$classFullName}::{$methodName}]</comment> 的参数 ".
-                            "<comment>{$paramName}</comment> 类型 <comment>{$paramType}</comment> ".
-                            "不在允许范围内 <comment>[$allowedParamTypeString]</comment></error>"
-                        );
-                        $this->errorCount++;
-                    }
-                }
-
-                $allowedReturnType = $this->getAllowedReturnType();
-                $allowedReturnTypeString = implode(', ', $allowedReturnType);
-
-                $returnType = (string) $node->returnType;
-
-                if (!$returnType) {
-                    $this->writeln(
-                        "<error>方法 <comment>[{$classFullName}::{$methodName}]</comment> 的返回值类型不能为空</error>"
-                    );
-                    $this->errorCount++;
-                } elseif (!in_array($returnType, $allowedReturnType)) {
-                    $this->writeln(
-                        "<error>方法 <comment>[{$classFullName}::{$methodName}]</comment> 的返回值类型 ".
-                        "<comment>{$returnType}</comment> 不在允许范围内 <comment>[$allowedReturnTypeString]</comment></error>"
-                    );
-                    $this->errorCount++;
-                }
+                // check methods`s return type and param type
+                $this->validateTypeByReflection($classFullName);
+                continue;
             }
 
             // recursive read stmts if there is any other class
@@ -176,6 +194,180 @@ class ValidateRpcMethodParams
                 continue;
             }
         }
+    }
+
+    /**
+     * @param string $classFullName
+     */
+    protected function validateTypeByReflection($classFullName)
+    {
+        $refClass = new ReflectionClass($classFullName);
+        
+        foreach($refClass->getMethods() as $refMethod) {
+            // if not public, continue
+            if (!$refMethod->isPublic()) {
+                continue;
+            }
+
+            $methodName = $refMethod->getName();
+            $methodDesc = "<comment>[{$classFullName}::{$methodName}]</comment>";
+
+            $allowedParamType = $this->getAllowedParamType();
+            $allowedParamTypeString = implode(', ', $allowedParamType);
+
+            foreach($refMethod->getParameters() as $refParam) {
+                $paramName = $refParam->getName();
+                $paramType = (string)$refParam->getType();
+
+                $validFlag = $this->validateTypeResult($paramType, $allowedParamType, static::$allowParamStructObject);
+                $this->validateTypeAndThrowErrors(
+                    $validFlag,
+                    $methodDesc,
+                    $paramType,
+                    "参数 <comment>$paramName</comment> ",
+                    $allowedParamTypeString
+                );
+            }
+
+            $allowedReturnType = $this->getAllowedReturnType();
+            $allowedReturnTypeString = implode(', ', $allowedReturnType);
+
+            $returnType = (string)$refMethod->getReturnType();
+
+            $validFlag = $this->validateTypeResult($returnType, $allowedReturnType, static::$allowReturnStructObject);
+            $this->validateTypeAndThrowErrors(
+                $validFlag,
+                $methodDesc,
+                $returnType,
+                "返回值",
+                $allowedReturnTypeString
+            );
+        }
+    }
+
+    /**
+     * @param string $validFlag
+     * @param string $methodDesc
+     * @param string $type
+     * @param string $typeDesc
+     * @param string $allowedTypeString
+     */
+    protected function validateTypeAndThrowErrors($validFlag, $methodDesc, $type, $typeDesc, $allowedTypeString)
+    {
+        switch ($validFlag) {
+            case 'empty':
+                $this->writeln(
+                    "<error>方法 $methodDesc 的{$typeDesc}类型不能为空</error>"
+                );
+                $this->errorCount++;
+                break;
+            case 'not_in_provided':
+                $this->writeln(
+                    "<error>方法 $methodDesc 的{$typeDesc}类型 <comment>{$type}</comment> " .
+                        "不在允许范围内 <comment>[$allowedTypeString]</comment></error>"
+                );
+                $this->errorCount++;
+                break;
+            case 'trait':
+                $this->writeln(
+                    "<error>方法 $methodDesc 的{$typeDesc}类型 <comment>{$type}</comment> " .
+                        "不能为Trait</error>"
+                );
+                $this->errorCount++;
+                break;
+            case 'interface':
+                $this->writeln(
+                    "<error>方法 $methodDesc 的{$typeDesc}类型 <comment>{$type}</comment> " .
+                        "不能为Interface</error>"
+                );
+                $this->errorCount++;
+                break;
+            case 'has_methods':
+                $this->writeln(
+                    "<error>方法 $methodDesc 的{$typeDesc}类型 <comment>{$type}</comment> " .
+                        "不能包含任何方法</error>"
+                );
+                $this->errorCount++;
+                break;
+            case 'has_static_props':
+                $this->writeln(
+                    "<error>方法 $methodDesc 的{$typeDesc}类型 <comment>{$type}</comment> " .
+                        "不能包含静态属性</error>"
+                );
+                $this->errorCount++;
+                break;
+            case 'has_consts':
+                $this->writeln(
+                    "<error>方法 $methodDesc 的{$typeDesc}类型 <comment>{$type}</comment> " .
+                        "不能包含任何常量定义</error>"
+                );
+                $this->errorCount++;
+                break;
+            case 'prop_not_public':
+                $this->writeln(
+                    "<error>方法 $methodDesc 的{$typeDesc}类型 <comment>{$type}</comment> " .
+                        "不能有私有属性</error>"
+                );
+                $this->errorCount++;
+                break;
+        }
+    }
+
+    /**
+     * Validate methods`s params type and return type.
+     * 
+     * @param string $type
+     * @param array $allowedTypes
+     * @param bool $allowStructObject
+     * 
+     * @return string
+     */
+    protected function validateTypeResult($type, array $allowedTypes, $allowStructObject = true)
+    {
+        if (!$type) {
+            return 'empty';
+        }
+        if (class_exists($type) && $allowStructObject) {
+            return $this->validateTypeStructObject($type);
+        } elseif (!in_array($type, $allowedTypes)) {
+            return 'not_in_provided';
+        }
+
+        return 'ok';
+    }
+
+    /**
+     * Validate struct object.
+     * 
+     * @param string $class
+     * 
+     * @return string
+     */
+    protected function validateTypeStructObject($class)
+    {
+        $refClass = new ReflectionClass($class);
+        if ($refClass->isTrait()) {
+            return 'trait';
+        }
+        if ($refClass->isInterface()) {
+            return 'interface';
+        }
+        if (count($refClass->getMethods()) > 0) {
+            return 'has_methods';
+        }
+        if (count($refClass->getStaticProperties()) > 0) {
+            return 'has_static_props';
+        }
+        if (count($refClass->getConstants()) > 0) {
+            return 'has_consts';
+        }
+        foreach($refClass->getProperties() as $refProp) {
+            if (!$refProp->isPublic()) {
+                return 'prop_not_public';
+            }
+        }
+
+        return 'ok';
     }
 
     /**
@@ -202,7 +394,7 @@ class ValidateRpcMethodParams
      */
     protected function getAllowedReturnType()
     {
-        return $this->allowedReturnType;
+        return static::$allowedReturnType;
     }
 
     /**
@@ -212,7 +404,7 @@ class ValidateRpcMethodParams
      */
     protected function getAllowedParamType()
     {
-        return $this->allowedParamType;
+        return static::$allowedParamType;
     }
 
     /**
