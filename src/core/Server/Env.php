@@ -1,5 +1,5 @@
 <?php
-namespace SPF\Protocol;
+namespace SPF\Server;
 
 use SPF;
 
