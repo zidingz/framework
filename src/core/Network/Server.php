@@ -424,7 +424,10 @@ class Server extends Base implements Driver
 
     function onManagerStop()
     {
-
+        if (method_exists($this->protocol, 'onManagerStop'))
+        {
+            $this->protocol->onManagerStop($server);
+        }
     }
 
     function onWorkerStart($serv, $worker_id)
