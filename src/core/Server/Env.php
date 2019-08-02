@@ -2,11 +2,10 @@
 namespace SPF\Server;
 
 use SPF;
-use SPF\Struct\Response;
 
 class Env
 {
-    static function getEnv() : Response
+    static function getEnv(): ?array
     {
         if (!SPF\Network\Server::$useSwooleHttpServer) {
             return SPF\Protocol\RPCServer::$clientEnv;
