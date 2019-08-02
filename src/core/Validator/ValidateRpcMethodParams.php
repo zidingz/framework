@@ -352,8 +352,10 @@ class ValidateRpcMethodParams
         if ($refClass->isInterface()) {
             return 'interface';
         }
-        if (count($refClass->getMethods()) > 0) {
-            return 'has_methods';
+        foreach($refClass->getMethods() as $refMethod) {
+            if ($refMethod->getName() !== '__construct') {
+                return 'has_methods';
+            }
         }
         if (count($refClass->getStaticProperties()) > 0) {
             return 'has_static_props';
