@@ -2,6 +2,7 @@
 namespace SPF\Client;
 use SPF\Core;
 use SPF\Exception\InvalidParam;
+use SPF\Network\Server;
 use SPF\Protocol\RPCServer;
 use SPF\Tool;
 
@@ -111,7 +112,7 @@ class RPC
     /**
      * 获取SOA服务实例
      * @param $id
-     * @return RPC
+     * @return Server
      */
     static function getInstance($id = null)
     {
