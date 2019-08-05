@@ -331,7 +331,7 @@ class RPCServer extends Base implements SPF\IFace\Protocol
         if (method_exists($this, 'beforeRequest'))
         {
             try {
-                $this->beforeRequest($request);
+                $request = $this->beforeRequest($request);
             } catch (ValidateException $e) {
                 self::setErrorCode(self::ERR_PARAMS);
                 return [
