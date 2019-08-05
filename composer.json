@@ -28,6 +28,7 @@
   "require": {
     "filp/whoops": "^2.2",
     "Symfony/Console": "^4.1",
-    "ext-swoole": ">=4.4"
+    "ext-swoole": ">=4.4",
+    "nikic/php-parser": "^4.2"
   }
 }

@@ -603,18 +603,10 @@ class Tool
     static function getServer(array $servers)
     {
         $weight = 0;
-        //移除不在线的节点
+        //返回全部有效的节点
         foreach ($servers as $k => $svr)
         {
-            //节点已掉线
-            if (!empty($svr['status']) and $svr['status'] == 'offline')
-            {
-                unset($servers[$k]);
-            }
-            else
-            {
-                $weight += $svr['weight'];
-            }
+            $weight += $svr['weight'];
         }
         //计算权重并随机选择一台机器
         $use = rand(0, $weight - 1);

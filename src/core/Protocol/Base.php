@@ -8,6 +8,37 @@ use SPF;
  */
 abstract class Base implements SPF\IFace\Protocol
 {
+    const ERR_SUCCESS           = 0;      //成功
+
+    const ERR_HEADER            = 9001;   //错误的包头
+    const ERR_TOOBIG            = 9002;   //请求包体长度超过允许的范围
+    const ERR_SERVER_BUSY       = 9003;   //服务器繁忙，超过处理能力
+
+    const ERR_UNPACK            = 9204;   //解包失败
+    const ERR_PARAMS            = 9205;   //参数错误
+    const ERR_NOFUNC            = 9206;   //函数不存在
+    const ERR_CALL              = 9207;   //执行错误
+    const ERR_ACCESS_DENY       = 9208;   //访问被拒绝，客户端主机未被授权
+    const ERR_USER              = 9209;   //用户名密码错误
+    const ERR_SEND              = 9301;   //发送客户端失败
+
+
+    static $errMsg = [
+        0 => 'success',
+
+        9001 => '错误的包头',
+        9002 => '请求包体长度超过允许的范围',
+        9003 => '服务器繁忙',
+
+        9204 => '解包失败',
+        9205 => '参数错误',
+        9206 => '函数不存在',
+        9207 => '执行错误',
+        9208 => '访问被拒绝，客户端主机未被授权',
+        9209 => '用户名密码错误',
+
+        9301 => '发送客户端失败',
+    ];
     public $default_port;
     public $default_host;
     /**
@@ -24,6 +55,32 @@ abstract class Base implements SPF\IFace\Protocol
      * @var array
      */
     protected $clients;
+
+    /**
+     * @var integer
+     */
+    protected static $errorCode = 0;
+
+    /**
+     * @param $errorCode
+     */
+    static function setErrorCode($errorCode)
+    {
+        self::$errorCode = $errorCode;
+    }
+
+    /**
+     * @return int
+     */
+    static function getErrorCode()
+    {
+        return self::$errorCode;
+    }
+
+    static function getErrorMsg($errorCode)
+    {
+        return isset(self::$errMsg[$errorCode]) ? self::$errMsg[$errorCode] : "unkown";
+    }
 
     /**
      * 设置Logger

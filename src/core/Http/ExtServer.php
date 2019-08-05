@@ -3,6 +3,7 @@ namespace SPF\Http;
 
 use SPF;
 use SPF\Coroutine\BaseContext as Context;
+use SPF\Validator\Validator;
 
 /**
  * Class Http_LAMP
@@ -31,6 +32,7 @@ class ExtServer implements SPF\IFace\Http
 
     static $gzip_extname = array('js' => true, 'css' => true, 'html' => true, 'txt' => true);
     static $userRouter;
+    static $clientEnv = null;
 
     function __construct($config)
     {
@@ -221,6 +223,13 @@ class ExtServer implements SPF\IFace\Http
         return $body;
     }
 
+    static function setEnv($request)
+    {
+        self::$clientEnv = null;//reset last env
+        self::$clientEnv['server'] = $request->cookie;
+        self::$clientEnv['cookie'] = $request->server;
+    }
+
     function onRequest(\swoole_http_request $req, \swoole_http_response $resp)
     {
         if ($this->document_root and is_file($this->document_root . $req->server['request_uri']))
@@ -238,7 +247,7 @@ class ExtServer implements SPF\IFace\Http
             Context::put('request', $req);
             Context::put('response', $resp);
         }
-
+        self::setEnv($req);
         try
         {
             try
@@ -284,5 +293,24 @@ class ExtServer implements SPF\IFace\Http
         {
             $php->tpl->clear_all_assign();
         }
+    }
+
+    /**
+     * 验证请求参数是否合法
+     * 
+     * @param string $class
+     * @param string $method
+     * @param array $args
+     */
+    protected static function validateRequest($class, $method, $args)
+    {
+        $method = strtolower($method);
+
+        $map = Validator::getValidateMap();
+        if (!isset($map[$class]) || empty($map[$class][$method])) {
+            return;
+        }
+
+        Validator::validate($args, $map[$class][$method]);
     }
 }

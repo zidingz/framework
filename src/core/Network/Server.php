@@ -369,12 +369,7 @@ class Server extends Base implements Driver
         SPF\Error::$stop = false;
         SPF\JS::$return = true;
         $this->runtimeSetting = array(
-            //'reactor_num' => 4,      //reactor thread num
-            //'worker_num' => 4,       //worker process num
             'backlog' => 128,        //listen backlog
-            //'open_cpu_affinity' => 1,
-            //'open_tcp_nodelay' => 1,
-            //'log_file' => '/tmp/swoole.log',
         );
     }
 
@@ -429,7 +424,10 @@ class Server extends Base implements Driver
 
     function onManagerStop()
     {
-
+        if (method_exists($this->protocol, 'onManagerStop'))
+        {
+            $this->protocol->onManagerStop($server);
+        }
     }
 
     function onWorkerStart($serv, $worker_id)

@@ -2,6 +2,7 @@
 namespace SPF\Client;
 use SPF\Core;
 use SPF\Exception\InvalidParam;
+use SPF\Network\Server;
 use SPF\Protocol\RPCServer;
 use SPF\Tool;
 
@@ -111,7 +112,7 @@ class RPC
     /**
      * 获取SOA服务实例
      * @param $id
-     * @return RPC
+     * @return Server
      */
     static function getInstance($id = null)
     {
@@ -399,8 +400,9 @@ class RPC
      * 完成请求
      * @param $retData
      * @param $retObj RPC_Result
+     * @param $header
      */
-    protected function finish($retData, $retObj)
+    protected function finish($retData, $retObj, $header)
     {
         //解包失败了
         if ($retData === false)
@@ -408,16 +410,20 @@ class RPC
             $retObj->code = RPC_Result::ERR_UNPACK;
         }
         //调用成功
-        elseif ($retData['errno'] === self::OK)
+        elseif (isset($header['errno']) && $header['errno'] === self::OK)
         {
             $retObj->code = self::OK;
-            $retObj->data = $retData['data'];
+            $retObj->data = $retData;
         }
         //服务器返回失败
         else
         {
-            $retObj->code = $retData['errno'];
-            $retObj->data = null;
+            $retObj->code = $header['errno'] ?? RPC_Result::ERR_SERVER;
+            $retObj->data = [
+                'code' => $header['errno'] ?? RPC_Result::ERR_SERVER,
+                'msg' => RPCServer::getErrorMsg($header['errno'] ?? RPC_Result::ERR_SERVER),
+                'data' => $retData
+            ];
         }
         unset($this->waitList[$retObj->requestId]);
         //执行after钩子函数
@@ -706,7 +712,7 @@ class RPC
                     }
                     $retObj = $this->waitList[$header['serid']];
                     //成功处理
-                    $this->finish(RPCServer::decode(substr($data, RPCServer::HEADER_SIZE), $header['type']), $retObj);
+                    $this->finish(RPCServer::decode(substr($data, RPCServer::HEADER_SIZE), $header['type']), $retObj, $header);
                     $success_num++;
                 }
             }
