@@ -5,15 +5,35 @@ use SPF;
 
 class Response
 {
-    public $code = 0;
-    public $msg = "";
-    public $data = null;
+    /**
+     * @var int
+     */
+    private $_code = 0;
+    /**
+     * @var string
+     */
+    private $_msg = "";
 
-    function __construct($code, $data = null, $msg = 'success')
+    public function error($code,$msg = '')
     {
-        $this->code = $code;
-        $this->msg = $msg;
-        $data = empty($data) ? new \stdClass() : $data;
-        $this->data = $data;
+        $this->_code = $code;
+        if ($msg) {
+            $this->_msg = $msg;
+        }
+    }
+
+    public function getErrorCode()
+    {
+        return $this->_code;
+    }
+
+    public function getErrorMsg()
+    {
+        return $this->_msg;
+    }
+
+    public function __set($name, $value)
+    {
+        throw new ResponseException("can not set property $name, $value",1);
     }
 }
