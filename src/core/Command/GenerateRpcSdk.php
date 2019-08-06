@@ -20,7 +20,7 @@ class GenerateRpcSdk extends Command
             ->setHelp('You can automatic generate rpc sdk project using this command')
             ->setDefinition(
                 new InputDefinition(array(
-                    new InputOption('source', 's', InputOption::VALUE_REQUIRED, '要生产SDK的源码目录'),
+                    new InputOption('source', 's', InputOption::VALUE_REQUIRED, '要生产SDK的源码目录，默认为 src/api'),
                     new InputOption('output', 'o', InputOption::VALUE_OPTIONAL, 'SDK输出目录，默认为 sdk'),
                     new InputOption('libdir', null, InputOption::VALUE_OPTIONAL, 'SDK输出lib子目录，默认为 src'),
                 ))
@@ -29,7 +29,7 @@ class GenerateRpcSdk extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $src = $this->resolvePath($this->getOption($input, 'source'));
+        $src = $this->resolvePath($this->getOption($input, 'source', 'src/api'));
         $target = $this->resolvePath($this->getOption($input, 'output', 'sdk'));
         $libdir = $this->getOption($input, 'libdir', 'src');
 
