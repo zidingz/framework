@@ -535,6 +535,7 @@ class RPC
     }
 
     /**
+    /**
      * RPC调用
      *
      * @param $function

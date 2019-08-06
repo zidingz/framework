@@ -248,7 +248,7 @@ class Server extends Base implements Driver
         $server_pid = self::getServerPid();
         if (!empty($server_pid) and SPF\App::getInstance()->os->kill($server_pid, 0))
         {
-            return self::cmdStatus(1, "Server is not running");
+            return self::cmdStatus(1, "Server is running on PID: {$server_pid}");
         }
         if (empty(self::$startFunction) or !is_callable(self::$startFunction))
         {

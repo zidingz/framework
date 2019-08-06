@@ -359,6 +359,10 @@ CODE
      */
     protected function getStaticRpcClientStmts()
     {
+        if (is_null(static::$udfStmts['static_rpc_client_call'])) {
+            return [];
+        }
+        
         $code = "<?php\n\nclass A {\n" . static::$udfStmts['static_rpc_client_call'] . "}\n\n";
     
         $stmts = $this->parseCodeToStmts($code);

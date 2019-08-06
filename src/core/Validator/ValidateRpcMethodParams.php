@@ -76,6 +76,16 @@ class ValidateRpcMethodParams
     protected static $allowParamStructObject = true;
 
     /**
+     * Allowed whitelist include files and classes
+     * 
+     * @param array
+     */
+    protected static $allowWhitelist = [
+        'file' => [],
+        'class' => [],
+    ];
+
+    /**
      * @param OutputInterface $output
      */
     public function __construct(OutputInterface $output = null)
@@ -129,6 +139,17 @@ class ValidateRpcMethodParams
     }
 
     /**
+     * Set allow whitelist.
+     * 
+     * @param array $whitelist
+     * @param string $categary file|class
+     */
+    public static function setAllowedWhitelist(array $whitelist, string $categary = 'file')
+    {
+        static::$allowWhitelist[$categary] = $whitelist;
+    }
+
+    /**
      * Handle.
      * 
      * @param string $root
@@ -151,10 +172,50 @@ class ValidateRpcMethodParams
         $files = new RecursiveIteratorIterator($dir);
 
         foreach ($files as $file) {
+            if ($this->isWhitelistFile($file) === true) {
+                continue;
+            }
             $code = file_get_contents($file);
             $stmts = $this->getParser()->parse($code);
             $this->recursiveReadStmts($stmts, $file);
         }
+    }
+
+    /**
+     * Determine if the file is a whitelist.
+     * 
+     * @param string $file
+     * 
+     * @return boolean
+     */
+    protected function isWhitelistFile($file)
+    {
+        foreach(static::$allowWhitelist['file'] as $whiteFile) {
+            $whiteFilename = strpos($whiteFile, '/') === 0 ? $whiteFile : $this->rootPath . '/' . $whiteFile;
+            if (strpos($file, $whiteFilename) === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Determine if the class is a whitelist.
+     * 
+     * @param string $class
+     * 
+     * @return boolean
+     */
+    protected function isWhitelistClass($class)
+    {
+        foreach (static::$allowWhitelist['class'] as $whiteClass) {
+            if (class_exists($whiteClass) && ($class === $whiteClass || is_subclass_of($class, $whiteClass))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -173,6 +234,10 @@ class ValidateRpcMethodParams
             if (($node instanceof Stmt\Class_) || ($node instanceof Stmt\Interface_) || ($node instanceof Stmt\Trait_)) {
                 $class = (string) $node->name;
                 $classFullName = $this->getClassFullName($class, $namespace);
+
+                if ($this->isWhitelistClass($classFullName) === true) {
+                    continue;
+                }
 
                 $classCount++;
 
@@ -327,9 +392,15 @@ class ValidateRpcMethodParams
         if (!$type) {
             return 'empty';
         }
-        if (class_exists($type) && $allowStructObject) {
-            return $this->validateTypeStructObject($type);
-        } elseif (!in_array($type, $allowedTypes)) {
+        if (class_exists($type)) {
+            if ($this->isWhitelistClass($type) === true) {
+                return 'ok';
+            }
+            if ($allowStructObject) {
+                return $this->validateTypeStructObject($type, $allowedTypes);
+            }
+        } 
+        if (!in_array($type, $allowedTypes)) {
             return 'not_in_provided';
         }
 
@@ -340,11 +411,19 @@ class ValidateRpcMethodParams
      * Validate struct object.
      * 
      * @param string $class
+     * @param array $allowedTypes
      * 
      * @return string
      */
-    protected function validateTypeStructObject($class)
+    protected function validateTypeStructObject($class, $allowedTypes = [])
     {
+        // Validate class in array or extends someone class in array
+        foreach($allowedTypes as $allowedType) {
+            if (class_exists($allowedType) && ($class === $allowedType || is_subclass_of($class, $allowedType))) {
+                return 'ok';
+            }
+        }
+
         $refClass = new ReflectionClass($class);
         if ($refClass->isTrait()) {
             return 'trait';
