@@ -115,7 +115,6 @@ class RPCServer extends Base implements SPF\IFace\Protocol
                 $_header['serid'], self::getErrorCode()));
             if ($ret === false)
             {
-                self::setErrorCode(self::ERR_UNPACK);
                 trigger_error("SendToClient failed. code=" . $this->server->getLastError() . " params="
                     . var_export($request, true) . "\nheaders=" . var_export($_header, true),
                     E_USER_WARNING);
@@ -282,7 +281,7 @@ class RPCServer extends Base implements SPF\IFace\Protocol
      *
      * @param $request
      * @param $header
-     * @return mixed|string
+     * @return mixed|string|SPF\Struct\Response
      */
     protected function call($request, $header)
     {
@@ -334,11 +333,7 @@ class RPCServer extends Base implements SPF\IFace\Protocol
                 $request = $this->beforeRequest($request);
             } catch (ValidateException $e) {
                 self::setErrorCode(self::ERR_PARAMS);
-                return [
-                    'errno' => self::ERR_PARAMS,
-                    'error' => $e->getMessage(),
-                    'errors' => $e->getErrors(),
-                ];
+                return false;
             }
         }
         try {
@@ -346,10 +341,7 @@ class RPCServer extends Base implements SPF\IFace\Protocol
             $ret = call_user_func_array($request['call'], $request['params']);
         } catch (\Throwable $e) {
             self::setErrorCode(self::ERR_CALL);
-            return [
-                'errno' => self::ERR_CALL,
-                'error' => $e->getMessage(),
-            ];
+            return false;
         }
         
         //后置方法
@@ -404,24 +396,5 @@ class RPCServer extends Base implements SPF\IFace\Protocol
     {
         $this->userList[$user] = $password;
         $this->verifyUser = true;
-    }
-
-    /**
-     * 验证请求参数是否合法
-     * 
-     * @param string $class
-     * @param string $method
-     * @param array $args
-     */
-    protected function validateRequest($class, $method, $args)
-    {
-        $method = strtolower($method);
-
-        $map = Validator::getValidateMap();
-        if (!isset($map[$class]) || empty($map[$class][$method])) {
-            return ;
-        }
-
-        Validator::validate($args, $map[$class][$method]);
     }
 }

@@ -422,7 +422,7 @@ class Server extends Base implements Driver
         }
     }
 
-    function onManagerStop()
+    function onManagerStop($server)
     {
         if (method_exists($this->protocol, 'onManagerStop'))
         {

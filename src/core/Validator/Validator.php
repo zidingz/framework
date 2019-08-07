@@ -105,10 +105,56 @@ class Validator
     }
 
     /**
-     * Validate arguments.
-     * 
-     * @param array $args
-     * @param array $rules
+     * Http 请求参数预校验和自动填充
+     *
+     * @param $class
+     * @param $method
+     * @param $args
+     * @return array|bool
+     */
+    public function validateHttpRequest($class, $method, $args)
+    {
+        $method = strtolower($method);
+        $params = [];
+        $map = Validator::getValidateMap();
+        if (isset($map[$class]) && !empty($map[$class][$method])) {
+            foreach ($map[$class][$method] as $param) {
+                $field = strtolower($param['field']);
+                if (isset($args[$field])) {
+                    $params[] = $args[$field];
+                } else {
+                    /* 必选参数返回错误 */
+                    if ($param['is_optional'] === false) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return $params;
+    }
+
+    /**
+     * @param $class
+     * @param $method
+     * @param $args
+     * @throws LogicException
+     * @throws ValidateException
+     */
+    public function validateRequest($class, $method, $args)
+    {
+        $method = strtolower($method);
+        $map = Validator::getValidateMap();
+        if (!isset($map[$class]) || empty($map[$class][$method])) {
+            throw new ValidateException("no validation map", 404);
+        }
+        Validator::validate($args, $map[$class][$method]);
+    }
+
+    /**
+     * @param $args
+     * @param $argRules
+     * @throws LogicException
+     * @throws ValidateException
      */
     public static function validate($args, $argRules)
     {

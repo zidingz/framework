@@ -3,37 +3,17 @@ namespace SPF\Struct;
 
 use SPF;
 
-class Response
+class Response extends ResponseBase
 {
     /**
-     * @var int
+     * @return array
      */
-    private $_code = 0;
-    /**
-     * @var string
-     */
-    private $_msg = "";
-
-    public function error($code,$msg = '')
+    public function toJson()
     {
-        $this->_code = $code;
-        if ($msg) {
-            $this->_msg = $msg;
-        }
-    }
-
-    public function getErrorCode()
-    {
-        return $this->_code;
-    }
-
-    public function getErrorMsg()
-    {
-        return $this->_msg;
-    }
-
-    public function __set($name, $value)
-    {
-        throw new ResponseException("can not set property $name, $value",1);
+        $ret = [];
+        $ret['code'] = $this->getErrorCode();
+        $ret['msg'] = $this->getErrorMsg();
+        $ret['data'] = get_object_vars($this);
+        return $ret;
     }
 }
