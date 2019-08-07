@@ -73,6 +73,38 @@ class Validator
     }
 
     /**
+     * Recursive get value from arguments with field join with dot(.)
+     * 
+     * @param string $field such as object.user.userName
+     * @param mixed $args
+     * @param mixed $default
+     * 
+     * @return mixed
+     */
+    public static function getValueFromArgs($field, $args, $default = null)
+    {
+        foreach(explode('.', $field) as $key) {
+            if (is_scalar($args)) {
+                return $default;
+            } elseif (is_array($args)) {
+                if (!isset($args[$key])) {
+                    return $default;
+                }
+                $args = $args[$key];
+            } elseif (is_object($args)) {
+                if (!property_exists($args, $key)) {
+                    return $default;
+                }
+                $args = $args->{$key};
+            } else {
+                return $default;
+            }
+        }
+
+        return $args;
+    }
+
+    /**
      * Validate arguments.
      * 
      * @param array $args
@@ -87,26 +119,72 @@ class Validator
             }
             $field = $argRules[$idx]['field'];
             $rules = $argRules[$idx]['rules'];
-            foreach($rules as $rule => $params) {
-                if (isset(static::$rules[$rule])) {
-                    // Use the user defined rules
-                    if (call_user_func(static::$rules[$rule], $rules, $value, $params, $args) === false) {
-                        $errors[$field][$rule] = static::formatFailMessage($rule, $field, $value, $params, $args);
-                    }
-                } elseif (method_exists(ValidateRules::class, 'validate'.ucfirst($rule))) {
-                    // Use the framework provided rules
-                    $callable = ValidateRules::class.'::validate'.ucfirst($rule);
-                    if (call_user_func($callable, $rules, $value, $params, $args) === false) {
-                        $errors[$field][$rule] = static::formatFailMessage($rule, $field, $value, $params, $args);
-                    }
-                } else {
-                    throw new LogicException("Validate rule [{$rule}] not found");
-                }
-            }
+            static::validateFieldRules($rules, $field, $value, $args, $errors);
+
+            // Validate extends rules
+            static::validateFieldExtendsRules($argRules[$idx]['extends'] ?? null, $field.'.', $value, $args, $errors);
         }
 
         if (count($errors) > 0) {
             throw new ValidateException($errors);
+        }
+    }
+
+    /**
+     * Validate field rules.
+     * 
+     * @param array $rules
+     * @param string $field
+     * @param mixed $value
+     * @param array $args
+     * @param array $errors
+     */
+    protected static function validateFieldRules($rules = [], $field = '', $value = null, $args = [], &$errors = [])
+    {
+        foreach ($rules as $rule => $params) {
+            if (isset(static::$rules[$rule])) {
+                // Use the user defined rules
+                if (call_user_func(static::$rules[$rule], $rules, $value, $params, $args) === false) {
+                    $errors[$field][$rule] = static::formatFailMessage($rule, $field, $value, $params, $args);
+                }
+            } elseif (method_exists(ValidateRules::class, 'validate' . ucfirst($rule))) {
+                // Use the framework provided rules
+                $callable = ValidateRules::class . '::validate' . ucfirst($rule);
+                if (call_user_func($callable, $rules, $value, $params, $args) === false) {
+                    $errors[$field][$rule] = static::formatFailMessage($rule, $field, $value, $params, $args);
+                }
+            } else {
+                throw new LogicException("Validate rule [{$rule}] not found");
+            }
+        }
+    }
+
+    /**
+     * Recurve Validate Field Extends Rules 
+     * 
+     * @param array $extends
+     * @param string $fieldPrefix
+     * @param mixed $value
+     * @param array $args
+     * @param array $errors
+     */
+    protected static function validateFieldExtendsRules($extends, $fieldPrefix = '', $value, $args, &$errors = [])
+    {
+        if (!empty($extends)) {
+            foreach ($extends as $field => $argRules) {
+                $rules = $argRules['rules'];
+                $subValue = $value->{$field} ?? null;
+                $fieldName = "{$fieldPrefix}{$field}";
+                // if not set required rule and the value`s property is null, then continue
+                if (!isset($rules['required']) && is_null($subValue)) {
+                    continue;
+                }
+
+                static::validateFieldRules($rules, $fieldName, $subValue, $args, $errors);
+
+                // Validate sub extends rules
+                static::validateFieldExtendsRules($argRules['extends'] ?? null, $fieldName.'.', $subValue, $args, $errors);
+            }
         }
     }
 
