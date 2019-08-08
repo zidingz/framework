@@ -12,6 +12,12 @@ abstract class ResponseBase
      */
     private $_msg = "";
 
+    public function __construct($code = 0, $msg = "success")
+    {
+        $this->_code = $code;
+        $this->_msg = $msg;
+    }
+
     public function error($code,$msg = '')
     {
         $this->_code = $code;
