@@ -130,8 +130,9 @@ class ReflectionClassMap
     protected function parseClassPropertyByReflection($class, &$extends = [])
     {
         $refClass = new ReflectionClass($class);
+        $classNamespace = $refClass->getNamespaceName() ? $refClass->getNamespaceName() . '\\' : '';
         foreach($refClass->getProperties(ReflectionProperty::IS_PUBLIC) as $refProp) {
-            $parsed = $this->parseClassPropertyDocValidates($refProp->getDocComment());
+            $parsed = $this->parseClassPropertyDocValidates($refProp->getDocComment(), $classNamespace);
             if ($parsed === false) {
                 continue;
             }
@@ -145,10 +146,11 @@ class ReflectionClassMap
      * Parse Class Property Document validates.
      * 
      * @param string $doc
+     * @param string $namespace
      * 
      * @return boolean|array
      */
-    protected function parseClassPropertyDocValidates($doc)
+    protected function parseClassPropertyDocValidates($doc, $namespace = '')
     {
         foreach (explode("\n", $doc) as $line) {
             if (preg_match('/@(param|var)\s*([^\s]+)?((.*?)\{\{([^\}]+)\}\})?/', $line, $matches) > 0) {
@@ -157,6 +159,9 @@ class ReflectionClassMap
                 }
 
                 $type = trim($matches[2]);
+                if (!class_exists($type) && class_exists($namespace . $type)) {
+                    $type = $namespace . $type;
+                }
                 $rules = [];
                 $extends = [];
                 if (isset($matches[5])) {
