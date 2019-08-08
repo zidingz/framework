@@ -142,10 +142,14 @@ class Validator
      */
     public static function validateRequest($class, $method, $args)
     {
+        if (empty($args)) {
+            return ;
+        }
         $method = strtolower($method);
         $map = Validator::getValidateMap();
         if (!isset($map[$class]) || empty($map[$class][$method])) {
-            throw new ValidateException("no validation map", 404);
+            return ;
+            // throw new ValidateException("no validation map", 404);
         }
         Validator::validate($args, $map[$class][$method]);
     }
