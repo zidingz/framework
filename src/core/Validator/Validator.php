@@ -112,7 +112,7 @@ class Validator
      * @param $args
      * @return array|bool
      */
-    public function validateHttpRequest($class, $method, $args)
+    public static function validateHttpRequest($class, $method, $args)
     {
         $method = strtolower($method);
         $params = [];
@@ -140,7 +140,7 @@ class Validator
      * @throws LogicException
      * @throws ValidateException
      */
-    public function validateRequest($class, $method, $args)
+    public static function validateRequest($class, $method, $args)
     {
         $method = strtolower($method);
         $map = Validator::getValidateMap();

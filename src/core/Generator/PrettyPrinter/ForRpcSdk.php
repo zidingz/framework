@@ -4,6 +4,7 @@ namespace SPF\Generator\PrettyPrinter;
 
 use PhpParser\PrettyPrinter\Standard;
 use PhpParser\Node\Stmt;
+use PhpParser\Node\Name;
 use SPF\Exception\InvalidArgumentException;
 
 class ForRpcSdk extends Standard
@@ -14,6 +15,10 @@ class ForRpcSdk extends Standard
      * @var array ['name' => Stmt]
      */
     protected $specialStmts = [];
+
+    protected $newNamespacePrefix = 'Xes\\RpcSdk\\';
+
+    protected $namespacePrefix = 'Demo\\';
 
     /**
      * Pretty prints an array of nodes (statements) and indents them optionally.
@@ -117,9 +122,26 @@ class ForRpcSdk extends Standard
 
         // append use namespace
         if ($node instanceof Stmt\Namespace_) {
+            // append namespace prefix
+            $namespace = (string) $node->name;
+            if (strpos($namespace, $this->namespacePrefix) === 0 && $this->newNamespacePrefix) {
+                $namespace = $this->newNamespacePrefix . $namespace;
+                $node->name = new Name($namespace);
+            }
             $namespaceUsing = $this->getSpecailStmt('appendNamespaceUsing');
             while($stmt = array_pop($namespaceUsing)) {
                 array_unshift($node->stmts, $stmt);
+            }
+        }
+
+        // append namespace use prefix
+        if ($node instanceof Stmt\Use_) {
+            foreach($node->uses as $namespaceUse) {
+                $use = (string) $namespaceUse->name;
+                if (strpos($use, $this->namespacePrefix) === 0) {
+                    $use = $this->newNamespacePrefix . $use;
+                    $namespaceUse->name = new Name($use);
+                }
             }
         }
     }

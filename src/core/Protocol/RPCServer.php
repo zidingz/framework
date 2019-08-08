@@ -110,6 +110,12 @@ class RPCServer extends Base implements SPF\IFace\Protocol
             self::$clientEnv['_socket'] = $this->server->connection_info($_header['fd']);
             $response = $this->call($request, $_header);
             $response = $response !== false ? $response : '';
+
+            // 将$response中的对象递归转为数组
+            if (method_exists($this, 'recursiveTransferObjectToArray')) {
+                $response = $this->recursiveTransferObjectToArray($response);
+            }
+
             //发送响应
             $ret = $this->server->send($fd, self::encode($response, $_header['type'], $_header['uid'],
                 $_header['serid'], self::getErrorCode()));

@@ -9,9 +9,9 @@ use SPF\Client\RPC;
  */
 class RpcClient
 {
-    public static function call(string $class, string $method, array $args = [], bool $isStatic = false)
+    public static function call(string $method, array $args = [], bool $isStatic = false)
     {
-        $call = $isStatic ? "{$class}::{$method}" : [$class, $method];
+        $call = $isStatic ? $method : explode('::', $method);
 
         return call_user_func([RPC::getInstance(), 'task'], $call, $args)->getResult();
     }

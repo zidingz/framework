@@ -54,7 +54,7 @@ class RpcSdk
  */
 protected function callRpc($method, $args)
 {
-    return RpcClient::call(__CLASS__, $method, $args);
+    return RpcClient::call($method, $args);
 }
 
 /**
@@ -62,7 +62,7 @@ protected function callRpc($method, $args)
  */
 protected static function staticCallRpc($method, $args)
 {
-    return RpcClient::call(__CLASS__, $method, $args);
+    return RpcClient::call($method, $args, true);
 }
 CODE
         ,    
