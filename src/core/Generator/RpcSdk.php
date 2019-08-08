@@ -33,11 +33,25 @@ class RpcSdk
     protected $output = null;
 
     /**
-     * The sdk base namespace
+     * RPC Service name.
      * 
      * @var string
      */
-    protected $baseNamespace = null;
+    protected static $serviceName = 'Demo';
+
+    /**
+     * SDK new namespace prefix.
+     * 
+     * @var string
+     */
+    public static $newNamespacePrefix = 'Xes\\RpcSdk\\';
+
+    /**
+     * RPC API namespace prefix.
+     * 
+     * @var string
+     */
+    public static $namespacePrefix = 'Demo\\';
 
     /**
      * User defined stmts to filter sdk generate.
@@ -107,6 +121,36 @@ CODE
     }
 
     /**
+     * Set RPC API`s namespace prefix. eg: Demo\\
+     * 
+     * @param string $namespacePrefix
+     */
+    public static function setNamespacePrefix(string $namespacePrefix)
+    {
+        static::$namespacePrefix = $namespacePrefix;
+    }
+
+    /**
+     * Set RPC API sdk`s new namespace prefix. eg: Xes\\RpcSdk\\
+     * 
+     * @param string $newNamespacePrefix
+     */
+    public static function setNewNamespacePrefix(string $newNamespacePrefix)
+    {
+        static::$newNamespacePrefix = $newNamespacePrefix;
+    }
+
+    /**
+     * Set RPC service name.
+     * 
+     * @param string $serviceName
+     */
+    public static function setServiceName(string $serviceName)
+    {
+        static::$serviceName = $serviceName;
+    }
+
+    /**
      * Handle.
      * 
      * @param string $src
@@ -115,9 +159,7 @@ CODE
      */
     public function handle($src, $output, $libdir = 'src')
     {
-        $this->setDefaultAppendFiles($libdir);
-
-        $this->tryFillNamespaceUsingStmt($libdir);
+        // $this->setDefaultAppendFiles($libdir);
 
         $this->setSpecialStmts($this->getPretty());
 
@@ -132,47 +174,6 @@ CODE
         $this->appendSdkFiles($output, $libdir);
 
         $this->writeln("<info>append new files into sdk<info>");
-    }
-
-    /**
-     * @param string $libdir
-     */
-    protected function tryFillNamespaceUsingStmt($libdir = 'src')
-    {
-        if (!is_null(static::$udfStmts['namespace_using'])) {
-            return ;
-        }
-        
-        $namespace = '';
-        $className = '';
-        foreach(static::$appendFiles as $source => $target) {
-            if (strpos($source, 'composer.json') !== false) {
-                // search composer.lock, decode it and get the psr-4 config
-                $composer = json_decode(file_get_contents($source), true);
-                if (!is_array($composer) || empty($composer['autoload']) || empty($composer['autoload']['psr-4'])) {
-                    continue;
-                }
-                foreach ($composer['autoload']['psr-4'] as $ns => $path) {
-                    if (strpos($path, $libdir) === false) {
-                        continue;
-                    }
-                    $namespace = mb_substr($ns, -1) == '\\' ? mb_substr($ns, 0, -1) : $ns;
-                }
-            } elseif (strpos(strtolower($source), 'rpcclient') !== false) {
-                // search RpcClient, decode filename and get client class name
-                // if the file is class name, then using reflection find the real filename
-                if (strpos($source, '\\') !== false && class_exists($source)) {
-                    $source = (new ReflectionClass($source))->getFileName();
-                }
-                $className = explode('.', basename($source))[0];
-            }
-        }
-
-        if ($className) {
-            static::$udfStmts['namespace_using'] = 'use ' . ($namespace ? $namespace . '\\' . $className : $className) . ';';
-        }
-        
-        $this->baseNamespace = $namespace;
     }
 
     /**
@@ -252,24 +253,29 @@ CODE
      */
     protected function appendSdkFiles($output, $libdir)
     {
+        $namespacePrefix = static::$namespacePrefix;
+        $newNamespacePrefix = static::$newNamespacePrefix;
+        $fullPrefix = $newNamespacePrefix . $namespacePrefix;
+        $fullPrefixDouble = str_replace('\\', '\\\\', $fullPrefix);
+        $fullNamespace = mb_substr($fullPrefix, -1) === '\\' ? mb_substr($fullPrefix, 0, -1) : $fullPrefix;
+
         foreach(static::$appendFiles as $source => $target) {
             // if the file is class name, then using reflection find the real filename
             if (strpos($source, '\\') !== false && class_exists($source)) {
                 $source = (new ReflectionClass($source))->getFileName();
             }
             // provide the placeholder to replacing by var libdir
-            $target = str_replace('{{libdir}}', $libdir, $target);
+            $target = str_replace('%%libdir%%', $libdir, $target);
 
             $filename = $output.'/'.$target;
 
-            if (strpos(strtolower($source), 'rpcclient') !== false && $this->baseNamespace) {
-                // need replace RpcClient file`s namespace
-                $code = file_get_contents($source);
-                $code = preg_replace('/namespace(.*?)\n/', 'namespace '.$this->baseNamespace.";\n", $code);
-                file_put_contents($filename, $code);
-            } else {
-                copy($source, $filename);
-            }
+            $code = file_get_contents($source);
+            $code = str_replace('%%namespace%%', $fullNamespace, $code);
+            $code = str_replace('%%namespacePrefix%%', $fullPrefix, $code);
+            $code = str_replace('%%namespacePrefixDouble%%', $fullPrefixDouble, $code);
+            $code = str_replace('%%serviceName%%', static::$serviceName, $code);
+            file_put_contents($filename, $code);
+       
             $this->writeln("<info>copy <comment>$source</comment> -> <comment>$filename</comment><info>");
         }
     }
