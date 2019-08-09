@@ -9,7 +9,7 @@ use SPF\Validator\Validator;
  * Class Http_LAMP
  * @package SPF
  */
-class ExtServer implements SPF\IFace\Http
+class ExtServer extends SPF\Protocol\Base implements SPF\IFace\Http
 {
     /**
      * @var \swoole_http_request
@@ -104,7 +104,7 @@ class ExtServer implements SPF\IFace\Http
 
     function getRequestBody()
     {
-        return $this->getRequest->rawContent();
+        return $this->getRequest()->rawContent();
     }
 
     function setcookie($name, $value = null, $expire = null, $path = '/', $domain = null, $secure = null, $httponly = null)

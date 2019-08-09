@@ -18,10 +18,11 @@ class Response
      */
     public $data;
 
-    public function __construct($code = 0, $msg = "success")
+    public function __construct($code = 0, $msg = "success", $data = [])
     {
         $this->code = $code;
         $this->msg = $msg;
+        $this->data = $data;
     }
 
     public function error($code,$msg = '')
