@@ -48,10 +48,6 @@ class Response
      */
     public function toJson()
     {
-        $ret = [];
-        $ret['code'] = $this->code;
-        $ret['msg'] = $this->msg;
-        $ret['data'] = get_object_vars($this);
-        return $ret;
+        return get_object_vars($this);
     }
 }
