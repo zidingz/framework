@@ -3,7 +3,7 @@ namespace SPF\Protocol;
 
 use SPF;
 use SPF\Exception\ValidateException;
-use SPF\Validator\Validator;
+use SPF\Coroutine\BaseContext as Context;
 /**
  * RPC服务器
  * @package SPF\Network
@@ -17,42 +17,41 @@ class RPCServer extends Base implements SPF\IFace\Protocol
      */
     const VERSION = 1005;
 
-    protected $_headers = array(); //保存头
+    const HEADER_SIZE = 32;
+    const HEADER_STRUCT = "Nlength/Ntype/Nuid/Nserid/Nerrno/Nreserve1/Nreserve2/Nreserve3";
+    const HEADER_PACK = "NNNNNNNN";//4*8=32
+
+    const DECODE_PHP = 1;   //使用PHP的serialize打包
+    const DECODE_JSON = 2;   //使用json_encode打包
+    const DECODE_MSGPACK = 3;   //使用msgpack打包
+    const DECODE_SWOOLE = 4;   //使用swoole_serialize打包
+    const DECODE_GZIP = 128; //启用GZIP压缩
+
+    const ALLOW_IP = 1;
+    const ALLOW_USER = 2;
 
     /**
      * 客户端环境变量
      * @var array
      */
     static $clientEnv;
-    static $stop = false;
-
     /**
      * 请求头
      * @var array
      */
     static $requestHeader;
+    static $clientEnvKey = "client_env";
+    static $requestHeaderKey = "request_header";
+    static $stop = false;
 
-    public $packet_maxlen       = 2465792; //2M默认最大长度
+    public $packet_maxlen = 2465792; //2M默认最大长度
 
-    const HEADER_SIZE           = 32;
-    const HEADER_STRUCT         = "Nlength/Ntype/Nuid/Nserid/Nerrno/Nreserve1/Nreserve2/Nreserve3";
-    const HEADER_PACK           = "NNNNNNNN";//4*8=32
-
-    const DECODE_PHP            = 1;   //使用PHP的serialize打包
-    const DECODE_JSON           = 2;   //使用json_encode打包
-    const DECODE_MSGPACK        = 3;   //使用msgpack打包
-    const DECODE_SWOOLE         = 4;   //使用swoole_serialize打包
-    const DECODE_GZIP           = 128; //启用GZIP压缩
-
-    const ALLOW_IP              = 1;
-    const ALLOW_USER            = 2;
-
-    protected $appNamespaces    = array(); //应用程序命名空间
-    protected $ipWhiteList      = array(); //IP白名单
-    protected $userList         = array(); //用户列表
-
-    protected $verifyIp         = false;
-    protected $verifyUser       = false;
+    protected $_headers = array(); //保存头
+    protected $appNamespaces = array(); //应用程序命名空间
+    protected $ipWhiteList = array(); //IP白名单
+    protected $userList = array(); //用户列表
+    protected $verifyIp = false;
+    protected $verifyUser = false;
 
     function onWorkerStop($serv, $worker_id)
     {
@@ -75,63 +74,79 @@ class RPCServer extends Base implements SPF\IFace\Protocol
         //解析包头
         $header = unpack(self::HEADER_STRUCT, substr($data, 0, self::HEADER_SIZE));
         //错误的包头 设置错误码 关闭连接
-        if ($header === false)
-        {
+        if ($header === false) {
             self::setErrorCode(self::ERR_HEADER);
             return $this->close($fd);
         }
         $header['fd'] = $fd;
         $this->_headers[$fd] = $header;
         //长度错误
-        if ($header['length'] - self::HEADER_SIZE > $this->packet_maxlen or strlen($data) > $this->packet_maxlen)
-        {
+        if ($header['length'] - self::HEADER_SIZE > $this->packet_maxlen or strlen($data) > $this->packet_maxlen) {
             self::setErrorCode(self::ERR_TOOBIG);
             return $this->sendErrorMessage($fd, self::ERR_TOOBIG);
         }
         //数据解包
         $request = self::decode(substr($data, self::HEADER_SIZE), $this->_headers[$fd]['type']);
-        if ($request === false)
-        {
+        if ($request === false) {
             self::setErrorCode(self::ERR_UNPACK);
             $this->sendErrorMessage($fd, self::ERR_UNPACK);
-        }
-        //执行远程调用
-        else
-        {
+        } //执行远程调用
+        else {
             //当前请求的头
-            self::$requestHeader = $_header = $this->_headers[$fd];
+            $_header = $this->_headers[$fd];
+            self::setRequestHeader($_header);
             //调用端环境变量
+
             self::$clientEnv = null;//reset env
-            if (!empty($request['env']))
-            {
-                self::$clientEnv = $request['env'];
+            if (!empty($request['env'])) {
+                self::setClientEnv($request['env']);
             }
             //socket信息
             self::$clientEnv['_socket'] = $this->server->connection_info($_header['fd']);
             $response = $this->call($request, $_header);
             $response = $response !== false ? $response : '';
-
-            // 将$response中的对象递归转为数组
-            if (method_exists($this, 'recursiveTransferObjectToArray')) {
-                $response = $this->recursiveTransferObjectToArray($response);
-            }
-
             //发送响应
             $ret = $this->server->send($fd, self::encode($response, $_header['type'], $_header['uid'],
                 $_header['serid'], self::getErrorCode()));
-            if ($ret === false)
-            {
+            if ($ret === false) {
                 trigger_error("SendToClient failed. code=" . $this->server->getLastError() . " params="
                     . var_export($request, true) . "\nheaders=" . var_export($_header, true),
                     E_USER_WARNING);
             }
             //退出进程
-            if (self::$stop)
-            {
+            if (self::$stop) {
                 exit(0);
             }
         }
+        self::clean();
         return true;
+    }
+
+    static function clean()
+    {
+        if (SPF\App::$enableCoroutine)
+        {
+            Context::del(self::$requestHeaderKey);
+            Context::del(self::$clientEnvKey);
+        }
+        else
+        {
+            self::$clientEnv = null;
+            self::$requestHeader = null;
+        }
+        self::reSetError();
+    }
+
+    static function setClientEnv($env)
+    {
+        if (SPF\App::$enableCoroutine)
+        {
+            Context::put(self::$clientEnvKey, $env);
+        }
+        else
+        {
+            self::$clientEnv = $env;
+        }
     }
 
     /**
@@ -140,7 +155,26 @@ class RPCServer extends Base implements SPF\IFace\Protocol
      */
     static function getClientEnv()
     {
-        return self::$clientEnv;
+        if (SPF\App::$enableCoroutine)
+        {
+            return Context::get(self::$clientEnvKey);
+        }
+        else
+        {
+            return self::$clientEnv;
+        }
+    }
+
+    static function setRequestHeader($header)
+    {
+        if (SPF\App::$enableCoroutine)
+        {
+            Context::put(self::$requestHeaderKey, $header);
+        }
+        else
+        {
+            self::$requestHeader = $header;
+        }
     }
 
     /**
@@ -149,8 +183,17 @@ class RPCServer extends Base implements SPF\IFace\Protocol
      */
     static function getRequestHeader()
     {
-        return self::$requestHeader;
+        if (SPF\App::$enableCoroutine)
+        {
+            return Context::get(self::$requestHeaderKey);
+        }
+        else
+        {
+            return self::$requestHeader;
+        }
     }
+
+
 
     function sendErrorMessage($fd, $errno)
     {
@@ -349,7 +392,7 @@ class RPCServer extends Base implements SPF\IFace\Protocol
             self::setErrorCode(self::ERR_CALL);
             return false;
         }
-        
+
         //后置方法
         if (method_exists($this, 'afterRequest'))
         {

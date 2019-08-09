@@ -3,16 +3,53 @@ namespace SPF\Struct;
 
 use SPF;
 
-class Response extends ResponseBase
+class Response
 {
+    /**
+     * @var int
+     */
+    public $code = 0;
+    /**
+     * @var string
+     */
+    public $msg = "";
+    /**
+     * @var
+     */
+    public $data;
+
+    public function __construct($code = 0, $msg = "success")
+    {
+        $this->code = $code;
+        $this->msg = $msg;
+    }
+
+    public function error($code,$msg = '')
+    {
+        $this->code = $code;
+        if ($msg) {
+            $this->msg = $msg;
+        }
+    }
+
+    public function getErrorCode()
+    {
+        return $this->code;
+    }
+
+    public function getErrorMsg()
+    {
+        return $this->msg;
+    }
+
     /**
      * @return array
      */
     public function toJson()
     {
         $ret = [];
-        $ret['code'] = $this->getErrorCode();
-        $ret['msg'] = $this->getErrorMsg();
+        $ret['code'] = $this->code;
+        $ret['msg'] = $this->msg;
         $ret['data'] = get_object_vars($this);
         return $ret;
     }

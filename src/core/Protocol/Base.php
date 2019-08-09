@@ -1,7 +1,8 @@
 <?php
 namespace SPF\Protocol;
-use SPF;
 
+use SPF;
+use SPF\Coroutine\BaseContext as Context;
 /**
  * 协议基类，实现一些公用的方法
  * @package SPF\Protocol
@@ -66,7 +67,14 @@ abstract class Base implements SPF\IFace\Protocol
      */
     static function setErrorCode($errorCode)
     {
-        self::$errorCode = $errorCode;
+        if (SPF\App::$enableCoroutine)
+        {
+            Context::put("rpc_error_code", $errorCode);
+        }
+        else
+        {
+            self::$errorCode = $errorCode;
+        }
     }
 
     /**
@@ -74,12 +82,31 @@ abstract class Base implements SPF\IFace\Protocol
      */
     static function getErrorCode()
     {
-        return self::$errorCode;
+        if (SPF\App::$enableCoroutine)
+        {
+            return Context::get("rpc_error_code");
+        }
+        else
+        {
+            return self::$errorCode;
+        }
+    }
+
+    static function reSetError()
+    {
+        if (SPF\App::$enableCoroutine)
+        {
+            Context::delete("rpc_error_code");
+        }
+        else
+        {
+            self::$errorCode = 0;
+        }
     }
 
     static function getErrorMsg($errorCode)
     {
-        return isset(self::$errMsg[$errorCode]) ? self::$errMsg[$errorCode] : "unkown";
+        return isset(self::$errMsg[$errorCode]) ? self::$errMsg[$errorCode] : "";
     }
 
     /**
@@ -93,7 +120,7 @@ abstract class Base implements SPF\IFace\Protocol
 
     function run($array)
     {
-        \SPF\Error::$echo_html = true;
+        SPF\Error::$echo_html = true;
         $this->server->run($array);
     }
 
