@@ -389,7 +389,7 @@ class ValidateRpcMethodParams
      */
     protected function validateTypeResult($type, array $allowedTypes, $allowStructObject = true)
     {
-        if (!$type) {
+        if (!$type && (!in_array(null, $allowedTypes) && !in_array('', $allowedTypes))) {
             return 'empty';
         }
         if (class_exists($type)) {
