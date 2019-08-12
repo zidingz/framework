@@ -3,51 +3,59 @@ namespace SPF\Struct;
 
 use SPF;
 
-class Response
+class Response extends Map
 {
     /**
      * @var int
      */
-    public $code = 0;
+    protected $code = 0;
+
     /**
      * @var string
      */
-    public $msg = "";
-    /**
-     * @var
-     */
-    public $data;
+    protected $msg = "";
 
-    public function __construct($code = 0, $msg = "success", $data = [])
+    /**
+     * @param int $code
+     * @param string $msg
+     * @param array $data
+     */
+    public function __construct(int $code = 0, string $msg = "success", array $data = [])
     {
         $this->code = $code;
         $this->msg = $msg;
-        $this->data = $data;
+
+        $this->sets($data);
     }
 
-    public function error($code,$msg = '')
+    /**
+     * @param int $code
+     * @param string $msg
+     * 
+     * @return self
+     */
+    public function error(int $code, string $msg = '')
     {
         $this->code = $code;
-        if ($msg) {
-            $this->msg = $msg;
-        }
+
+        $msg && $this->msg = $msg;
+
+        return $this;
     }
 
-    public function getErrorCode()
+    /**
+     * @return int
+     */
+    public function getCode()
     {
         return $this->code;
     }
 
-    public function getErrorMsg()
+    /**
+     * @return string
+     */
+    public function getMessage()
     {
         return $this->msg;
-    }
-
-    /**
-     * @return array
-     */
-    public function toJson()
-    {
-        return get_object_vars($this);
     }
 }
