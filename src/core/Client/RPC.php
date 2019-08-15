@@ -4,6 +4,7 @@ use SPF\Core;
 use SPF\Exception\InvalidParam;
 use SPF\Network\Server;
 use SPF\Protocol\RPCServer;
+use SPF\Struct\Response;
 use SPF\Tool;
 
 /**
@@ -419,11 +420,13 @@ class RPC
         else
         {
             $retObj->code = $header['errno'] ?? RPC_Result::ERR_SERVER;
-            $retObj->data = [
-                'code' => $header['errno'] ?? RPC_Result::ERR_SERVER,
-                'msg' => RPCServer::getErrorMsg($header['errno'] ?? RPC_Result::ERR_SERVER),
-                'data' => $retData
-            ];
+            if ($retData instanceof Response) {
+                $retData = $retData->toArray();
+            } elseif (!is_array($retData)) {
+                $retData = $retData ? (array) $retData : [];
+            }
+            $retObj->data = new Response($retObj->code, RPCServer::getErrorMsg($header['errno'] ?? RPC_Result::ERR_SERVER), $retData);
+            
         }
         unset($this->waitList[$retObj->requestId]);
         //执行after钩子函数

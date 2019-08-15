@@ -3,6 +3,7 @@
 namespace SPF\Struct;
 
 use SPF\Validator\Validator;
+use SPF\Struct\Map;
 
 class Builder
 {
@@ -18,7 +19,7 @@ class Builder
     {
         $class = new $className;
         foreach($param as $name => $value) {
-            if (property_exists($class, $name)) {
+            if (property_exists($class, $name) || ($class instanceof Map)) {
                 $class->{$name} = $value;
             }
         }
@@ -70,7 +71,7 @@ class Builder
                     static::recursiveTransfer($value['extends'], $params[$key]);
                 }
             } elseif (is_object($params)) {
-                if (!property_exists($params, $key)) {
+                if (!property_exists($params, $key) && !($params instanceof Map)) {
                     continue;
                 }
                 if (class_exists($type) && is_array($params->{$key})) {

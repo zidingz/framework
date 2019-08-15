@@ -270,7 +270,7 @@ class ValidateRpcMethodParams
         
         foreach($refClass->getMethods() as $refMethod) {
             // if not public, continue
-            if (!$refMethod->isPublic()) {
+            if (!$refMethod->isPublic() || $refMethod->class !== $classFullName) {
                 continue;
             }
 

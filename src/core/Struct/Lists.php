@@ -225,4 +225,12 @@ class Lists extends BaseStruct implements Iterator, Countable
     {
         throw new PropertyNotAllowedException(__CLASS__, $key, 'not allowed set if the class not exists the property');
     }
+
+    /**
+     * @return int
+     */
+    public function count()
+    {
+        return count($this->items);
+    }
 }

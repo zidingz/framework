@@ -4,6 +4,8 @@ namespace SPF\Protocol;
 use SPF;
 use SPF\Exception\ValidateException;
 use SPF\Coroutine\BaseContext as Context;
+use SPF\Struct\Response;
+
 /**
  * RPC服务器
  * @package SPF\Network
@@ -379,10 +381,10 @@ class RPCServer extends Base implements SPF\IFace\Protocol
         if (method_exists($this, 'beforeRequest'))
         {
             try {
-                $request = $this->beforeRequest($request);
+                $request = $this->beforeRequest($request, $header);
             } catch (ValidateException $e) {
                 self::setErrorCode(self::ERR_PARAMS);
-                return false;
+                return $e->getErrors();
             }
         }
         try {

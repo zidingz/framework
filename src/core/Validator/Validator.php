@@ -263,7 +263,8 @@ class Validator
      * 
      * @return string
      */
-    protected static function formatFailMessage($rule, $field, $value, $params = [], $args = []) {
+    protected static function formatFailMessage($rule, $field, $value, $params = [], $args = [])
+    {
         if (isset(static::$messages[$rule])) {
             return call_user_func(static::$messages[$rule], $field, $value, $params, $args);
         } elseif (method_exists(ValidateRules::class, 'message' . ucfirst($rule))) {
