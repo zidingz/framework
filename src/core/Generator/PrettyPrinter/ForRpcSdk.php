@@ -7,6 +7,7 @@ use PhpParser\Node\Stmt;
 use PhpParser\Node\Name;
 use SPF\Exception\InvalidArgumentException;
 use SPF\Generator\RpcSdk;
+use SPF\Struct\BaseStruct;
 
 class ForRpcSdk extends Standard
 {
@@ -18,6 +19,13 @@ class ForRpcSdk extends Standard
     protected $specialStmts = [];
 
     /**
+     * Prepend namespace prefix.
+     * 
+     * @var bool
+     */
+    public $prependNamespacePrefix = true;
+
+    /**
      * Pretty prints an array of nodes (statements) and indents them optionally.
      *
      * @param Node[] $nodes  Array of nodes
@@ -25,7 +33,8 @@ class ForRpcSdk extends Standard
      *
      * @return string Pretty printed statements
      */
-    protected function pStmts(array $nodes, bool $indent = true) : string {
+    protected function pStmts(array $nodes, bool $indent = true) : string 
+    {
         if ($indent) {
             $this->indent();
         }
@@ -121,10 +130,15 @@ class ForRpcSdk extends Standard
         if ($node instanceof Stmt\Namespace_) {
             // append namespace prefix
             $namespace = (string) $node->name;
-            if (strpos($namespace, RpcSdk::$namespacePrefix) === 0 && RpcSdk::$newNamespacePrefix) {
+            $this->ifPrependNamespacePrefix($node, $namespace);
+
+            if ($this->prependNamespacePrefix && strpos($namespace, RpcSdk::$namespacePrefix) === 0 && RpcSdk::$newNamespacePrefix) {
                 $namespace = RpcSdk::$newNamespacePrefix . $namespace;
                 $node->name = new Name($namespace);
             }
+            
+            $this->removeNamespaceUseIfMatched($node);
+
             $namespaceUsing = $this->getSpecailStmt('appendNamespaceUsing');
             while($stmt = array_pop($namespaceUsing)) {
                 array_unshift($node->stmts, $stmt);
@@ -135,7 +149,7 @@ class ForRpcSdk extends Standard
         if ($node instanceof Stmt\Use_) {
             foreach($node->uses as $namespaceUse) {
                 $use = (string) $namespaceUse->name;
-                if (strpos($use, RpcSdk::$namespacePrefix) === 0) {
+                if (strpos($use, RpcSdk::$namespacePrefix) === 0 && RpcSdk::$newNamespacePrefix && !is_subclass_of($use, BaseStruct::class)) {
                     $use = RpcSdk::$newNamespacePrefix . $use;
                     $namespaceUse->name = new Name($use);
                 }
@@ -144,7 +158,52 @@ class ForRpcSdk extends Standard
     }
 
     /**
-     * Weather if prepend line break
+     * Remove namespace uses matched provided rules.
+     * 
+     * @param Stmt\Namespace_ $node
+     */
+    protected function removeNamespaceUseIfMatched(Stmt\Namespace_ $node)
+    {
+        foreach($node->stmts as $pIndex => $stmt) {
+            if ($stmt instanceof Stmt\Use_) {
+                foreach ($stmt->uses as $index => $namespaceUse) {
+                    $use = (string) $namespaceUse->name;
+                    foreach(RpcSdk::$removeNamespaces as $pattern) {
+                        $pregPattern = '/' . str_replace(['\\', '/'], ['\\\\', '\/'], $pattern) . '/';
+                        if (preg_match($pregPattern, $use)) {
+                            unset($stmt->uses[$index]);
+                            continue;
+                        }
+                    }
+                }
+                // remove the whole child stmt, otherwise there will left `use ;` expression
+                if (empty($stmt->uses)) {
+                    unset($node->stmts[$pIndex]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Whether if prepend namespace prefix
+     * 
+     * @param Stmt $node
+     * @param string $namespace
+     */
+    protected function ifPrependNamespacePrefix($node, $namespace = '')
+    {
+        foreach ($node->stmts as $stmt) {
+            if ($stmt instanceof Stmt\Class_) {
+                $fullClassName = $namespace . ($namespace ? '\\' : '') . $stmt->name;
+                if (is_subclass_of($fullClassName, BaseStruct::class)) {
+                    $this->prependNamespacePrefix = false;
+                }
+            }
+        }
+    }
+
+    /**
+     * Whether if prepend line break
      * 
      * @param Node $node
      * 

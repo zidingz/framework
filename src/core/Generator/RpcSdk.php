@@ -54,6 +54,13 @@ class RpcSdk
     public static $namespacePrefix = 'Demo\\';
 
     /**
+     * Need remove namespace list.
+     * 
+     * @var array
+     */
+    public static $removeNamespaces = [];
+
+    /**
      * User defined stmts to filter sdk generate.
      * 
      * @var array
@@ -151,6 +158,16 @@ CODE
     }
 
     /**
+     * Set RPC API sdk`s need removing namespace rules, supportting regex pattern. eg: Foo\Bar\* or Foo\Bar
+     * 
+     * @param string $removeNamespaces
+     */
+    public static function setRemoveNamespaces(string $removeNamespaces)
+    {
+        static::$removeNamespaces = $removeNamespaces;
+    }
+
+    /**
      * Handle.
      * 
      * @param string $src
@@ -215,8 +232,9 @@ CODE
             
             $code = file_get_contents($path);
             $newCode = $this->processCode($code);
+            $prependNamespacePrefix = $this->getPretty()->prependNamespacePrefix;
 
-            $savePath = $this->getSavePath($path, $source, $output);
+            $savePath = $this->getSavePath($path, $source, $output, $prependNamespacePrefix);
             file_put_contents($savePath, $newCode);
 
             $handleCount++;
@@ -231,12 +249,13 @@ CODE
      * @param string $cwd code path
      * @param string $source code source directory
      * @param string $output code save directory
+     * @param bool $prependNamespacePrefix the class whether prepend namespace prefix
      * 
      * @return string code new path
      */
-    protected function getSavePath($cwd, $source, $output)
+    protected function getSavePath($cwd, $source, $output, $prependNamespacePrefix = true)
     {
-        $filename = $output . mb_substr($cwd, mb_strlen($source));
+        $filename = $output  . ($prependNamespacePrefix ? '/api' : '/struct') . mb_substr($cwd, mb_strlen($source));
         $path = dirname($filename);
         if (!is_dir($path)) {
             mkdir($path, 0755, true);
@@ -254,6 +273,7 @@ CODE
     protected function appendSdkFiles($output, $libdir)
     {
         $namespacePrefix = static::$namespacePrefix;
+        $sourceNamespacePrefixDouble = str_replace('\\', '\\\\', $namespacePrefix);
         $newNamespacePrefix = static::$newNamespacePrefix;
         $fullPrefix = $newNamespacePrefix . $namespacePrefix;
         $fullPrefixDouble = str_replace('\\', '\\\\', $fullPrefix);
@@ -273,6 +293,8 @@ CODE
             $code = str_replace('%%namespace%%', $fullNamespace, $code);
             $code = str_replace('%%namespacePrefix%%', $fullPrefix, $code);
             $code = str_replace('%%namespacePrefixDouble%%', $fullPrefixDouble, $code);
+            $code = str_replace('%%sourceNamespacePrefix%%', $namespacePrefix, $code);
+            $code = str_replace('%%sourceNamespacePrefixDouble%%', $sourceNamespacePrefixDouble, $code);
             $code = str_replace('%%serviceName%%', static::$serviceName, $code);
             file_put_contents($filename, $code);
        
@@ -434,6 +456,8 @@ CODE
     protected function processCode($code)
     {
         $stmts = $this->getParser()->parse($code);
+
+        $this->getPretty()->prependNamespacePrefix = true;
 
         return $this->getPretty()->prettyPrintFile($stmts);
     }
