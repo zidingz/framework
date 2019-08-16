@@ -58,4 +58,43 @@ class Response extends Map
     {
         return $this->msg;
     }
+
+    /**
+     * @return string
+     */
+    public function toJson()
+    {
+        $data = $this->toArray();
+        $data = $this->toArrayRecusive($data);
+
+        $jsonArr = [
+            'code' => $this->getCode(),
+            'msg' => $this->getMessage(),
+            'data' => $data,
+        ];
+
+        return json_encode($jsonArr);
+    }
+
+    /**
+     * Recusive to array
+     * 
+     * @param array $data
+     * 
+     * @return array
+     */
+    protected function toArrayRecusive($data)
+    {
+        foreach ($data as &$item) {
+            if (is_object($item) && method_exists($item, 'toArray')) {
+                $item = $item->toArray();
+            }
+            if (is_array($item)) { 
+                $item = $this->toArrayRecusive($item);
+            }
+        }
+        unset($item);
+
+        return $data;
+    }
 }

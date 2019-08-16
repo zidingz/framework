@@ -3,6 +3,7 @@
 namespace SPF\Struct;
 
 use SPF\Exception\PropertyNotAllowedException;
+use ReflectionClass;
 
 class Map extends BaseStruct
 {
@@ -94,7 +95,16 @@ class Map extends BaseStruct
      */
     public function toArray()
     {
-        return array_merge(get_object_vars($this), $this->appendProps);
+        $data = [];
+        $refClass = new ReflectionClass($this);
+        foreach($refClass->getProperties() as $refProp) {
+            if ($refProp->isPublic()) {
+                $prop = $refProp->getName();
+                $data[$prop] = $this->{$prop};
+            }
+        }
+
+        return array_merge($data, $this->appendProps);
     }
 
     public function __get($key)
