@@ -30,7 +30,7 @@ class ValidateRpcMethodParams extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $path = $this->resolvePath($this->getOption($input, 'path', defined('PROJECT_API') ? PROJECT_API : 'src/api'));
+        $path = $this->resolvePath($this->getOption($input, 'path', defined('PROJECT_SRC') ? PROJECT_SRC : 'src'));
 
         $this->validPath($path);
 
