@@ -1,6 +1,8 @@
 <?php
 namespace Swoole\Protocol;
+
 use Swoole;
+use Swoole\Component\Error;
 
 abstract class WebServer extends Base
 {
@@ -41,7 +43,7 @@ abstract class WebServer extends Base
     function __construct($config = array())
     {
         define('SWOOLE_SERVER', true);
-        Swoole\Error::$echo_html = true;
+        Error::$echo_html = true;
     }
 
     function setDocumentRoot($path)

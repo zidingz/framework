@@ -2,6 +2,7 @@
 namespace Swoole\Protocol;
 
 use Swoole;
+use Swoole\Component\Error;
 
 /**
  * HTTP Server
@@ -46,7 +47,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
             Swoole\Console::changeUser($this->config['server']['user']);
         }
 
-        Swoole\Error::$echo_html = true;
+        Error::$echo_html = true;
         $this->swoole_server = $serv;
         Swoole::$php->server = $this;
         $this->log(self::SOFTWARE . "[#{$worker_id}]. running. on {$this->server->host}:{$this->server->port}");
@@ -378,7 +379,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     {
         $response->setHttpStatus($code);
         $response->head['Content-Type'] = 'text/html';
-        $response->body = Swoole\Error::info(Swoole\Response::$HTTP_HEADERS[$code],
+        $response->body = Error::info(Swoole\Response::$HTTP_HEADERS[$code],
             "<p>$content</p><hr><address>" . self::SOFTWARE . " at {$this->server->host}" .
             " Port {$this->server->port}</address>");
     }
@@ -424,7 +425,7 @@ class HttpServer extends Swoole\Protocol\WebServer implements  Swoole\IFace\Prot
     private function errorResponse($error)
     {
         $errorMsg = "{$error['message']} ({$error['file']}:{$error['line']})";
-        $message = Swoole\Error::info(self::SOFTWARE." Application Error", $errorMsg);
+        $message = Error::info(self::SOFTWARE." Application Error", $errorMsg);
         if (empty($this->currentResponse))
         {
             $this->currentResponse = new Swoole\Response();

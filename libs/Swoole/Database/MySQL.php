@@ -2,6 +2,7 @@
 namespace Swoole\Database;
 
 use Swoole;
+use Swoole\Component\Error;
 
 /**
  * MySQL数据库封装类
@@ -48,13 +49,13 @@ class MySQL implements \Swoole\IDatabase
         }
         if (!$this->conn)
         {
-            Swoole\Error::info(__CLASS__." SQL Error", mysql_error($this->conn));
+            Error::info(__CLASS__." SQL Error", mysql_error($this->conn));
             return false;
         }
-        mysql_select_db($db_config['name'], $this->conn) or Swoole\Error::info("SQL Error", mysql_error($this->conn));
+        mysql_select_db($db_config['name'], $this->conn) or Error::info("SQL Error", mysql_error($this->conn));
         if ($db_config['setname'])
         {
-            mysql_query('set names ' . $db_config['charset'], $this->conn) or Swoole\Error::info("SQL Error",
+            mysql_query('set names ' . $db_config['charset'], $this->conn) or Error::info("SQL Error",
                 mysql_error($this->conn));
         }
         return true;
@@ -89,7 +90,7 @@ class MySQL implements \Swoole\IDatabase
                         continue;
                     }
                 }
-                \Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
+                Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
                 return false;
             }
             break;
@@ -97,7 +98,7 @@ class MySQL implements \Swoole\IDatabase
 
         if (!$res)
         {
-            Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
+            Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
             return false;
         }
         if (is_bool($res))

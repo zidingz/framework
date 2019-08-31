@@ -1,6 +1,8 @@
 <?php
 namespace Swoole\Database;
+
 use Swoole;
+use Swoole\Component\Error;
 
 /**
  * MySQL数据库封装类
@@ -135,7 +137,7 @@ class MySQLi implements Swoole\IDatabase
                 }
                 else
                 {
-                    Swoole\Error::info(__CLASS__ . " SQL Error", $this->errorMessage($params[0]));
+                    Error::info(__CLASS__ . " SQL Error", $this->errorMessage($params[0]));
                     return false;
                 }
             }
@@ -176,7 +178,7 @@ class MySQLi implements Swoole\IDatabase
         $result = $this->tryReconnect(array('parent', 'multi_query'), array($sql));
         if (!$result)
         {
-            Swoole\Error::info(__CLASS__ . " SQL Error", $this->errorMessage($sql));
+            Error::info(__CLASS__ . " SQL Error", $this->errorMessage($sql));
             return false;
         }
 
@@ -213,7 +215,7 @@ class MySQLi implements Swoole\IDatabase
         $result = $this->tryReconnect(array('parent', 'query'), array($sql, MYSQLI_ASYNC));
         if (!$result)
         {
-            Swoole\Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
+            Error::info(__CLASS__." SQL Error", $this->errorMessage($sql));
             return false;
         }
         return $result;

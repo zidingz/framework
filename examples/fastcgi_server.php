@@ -7,7 +7,7 @@ require __DIR__ . '/../libs/lib_config.php';
 Swoole\Config::$debug = false;
 
 
-Swoole\Error::$echo_html = true;
+Swoole\Component\Error::$echo_html = true;
 
 class MyFastCGI extends Swoole\Protocol\FastCGI
 {

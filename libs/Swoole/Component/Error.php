@@ -1,5 +1,5 @@
 <?php
-namespace Swoole;
+namespace Swoole\Component;
 
 /**
  * Swoole错误类

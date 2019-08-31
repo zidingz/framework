@@ -1,6 +1,8 @@
 <?php
 namespace Swoole\Protocol;
+
 use Swoole;
+use Swoole\Component\Error;
 
 /**
  * 协议基类，实现一些公用的方法
@@ -36,7 +38,7 @@ abstract class Base implements Swoole\IFace\Protocol
 
     function run($array)
     {
-        \Swoole\Error::$echo_html = true;
+        Error::$echo_html = true;
         $this->server->run($array);
     }
 

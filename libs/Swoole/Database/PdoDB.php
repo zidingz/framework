@@ -1,6 +1,8 @@
 <?php
 namespace Swoole\Database;
+
 use Swoole;
+use Swoole\Component\Error;
 
 /**
  * PDO数据库封装类
@@ -57,7 +59,7 @@ class PdoDB extends \PDO implements Swoole\IDatabase
         {
             echo "$sql<br />\n<hr />";
         }
-        $res = parent::query($sql) or \Swoole\Error::info(
+        $res = parent::query($sql) or Error::info(
             "SQL Error",
             implode(", ", $this->errorInfo()) . "<hr />$sql"
         );
@@ -93,7 +95,7 @@ class PdoDB extends \PDO implements Swoole\IDatabase
         }
         else
         {
-            \Swoole\Error::info("SQL Error", implode(", ", $this->errorInfo()) . "<hr />$sql");
+            Error::info("SQL Error", implode(", ", $this->errorInfo()) . "<hr />$sql");
             return false;
         }
     }
@@ -121,7 +123,7 @@ class PdoDB extends \PDO implements Swoole\IDatabase
         }
         else
         {
-            \Swoole\Error::info("SQL Error", implode(", ", $this->errorInfo()) . "<hr />$sql");
+            Error::info("SQL Error", implode(", ", $this->errorInfo()) . "<hr />$sql");
             return false;
         }
     }
@@ -147,7 +149,7 @@ class PdoDB extends \PDO implements Swoole\IDatabase
         }
         else
         {
-            \Swoole\Error::info("SQL Error", implode(", ", $this->errorInfo()) . "<hr />$sql");
+            Error::info("SQL Error", implode(", ", $this->errorInfo()) . "<hr />$sql");
             return false;
         }
     }

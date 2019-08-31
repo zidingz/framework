@@ -18,7 +18,7 @@ Swoole\Network\Server::start(function ()
     $AppSvr->setDocumentRoot(__DIR__.'/webroot');
     $AppSvr->setLogger(new Swoole\Log\EchoLog(true)); //Logger
 
-    Swoole\Error::$echo_html = false;
+    Swoole\Component\Error::$echo_html = false;
 
     $server = Swoole\Network\Server::autoCreate('0.0.0.0', 8888);
     $server->setProtocol($AppSvr);
