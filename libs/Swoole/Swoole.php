@@ -4,6 +4,7 @@ require_once __DIR__ . '/Loader.php';
 require_once __DIR__ . '/ModelLoader.php';
 
 use Swoole\Exception\NotFound;
+use Swoole\Component\Error;
 
 /**
  * Swoole系统核心类，外部使用全局变量$php引用
@@ -182,7 +183,7 @@ class Swoole
         $this->env['sapi_name'] = php_sapi_name();
         if ($this->env['sapi_name'] != 'cli')
         {
-            Swoole\Error::$echo_html = true;
+            Error::$echo_html = true;
         }
 
         if (!empty($appDir))
@@ -201,7 +202,7 @@ class Swoole
 
         if (empty(self::$app_path))
         {
-            Swoole\Error::info("core error", __CLASS__ . ": Swoole::\$app_path and WEBPATH empty.");
+            Error::info("core error", __CLASS__ . ": Swoole::\$app_path and WEBPATH empty.");
         }
 
         //将此目录作为App命名空间的根目录
@@ -675,7 +676,7 @@ class Swoole
     {
         if (empty($this->hooks[self::HOOK_ROUTE]))
         {
-            echo Swoole\Error::info('MVC Error!',"UrlRouter hook is empty");
+            echo Error::info('MVC Error!',"UrlRouter hook is empty");
             return false;
         }
 
@@ -718,7 +719,7 @@ class Swoole
         }
         else
         {
-            \Swoole\Error::info("fatal error", "app_path[$dir] is not exists.");
+            Error::info("fatal error", "app_path[$dir] is not exists.");
         }
     }
 
@@ -734,7 +735,7 @@ class Swoole
         }
         else
         {
-            \Swoole\Error::info("fatal error", "controller_path[$dir] is not exists.");
+            Error::info("fatal error", "controller_path[$dir] is not exists.");
         }
     }
 

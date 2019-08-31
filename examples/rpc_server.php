@@ -33,7 +33,7 @@ Swoole\Network\Server::start(function ()
      */
     $AppSvr->addAllowUser('chelun', 'chelun@123456');
 
-    Swoole\Error::$echo_html = false;
+    Swoole\Component\Error::$echo_html = false;
     $server = Swoole\Network\Server::autoCreate('0.0.0.0', 8888);
     $server->setProtocol($AppSvr);
     //$server->daemonize(); //作为守护进程

@@ -4,6 +4,7 @@ namespace Swoole\Network;
 use Swoole;
 use Swoole\Server\Base;
 use Swoole\Server\Driver;
+use Swoole\Component\Error;
 
 /**
  * Class Server
@@ -242,7 +243,7 @@ class Server extends Base implements Driver
 
         $this->host = $host;
         $this->port = $port;
-        Swoole\Error::$stop = false;
+        Error::$stop = false;
         Swoole\JS::$return = true;
         $this->runtimeSetting = array(
             //'reactor_num' => 4,      //reactor thread num

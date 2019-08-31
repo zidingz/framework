@@ -39,7 +39,7 @@ function createModel($model_name)
  * @param $model_name
  * @param $db_key
  * @return Swoole\Model
- * @throws \Swoole\Error
+ * @throws Swoole\Component\Error
  */
 function model($model_name, $db_key = 'master')
 {
@@ -95,7 +95,7 @@ function debug()
 function error($error_id, $stop = true)
 {
     global $php;
-    $error = new \Swoole\Error($error_id);
+    $error = new Swoole\Component\Error($error_id);
     if (isset($php->error_call[$error_id]))
     {
         call_user_func($php->error_call[$error_id], $error);
@@ -141,7 +141,7 @@ function swoole_error_handler($errno, $errstr, $errfile, $errline)
     $info .= '<b>Line:</b> '.$errline."<br />\n";
     $info .= '<b>Info:</b> '.$errstr."<br />\n";
     $info .= '<b>Code:</b> '.$errno."<br />\n";
-    echo Swoole\Error::info($title, $info);
+    echo Swoole\Component\Error::info($title, $info);
 }
 if (!function_exists("_string"))
 {
