@@ -2,6 +2,7 @@
 
 namespace SPF\Rpc\Protocol;
 
+use SPF\Formatter\FormatterFactory;
 use Throwable;
 
 /**
@@ -60,6 +61,11 @@ trait TcpProtocol
 
             // TODO
             $this->beforeReceive($server, $fd, $reactorId, $data);
+
+            list($header, $body) = $this->decodePacket($data);
+            $request = FormatterFactory::decode($header['formatter'], $body);
+            $request['packet_header'] = $header;
+            $request['client'] = [];
 
             // middleware, such as allowIp, allowUser
 

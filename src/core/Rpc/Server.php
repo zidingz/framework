@@ -8,6 +8,8 @@ use SPF\Exception\Exception;
 use SPF\Struct\Response;
 use SPF\Rpc\Protocol\TcpProtocol;
 use SPF\Rpc\Protocol\HttpProtocol;
+use Throwable;
+use Closure;
 
 class Server
 {
@@ -31,14 +33,14 @@ class Server
     const HEADER_STRUCT = "Nlength/Nformatter/Nrequest_id/Nerrno/Nuid/Nserver_version/Nsdk_version/Nreserve";
     const HEADER_PACK = "NNNNNNNN";// 4*8=32
 
-    const DECODE_PHP = 1;   // 使用PHP的serialize打包
-    const DECODE_JSON = 2;   // 使用json_encode打包
-    const DECODE_MSGPACK = 3;   // 使用msgpack打包
-    const DECODE_SWOOLE = 4;   // 使用swoole_serialize打包
-    const DECODE_GZIP = 128; // 启用GZIP压缩
+    // const DECODE_PHP = 1;   // 使用PHP的serialize打包
+    // const DECODE_JSON = 2;   // 使用json_encode打包
+    // const DECODE_MSGPACK = 3;   // 使用msgpack打包
+    // const DECODE_SWOOLE = 4;   // 使用swoole_serialize打包
+    // const DECODE_GZIP = 128; // 启用GZIP压缩
 
-    const ALLOW_IP = 1;
-    const ALLOW_USER = 2;
+    // const ALLOW_IP = 1;
+    // const ALLOW_USER = 2;
 
     /**
      * Swoole Server对象
@@ -47,28 +49,92 @@ class Server
      */
     public $server = null;
 
-    /**
-     * 客户端环境变量
-     * @var array
-     */
-    static $clientEnv;
-    /**
-     * 请求头
-     * @var array
-     */
-    static $requestHeader;
-    static $clientEnvKey = "client_env";
-    static $requestHeaderKey = "request_header";
-    static $stop = false;
+    // /**
+    //  * 客户端环境变量
+    //  * @var array
+    //  */
+    // static $clientEnv;
+    // /**
+    //  * 请求头
+    //  * @var array
+    //  */
+    // static $requestHeader;
+    // static $clientEnvKey = "client_env";
+    // static $requestHeaderKey = "request_header";
+    // static $stop = false;
 
-    public $packet_maxlen = 2465792; //2M默认最大长度
+    // public $packet_maxlen = 2465792; //2M默认最大长度
 
-    protected $_headers = array(); //保存头
-    protected $appNamespaces = array(); //应用程序命名空间
-    protected $ipWhiteList = array(); //IP白名单
-    protected $userList = array(); //用户列表
-    protected $verifyIp = false;
-    protected $verifyUser = false;
+    // protected $_headers = array(); //保存头
+    // protected $appNamespaces = array(); //应用程序命名空间
+    // protected $ipWhiteList = array(); //IP白名单
+    // protected $userList = array(); //用户列表
+    // protected $verifyIp = false;
+    // protected $verifyUser = false;
+
+    const MIDDLEWARE_TCP = 'tcp';
+    const MIDDLEWARE_HTTP = 'http';
+    const MIDDLEWARE_COMMON = 'common';
+
+    protected $middlewares = [
+        'tcp' => [],
+        'common' => [],
+    ];
+
+    /**
+     * 注册中间件
+     * 
+     * @param string $name 中间件名称
+     * @param callable|array $handle 中间件handle
+     * @param string $protocol 中间件协议
+     * 
+     * @return self
+     */
+    public function registerMiddleware($name, $handle, $protocol = self::MIDDLEWARE_COMMON)
+    {
+        // TODO 校验中间件是否合法
+        $this->middlewares[$protocol][$name] = $handle;
+
+        return $this;
+    }
+
+    /**
+     * 移除中间件
+     * 
+     * @param string $name 中间件名称
+     * @param string $protocol 中间件协议
+     * 
+     * @return self
+     */
+    public function removeMiddleware($name, $protocol = self::MIDDLEWARE_COMMON)
+    {
+        unset($this->middlewares[$protocol][$name]);
+
+        return $this;
+    }
+
+    protected function registerMiddlewareVerifyIP($request, Closure $next)
+    {
+        // do something
+        $response = $next($request);
+        // after response
+
+        return $response;
+    }
+
+    protected function handleMiddleware($request, $protocol)
+    {
+        // 先执行指定协议的中间件
+        foreach($this->middlewares[$protocol] as $name => $handle) {
+            try {
+                if (call_user_func($handle, $request) === false) {
+                    return false;
+                }
+            } catch (Throwable $e) {
+
+            }
+        }
+    }
 
     protected function handleHttpRequest(\swoole_http_request $request)
     {
@@ -97,7 +163,10 @@ class Server
 
     protected function decodePacket($request)
     {
-        return unpack(self::HEADER_STRUCT, substr($request, 0, self::HEADER_SIZE));
+        $header = unpack(self::HEADER_STRUCT, mb_substr($request, 0, self::HEADER_SIZE));
+        $body = mb_substr($request, self::HEADER_SIZE + 1);
+
+        return compact('header', 'body');
     }
 
     protected function beforeStart(\swoole_server $server)
