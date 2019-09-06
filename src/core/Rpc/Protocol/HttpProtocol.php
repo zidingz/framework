@@ -2,10 +2,12 @@
 
 namespace SPF\Rpc\Protocol;
 
+use SPF\Rpc\Formatter\FormatterFactory;
 use Throwable;
 
 /**
- * @property \swoole_server|\swoole_http_server|\swoole_websocket_server $server 
+ * @property \swoole_server|\swoole_http_server|\swoole_websocket_server $server
+ * @method \Symfony\Component\Console\Output\ConsoleOutput console()
  */
 trait HttpProtocol
 {
@@ -37,20 +39,42 @@ trait HttpProtocol
             }
             $server->set($settings);
         }
+
+        $this->console()->writeln("<info>Listen on http://{$conn['host']}:{$conn['port']}</info>");
     }
 
     public function onRequest(\swoole_http_request $request, \swoole_http_response $response)
     {
         try {
-            // TODO
-            $this->beforeRequest($request, $response);
-            // TODO
-        } catch (Throwable $e) {
+            $header = [
+                'formatter' => FormatterFactory::FMT_TARS,
+                'request_id' => 0,
+                'uid' => 0,
+            ];
 
+            try {
+                $this->beforeOnRequest($request, $response);
+
+                $clientInfo = [];
+                $data = $request->rawContent();
+                $responseBuf = $this->handleRequest('http', $data, $clientInfo, $header);
+            } catch (Throwable $e) {
+                $responseBuf = $this->encodePacket('', $header, $e->getCode());
+
+                $this->debugExceptionOutput($e);
+            }
+
+            $response->end($responseBuf);
+        } catch (Throwable $e) {
+            // TODO 系统错误，记录异常日志或者发送告警
+            // $code = $e->getCode();
+            // $msg = $e->getMessage();
+            // $this->console()->writeln("<error>系统错误：[{$code}] {$msg}</error>");
+            $this->debugExceptionOutput($e);
         }
     }
 
-    protected function beforeRequest(\swoole_http_request $request, \swoole_http_response $response)
+    protected function beforeOnRequest(\swoole_http_request $request, \swoole_http_response $response)
     {
         // TODO
     }

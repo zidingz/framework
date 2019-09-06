@@ -2,6 +2,7 @@
 
 namespace SPF\Rpc\Tool;
 
+use SPF\Rpc\Config;
 use SPF\Rpc\RpcException;
 
 class Helper
@@ -16,19 +17,38 @@ class Helper
         // ns1.ns2.class@func 格式
         list($package, $func) = explode('@', $bufferFuncName);
         $class = str_replace('.', '\\', $package);
+
+        $nsPrefix = Config::get('app.namespacePrefix', '');
+        $nsImpl = Config::get('app.tars.ImplNs', 'Impl');
+        $fullClass = "{$nsPrefix}\\{$nsImpl}\\{$class}";
+        
         $map = ReflectionClassMap::getMap();
 
-        if (!isset($map[$class])) {
-            throw new RpcException(RpcException::ERR_NOFUNC, ['class' => $class]);
+        if (!isset($map[$fullClass])) {
+            throw new RpcException(RpcException::ERR_NOFUNC, ['class' => $class, 'fullClass' => $fullClass]);
         }
-        if (!isset($map[$class][$func])) {
-            throw new RpcException(RpcException::ERR_NOFUNC, ['class' => $class, 'function' => $func]);
+        if (!isset($map[$fullClass][$func])) {
+            throw new RpcException(RpcException::ERR_NOFUNC, ['class' => $class, 'fullClass' => $fullClass, 'function' => $func]);
         }
 
         return [
-            'class' => $class,
+            'class' => $fullClass,
             'function' => $func,
-            'params' => $map[$class][$func],
+            'params' => $map[$fullClass][$func],
         ];
+    }
+
+    /**
+     * 设置进程名称
+     * 
+     * @param stirng $name
+     */
+    public static function setProcessName($name)
+    {
+        if (function_exists('swoole_set_process_name')) {
+            swoole_set_process_name($name);
+        } elseif (function_exists('cli_set_process_title')) {
+            cli_set_process_title($name);
+        }
     }
 }

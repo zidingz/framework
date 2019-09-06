@@ -9,6 +9,7 @@ use ReflectionClass;
 use ReflectionMethod;
 use RuntimeException;
 use ReflectionProperty;
+use SPF\Rpc\Config;
 
 /**
  * 命名空间下类库反射表,在onWorkStart中初始化
@@ -32,11 +33,21 @@ class ReflectionClassMap
      * @param string $implPath API的路径
      * @param string $implNsPrefix API的命名空间前缀，不包含 '\\' 结尾
      */
-    public static function initMap($implPath, $implNsPrefix)
+    public static function initMap($implPath = null, $implNsPrefix = null)
     {
+        if (is_null($implPath)) {
+            $implPath = Config::$rootPath . '/' . Config::get('app.tars.dstPath', 'src') . '/' .
+                Config::get('app.tars.implDir', 'Impl');
+        }
+        if (is_null($implNsPrefix)) {
+            $tarsNsPrefix = Config::get('app.tars.nsPrefix');
+            $implNsPrefix = (is_null($tarsNsPrefix) ? Config::get('app.namespacePrefix') : $tarsNsPrefix) . '\\' .
+                 Config::get('app.tars.ImplNs', 'Impl');
+        }
+
         $implPath = realpath($implPath);
-        $dir_iterator = new RecursiveDirectoryIterator($implPath, RecursiveDirectoryIterator::SKIP_DOTS);
-        $iterator = new RecursiveIteratorIterator($dir_iterator);
+        $dirIterator = new RecursiveDirectoryIterator($implPath, RecursiveDirectoryIterator::SKIP_DOTS);
+        $iterator = new RecursiveIteratorIterator($dirIterator);
 
         $map = [];
         foreach ($iterator as $file) {

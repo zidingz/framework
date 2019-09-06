@@ -1,32 +1,33 @@
 <?php
 
-namespace SPF\Formatter;
+namespace SPF\Rpc\Formatter;
 
 use SPF\Rpc\RpcException;
-use Throwable;
 use SPF\Rpc\Tool\Helper;
+use Throwable;
 
 class TarsFormatter implements Formatter
 {
+
     /**
      * 对响应的数据进行encode，然后交由通讯协议进行传输
      * 
      * @param mixed $data
+     * @param string $funcName
      * 
      * @return string
      */
-    public static function encode($data)
+    public static function encode($data, $funcName = '')
     {
-        $iVersion = 3;
+        $iVersion = 1;
         $cPacketType = 0;
         $iMessageType = 0;
         $iRequestId = 0;
         $statuses = [];
         $servantName = '';
-        $funcName = '';
+        $iTimeout = 0;
 
         $context = [];
-        $iTimeout = 0;
 
         $rspBuf = \TUPAPI::encode(
             $iVersion,
@@ -44,6 +45,65 @@ class TarsFormatter implements Formatter
         return $rspBuf;
     }
 
+    public static function decode($buffer)
+    {
+        // 接下来解码
+        $decodeRet = \TUPAPI::decode($buffer, 1);
+        if ($decodeRet['iRet'] !== 0) {
+            // TODO
+            // $msg = isset($decodeRet['sResultDesc']) ? $decodeRet['sResultDesc'] : "";
+            // throw new \Exception($msg, $decodeRet['iRet']);
+        }
+        $sBuffer = $decodeRet['sBuffer'];
+
+        return $sBuffer;
+    }
+
+    /**
+     * 对响应的数据进行encode，然后交由通讯协议进行传输
+     * 
+     * @param mixed $response
+     * @param string $funcName
+     * 
+     * @return string
+     */
+    public static function encodeResponse($response, $request)
+    {
+        $iVersion = 1;
+        $cPacketType = 0;
+        $iMessageType = 0;
+        $iRequestId = 0;
+        $statuses = [];
+        $iRet = 0;
+        $sResultDesc = '';
+
+        $buffers = [];
+        if ($request['func_params']['return']['type'] !== 'void') {
+            $buffers[] = self::packBuffer($request['func_params']['return']['type'], $response, 0);
+        }
+
+        // &取地址符参数输出
+        foreach($request['func_params']['params'] as $param) {
+            if ($param['ref']) {
+                $value = $request['req_params'][$param['index']];
+                $buffers[] = self::packBuffer($param['type'], $value, $param['index'] + 1);
+            }
+        }
+
+        $rspBuf = \TUPAPI::encodeRspPacket(
+            $iVersion,
+            $cPacketType,
+            $iMessageType,
+            $iRequestId,
+            $iRet,
+            $sResultDesc,
+            $buffers,
+            $statuses
+        );
+
+        return $rspBuf;
+    }
+
     /**
      * 对通讯协议获取的请求数据进行decode
      * 
@@ -51,14 +111,14 @@ class TarsFormatter implements Formatter
      * 
      * @return mixed
      */
-    public static function decode($buffer)
+    public static function decodeRequest($buffer)
     {
         try {
+            $unpackResult = \TUPAPI::decodeReqPacket($buffer);
             // TODO decode失败的异常处理
-            $unpackResult = \TUPAPI::decode($buffer);
 
             $parsedFunc = Helper::parserFuncName($unpackResult['sFuncName']);
-            $reqParams = $this->convertToArgs($parsedFunc['params'], $unpackResult);
+            $reqParams = self::convertToArgs($parsedFunc['params'], $unpackResult);
 
             return [
                 'class' => $parsedFunc['class'],
@@ -74,7 +134,7 @@ class TarsFormatter implements Formatter
     }
 
     // 完成了对入包的decode之后,获取到了sBuffer
-    public function convertToArgs($params, $unpackResult)
+    protected static function convertToArgs($params, $unpackResult)
     {
         try {
             $sBuffer = $unpackResult['sBuffer'];
@@ -100,18 +160,20 @@ class TarsFormatter implements Formatter
             ];
 
             $args = [];
-            foreach ($params as $param) {
+            foreach ($params['params'] as $param) {
                 $type = $param['type'];
                 $unpackMethod = $unpackMethods[$type];
+
                 // 需要判断是否是简单类型,还是vector或map或struct
                 if ($type === 'map' || $type === 'vector') {
                     if ($param['ref']) {
-                        ${$param['name']} = $this->createInstance($param['proto']);
+                        ${$param['name']} = self::createInstance($param['proto']);
                         $args[] = ${$param['name']};
                     } else {
                         // 对于复杂的类型,需要进行实例化
-                        $proto = $this->createInstance($param['proto']);
-                        $args[] = $unpackMethod($param['name'], $proto, $sBuffer, false, 3);
+                        $proto = self::createInstance($param['proto']);
+                        $args[] = $unpackMethod($param['index'] + 1, $proto, $sBuffer, false, 1);
+                        // $args[] = $unpackMethod($param['name'], $proto, $sBuffer, false, 3);
                     }
                 } elseif ($type === 'struct') {
                     if ($param['ref']) {
@@ -120,8 +182,9 @@ class TarsFormatter implements Formatter
                     } else {
                         // 对于复杂的类型,需要进行实例化
                         $proto = new $param['proto']();
-                        $value = $unpackMethod($param['name'], $proto, $sBuffer, false, 3);
-                        $this->fromArray($value, $proto);
+                        $value = $unpackMethod($param['index'] + 1, $proto, $sBuffer, false, 1);
+                        // $value = $unpackMethod($param['name'], $proto, $sBuffer, false, 3);
+                        self::fromArray($value, $proto);
                         $args[] = $proto;
                     }
                 } // 基本类型
@@ -129,44 +192,23 @@ class TarsFormatter implements Formatter
                     if ($param['ref']) {
                         $args[] = null;
                     } else {
-                        $args[] = $unpackMethod($param['name'], $sBuffer, false, 3);
+                        $args[] = $unpackMethod($param['index'] + 1, $sBuffer, false, 1);
+                        // $args[] = $unpackMethod($param['name'], $sBuffer, false, 3);
                     }
                 }
-
-                $args[] = $value;
             }
-
-            // // 对于输出参数而言,所需要的仅仅是对应的实例化而已
-            // $index = 0;
-            // foreach ($outParams as $outParam) {
-            //     ++$index;
-            //     $type = $outParam['type'];
-
-            //     $protoName = 'proto' . $index;
-
-            //     // 如果是结构体
-            //     if ($type === 'map' || $type === 'vector') {
-            //         $$protoName = $this->createInstance($outParam['proto']);
-            //         $args[] = $$protoName;
-            //     } elseif ($type === 'struct') {
-            //         $$protoName = new $outParam['proto']();
-            //         $args[] = $$protoName;
-            //     } else {
-            //         $protoName = null;
-            //         $args[] = $protoName;
-            //     }
-            // }
 
             return $args;
         } catch (Throwable $e) {
-            throw new RpcException(RpcException::ERR_INVALID_TARS, ['message' => $e->getMessage()]);
+            $message = $e->getMessage();
+            throw new RpcException(RpcException::ERR_INVALID_TARS, ['message' => $message], $message);
         }
     }
 
-    private function createInstance($proto)
+    private static function createInstance($proto)
     {
-        if ($this->isBasicType($proto)) {
-            return $this->convertBasicType($proto);
+        if (self::isBasicType($proto)) {
+            return self::convertBasicType($proto);
         } elseif (!strpos($proto, '(')) {
             $structInst = new $proto();
 
@@ -176,18 +218,18 @@ class TarsFormatter implements Formatter
             $className = substr($proto, 0, $pos);
             if ($className == '\TARS_Vector') {
                 $next = trim(substr($proto, $pos, strlen($proto) - $pos), '()');
-                $args[] = $this->createInstance($next);
+                $args[] = self::createInstance($next);
             } elseif ($className == '\TARS_Map') {
                 $next = trim(substr($proto, $pos, strlen($proto) - $pos), '()');
                 $pos = strpos($next, ',');
                 $left = substr($next, 0, $pos);
                 $right = trim(substr($next, $pos, strlen($next) - $pos), ',');
 
-                $args[] = $this->createInstance($left);
-                $args[] = $this->createInstance($right);
-            } elseif ($this->isBasicType($className)) {
+                $args[] = self::createInstance($left);
+                $args[] = self::createInstance($right);
+            } elseif (self::isBasicType($className)) {
                 $next = trim(substr($proto, $pos, strlen($proto) - $pos), '()');
-                $basicInst = $this->createInstance($next);
+                $basicInst = self::createInstance($next);
                 $args[] = $basicInst;
             } else {
                 $structInst = new $className();
@@ -199,7 +241,7 @@ class TarsFormatter implements Formatter
         return $ins;
     }
 
-    private function isBasicType($type)
+    private static function isBasicType($type)
     {
         $basicTypes = [
             '\TARS::BOOL',
@@ -221,7 +263,7 @@ class TarsFormatter implements Formatter
         return in_array($type, $basicTypes);
     }
 
-    private function convertBasicType($type)
+    private static function convertBasicType($type)
     {
         $basicTypes = [
             '\TARS::BOOL' => 1,
@@ -241,18 +283,45 @@ class TarsFormatter implements Formatter
     }
 
     // 将数组转换成对象
-    private function fromArray($data, &$structObj)
+    private static function fromArray($data, &$structObj)
     {
         if (!empty($data)) {
             foreach ($data as $key => $value) {
                 if (method_exists($structObj, 'set' . ucfirst($key))) {
                     call_user_func_array([$this, 'set' . ucfirst($key)], [$value]);
                 } elseif ($structObj->$key instanceof \TARS_Struct) {
-                    $this->fromArray($value, $structObj->$key);
+                    self::fromArray($value, $structObj->$key);
                 } else {
                     $structObj->$key = $value;
                 }
             }
         }
+    }
+
+    protected static function packBuffer($type, $value, $index)
+    {
+        $packMethods = [
+            'bool' => '\TUPAPI::putBool',
+            'byte' => '\TUPAPI::putChar',
+            'char' => '\TUPAPI::putChar',
+            'unsigned byte' => '\TUPAPI::putUInt8',
+            'unsigned char' => '\TUPAPI::putUInt8',
+            'short' => '\TUPAPI::putShort',
+            'unsigned short' => '\TUPAPI::putUInt16',
+            'int' => '\TUPAPI::putInt32',
+            'unsigned int' => '\TUPAPI::putUInt32',
+            'long' => '\TUPAPI::putInt64',
+            'float' => '\TUPAPI::putFloat',
+            'double' => '\TUPAPI::putDouble',
+            'string' => '\TUPAPI::putString',
+            'enum' => '\TUPAPI::putShort',
+            'map' => '\TUPAPI::putMap',
+            'vector' => '\TUPAPI::putVector',
+            'struct' => '\TUPAPI::putStruct',
+        ];
+
+        $packMethod = $packMethods[$type];
+
+        return $packMethod($index, $value, 1);
     }
 }

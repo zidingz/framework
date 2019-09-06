@@ -2,11 +2,12 @@
 
 namespace SPF\Rpc\Protocol;
 
-use SPF\Formatter\FormatterFactory;
+use SPF\Rpc\Formatter\FormatterFactory;
 use Throwable;
 
 /**
- * @property \swoole_server|\swoole_http_server|\swoole_websocket_server $server 
+ * @property \swoole_server|\swoole_http_server|\swoole_websocket_server $server
+ * @method \Symfony\Component\Console\Output\ConsoleOutput console()
  */
 trait TcpProtocol
 {
@@ -42,6 +43,8 @@ trait TcpProtocol
             }
             $server->set($settings);
         }
+
+        $this->console()->writeln("<info>Listen on tcp://{$conn['host']}:{$conn['port']}</info>");
     }
 
     /**
@@ -49,7 +52,7 @@ trait TcpProtocol
      */
     public function onConnect(\swoole_server $server, int $fd, int $reactorId)
     {
-        // TODO
+        // do something
     }
 
     /**
@@ -58,33 +61,43 @@ trait TcpProtocol
     public function onReceive(\swoole_server $server, int $fd, int $reactorId, string $data)
     {
         try {
+            $header = [
+                'formatter' => FormatterFactory::FMT_TARS,
+                'request_id' => 0,
+                'uid' => 0,
+            ];
 
-            // TODO
-            $this->beforeReceive($server, $fd, $reactorId, $data);
+            try {
+                $this->beforeOnReceive($server, $fd, $reactorId, $data);
 
-            list($header, $body) = $this->decodePacket($data);
-            $request = FormatterFactory::decode($header['formatter'], $body);
-            $request['packet_header'] = $header;
-            $request['client'] = [];
+                $clientInfo = [];
+                $responseBuf = $this->handleRequest('tcp', $data, $clientInfo, $header);
+            } catch (Throwable $e) {
+                $responseBuf = $this->encodePacket('', $header, $e->getCode());
 
-            // middleware, such as allowIp, allowUser
+                $this->debugExceptionOutput($e);
+            }
 
-            // TODO
+            $server->send($fd, $responseBuf);
         } catch (Throwable $e) {
-
+            // TODO 系统错误，记录异常日志或者发送告警
+            // $code = $e->getCode();
+            // $msg = $e->getMessage();
+            // $this->console()->writeln("<error>系统错误：[{$code}] {$msg}</error>");
+            $this->debugExceptionOutput($e);
         }
     }
 
-    protected function beforeReceive(\swoole_server $server, int $fd, int $reactorId, string $data)
+    protected function beforeOnReceive(\swoole_server $server, int $fd, int $reactorId, string $data)
     {
-        // TODO
+        // do something
     }
 
     /**
      * TCP连接断开
      */
-    public function onClose(swoole_server $server, int $fd, int $reactorId)
+    public function onClose(\swoole_server $server, int $fd, int $reactorId)
     {
-        // TODO
+        // do something
     }
 }

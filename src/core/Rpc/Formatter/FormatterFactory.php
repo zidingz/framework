@@ -1,6 +1,6 @@
 <?php
 
-namespace SPF\Formatter;
+namespace SPF\Rpc\Formatter;
 
 use SPF\Rpc\RpcException;
 
@@ -15,7 +15,7 @@ class FormatterFactory
     // json 格式
     const FMT_JSON = 4;
 
-    protected $fmtMap = [
+    protected static $fmtMap = [
         self::FMT_TARS => 'tars',
         self::FMT_GRPC => 'grpc',
         self::FMT_SERIALIZE => 'serialize',
@@ -27,14 +27,15 @@ class FormatterFactory
      * 
      * @param int $formatId
      * @param mixed $data
+     * @param string $funcName
      * 
      * @return string
      */
-    public static function encode($formatId, $data)
+    public static function encode($formatId, $data, $funcName = '')
     {
         $formatter = self::getFormatter($formatId);
 
-        return call_user_func("{$formatter}::encode", $data);
+        return call_user_func("{$formatter}::encode", $data, $funcName);
     }
 
     /**
@@ -52,6 +53,20 @@ class FormatterFactory
         return call_user_func("{$formatter}::decode", $buffer);
     }
 
+    public static function encodeResponse($formatId, $response, $request)
+    {
+        $formatter = self::getFormatter($formatId);
+
+        return call_user_func("{$formatter}::encodeResponse", $response, $request);
+    }
+
+    public static function decodeRequest($formatId, $request)
+    {
+        $formatter = self::getFormatter($formatId);
+
+        return call_user_func("{$formatter}::decodeRequest", $request);
+    }
+
     /**
      * @param int $formatId
      * 
@@ -59,11 +74,11 @@ class FormatterFactory
      */
     protected static function getFormatter($formatId)
     {
-        if (!in_array($formatId, $this->fmtMap)) {
+        if (!isset(static::$fmtMap[$formatId])) {
             throw new RpcException(RpcException::ERR_UNSUPPORT_FMT, ['formatId' => $formatId]);
         }
 
-        $formatter = __NAMESPACE__ . '\\' . ucfirst($this->fmtMap[$formatId]) . 'Formatter';
+        $formatter = __NAMESPACE__ . '\\' . ucfirst(static::$fmtMap[$formatId]) . 'Formatter';
 
         return $formatter;
     }

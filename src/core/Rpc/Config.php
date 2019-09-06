@@ -28,7 +28,7 @@ class Config
             throw new Exception("config path [{$path}] is not exists");
         }
 
-        $dirIterator = new RecursiveDirectoryIterator($$path, RecursiveDirectoryIterator::SKIP_DOTS);
+        $dirIterator = new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::SKIP_DOTS);
         $iterator = new RecursiveIteratorIterator($dirIterator);
         foreach($iterator as $file) {
             if ($file->getExtension() !== 'php') {
@@ -214,5 +214,15 @@ class Config
         }
 
         return $realPath;
+    }
+
+    /**
+     * 是否处于debug模式
+     * 
+     * @return bool
+     */
+    public static function debug()
+    {
+        return !!static::$config['app']['debug'];
     }
 }
