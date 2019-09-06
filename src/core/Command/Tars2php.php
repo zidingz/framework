@@ -2,14 +2,14 @@
 
 namespace SPF\Command;
 
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use SPF\Exception\InvalidArgumentException;
-use SPF\Formatter\Tars\Tars2php\FileConverter;
-use SPF\Formatter\Tars\Tars2php\Utils;
+use SPF\Rpc\Config;
+use SPF\Rpc\Tool\Tars2php\FileConverter;
+use SPF\Rpc\Tool\Tars2php\Utils;
 use Throwable;
 
 class Tars2php extends Command
@@ -21,49 +21,25 @@ class Tars2php extends Command
             ->setHelp('You can automatic generate structs and interfaces according to tars file using this command')
             ->setDefinition(
                 new InputDefinition([
-                    // new InputOption('source', 's', InputOption::VALUE_REQUIRED, '要生产SDK的源码目录，默认为 src/api'),
-                    // new InputOption('output', 'o', InputOption::VALUE_OPTIONAL, 'SDK输出目录，默认为 sdk'),
-                    // new InputOption('libdir', null, InputOption::VALUE_OPTIONAL, 'SDK输出lib子目录，默认为 src'),
                 ])
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        // $src = $this->resolvePath($this->getOption($input, 'source', 'src/api'));
-        // $target = $this->resolvePath($this->getOption($input, 'output', 'sdk'));
-        // $libdir = $this->getOption($input, 'libdir', 'src');
-
-        // $this->validSource($src);
-
-        $config = [
-            // tarsFiles为数组时，为tars文件列表
-            // 'tarsFiles' => [
-            //     ROOT_PATH . '/tars/example.tars',
-            // ],
-            // tarsFiles为数组时，为tars文件夹
-            'tarsFiles' => ROOT_PATH . '/tars',
-            'dstPath' => PROJECT_SRC,
-            'nsPrefix' => PROJECT_NS,
-        ];
-
-        // $output->writeln("<info>Select source path: $src<info>");
-        // $output->writeln("<info>Select output path: $target<info>");
-        // $output->writeln("<info>Select libs directory: $libdir<info>");
-        
-        try {
-            Utils::setConsoleOutput($output);
-            
-            $fileConverter = new FileConverter($config);
-            
-            $fileConverter->moduleScanRecursive();
-            $fileConverter->moduleParserRecursive();
-        } catch (Throwable $e) {
-            $output->writeln('<error>'.$e->getMessage().'</error>');
-            foreach(explode("\n", $e->getTraceAsString()) as $line) {
-                $output->writeln("<comment>  {$line}</comment>");
-            }
+        $tarsConfig = Config::getOrFailed('app.tars');
+        if (empty($tarsConfig['nsPrefix'])) {
+            $tarsConfig['nsPrefix'] = Config::getOrFailed('app.namespacePrefix');
         }
+
+        $rootPath = Config::$rootPath;
+
+        Utils::setConsoleOutput($output);
+        
+        $fileConverter = new FileConverter($tarsConfig, $rootPath);
+        
+        $fileConverter->moduleScanRecursive();
+        $fileConverter->moduleParserRecursive();
     }
 
     /**

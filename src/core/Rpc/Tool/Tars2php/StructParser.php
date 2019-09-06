@@ -1,6 +1,6 @@
 <?php
 
-namespace SPF\Formatter\Tars\Tars2php;
+namespace SPF\Rpc\Tool\Tars2php;
 
 class StructParser
 {

@@ -1,10 +1,11 @@
 <?php
 
-namespace SPF\Formatter\Tars\Tars2php;
+namespace SPF\Rpc\Tool\Tars2php;
 
 use SPF\Exception\Exception;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use SPF\Rpc\Config;
 
 class FileConverter
 {
@@ -53,7 +54,7 @@ class FileConverter
 
     public function __construct(array $config, $rootPath = null)
     {
-        $this->rootPath = $rootPath ?: (defined('ROOT_PATH') ? ROOT_PATH : getcwd());
+        $this->rootPath = $rootPath ?: Config::$rootPath;
 
         $this->config = array_merge($this->config, $config);
 
@@ -201,8 +202,9 @@ class FileConverter
      */
     protected function moduleScan($tarsFile)
     {
-        Utils::log("<info>复制tars文件： <comment>[".basename($tarsFile)."]</comment> 到 <comment>[{$tarsFile}]</comment></info>", 'raw');
-        copy($tarsFile, $this->outputDir . '/' . $this->config['tarsDir'] . '/' . basename($tarsFile));
+        $tarsDstPath = $this->outputDir . '/' . $this->config['tarsDir'] . '/' . basename($tarsFile);
+        Utils::log("<info>复制tars文件： <comment>[".basename($tarsFile)."]</comment> 到 <comment>[{$tarsDstPath}]</comment></info>", 'raw');
+        copy($tarsFile, $tarsDstPath);
 
         $fp = fopen($tarsFile, 'r');
         while (($line = fgets($fp, 1024)) !== false) {
