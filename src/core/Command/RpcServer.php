@@ -154,11 +154,10 @@ class RpcServer extends Command
 
         $this->info('> Force Killing RPC Server...');
 
-        // TODO kill -9 无法杀死子进程
-        $isRunning = $this->killProcess($pid, SIGKILL);
-
-        if (!$isRunning) {
-            throw new Exception("Kill Rpc Server Failed!");
+        exec('ps -ef | grep "rpc-server" | awk "{print $2}" | xargs kill -9', $output);
+        $this->removePidFile();
+        foreach($output as $line) {
+            $this->info($line);
         }
 
         $this->info('> success');
@@ -279,6 +278,17 @@ class RpcServer extends Command
     {
         if (Config::get('app.server.0.settings.daemonize', 0)) {
             $this->info('> (You can run this command to ensure the RPC Server is running: ps aux|grep "rpc-server")');
+        }
+    }
+
+    /**
+     * 移除PID文件
+     */
+    protected function removePidFile()
+    {
+        $pidFile = $this->pidFile();
+        if (is_file($pidFile)) {
+            unlink($pidFile);
         }
     }
 }

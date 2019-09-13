@@ -2,7 +2,6 @@
 
 namespace SPF\Rpc\Tool;
 
-
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use ReflectionClass;
@@ -42,7 +41,7 @@ class ReflectionClassMap
         if (is_null($implNsPrefix)) {
             $tarsNsPrefix = Config::get('app.tars.nsPrefix');
             $implNsPrefix = (is_null($tarsNsPrefix) ? Config::get('app.namespacePrefix') : $tarsNsPrefix) . '\\' .
-                 Config::get('app.tars.ImplNs', 'Impl');
+                 Config::get('app.tars.implNs', 'Impl');
         }
 
         $implPath = realpath($implPath);

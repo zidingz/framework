@@ -168,7 +168,7 @@ class TarsFormatter implements Formatter
                 if ($type === 'map' || $type === 'vector') {
                     if ($param['ref']) {
                         ${$param['name']} = self::createInstance($param['proto']);
-                        $args[] = ${$param['name']};
+                        $args[] = &${$param['name']};
                     } else {
                         // 对于复杂的类型,需要进行实例化
                         $proto = self::createInstance($param['proto']);
@@ -178,7 +178,7 @@ class TarsFormatter implements Formatter
                 } elseif ($type === 'struct') {
                     if ($param['ref']) {
                         ${$param['name']} = new $param['proto']();
-                        $args[] = ${$param['name']};
+                        $args[] = &${$param['name']};
                     } else {
                         // 对于复杂的类型,需要进行实例化
                         $proto = new $param['proto']();
@@ -187,10 +187,10 @@ class TarsFormatter implements Formatter
                         self::fromArray($value, $proto);
                         $args[] = $proto;
                     }
-                } // 基本类型
-                else {
+                } else {
                     if ($param['ref']) {
-                        $args[] = null;
+                        ${$param['name']} = $unpackMethod($param['index'] + 1, $sBuffer, false, 1);
+                        $args[] = &${$param['name']};
                     } else {
                         $args[] = $unpackMethod($param['index'] + 1, $sBuffer, false, 1);
                         // $args[] = $unpackMethod($param['name'], $sBuffer, false, 3);

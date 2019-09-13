@@ -57,6 +57,8 @@ class Utils
 
     public static function getPackMethods($type)
     {
+        $type = strtolower($type);
+
         $packMethods = [
             'bool' => 'putBool',
             'boolean' => 'putBool',
@@ -75,23 +77,6 @@ class Utils
             'enum' => 'putUInt8',
             'map' => 'putMap',
             'vector' => 'putVector',
-            'Bool' => 'putBool',
-            'Boolean' => 'putBool',
-            'Byte' => 'putChar',
-            'Char' => 'putChar',
-            'Unsigned byte' => 'putUInt8',
-            'Unsigned char' => 'putUInt8',
-            'Short' => 'putShort',
-            'Unsigned short' => 'putUInt16',
-            'Int' => 'putInt32',
-            'Unsigned int' => 'putUInt32',
-            'Long' => 'putInt64',
-            'Float' => 'putFloat',
-            'Double' => 'putDouble',
-            'String' => 'putString',
-            'Enum' => 'putUInt8',
-            'Map' => 'putMap',
-            'Vector' => 'putVector',
         ];
 
         if (isset($packMethods[$type])) {
@@ -103,6 +88,8 @@ class Utils
 
     public static function getUnpackMethods($type)
     {
+        $type = strtolower($type);
+        
         $unpackMethods = [
             'bool' => 'getBool',
             'boolean' => 'getBool',
@@ -121,23 +108,6 @@ class Utils
             'enum' => 'getUInt8',
             'map' => 'getMap',
             'vector' => 'getVector',
-            'Bool' => 'getBool',
-            'Boolean' => 'getBool',
-            'Byte' => 'getChar',
-            'Char' => 'getChar',
-            'Unsigned byte' => 'getUInt8',
-            'Unsigned char' => 'getUInt8',
-            'Short' => 'getShort',
-            'Unsigned short' => 'getUInt16',
-            'Int' => 'getInt32',
-            'Unsigned int' => 'getUInt32',
-            'Long' => 'getInt64',
-            'Float' => 'getFloat',
-            'Double' => 'getDouble',
-            'String' => 'getString',
-            'Enum' => 'getUInt8',
-            'Map' => 'getMap',
-            'Vector' => 'getVector',
         ];
 
         if (isset($unpackMethods[strtolower($type)])) {

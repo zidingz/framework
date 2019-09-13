@@ -4,6 +4,8 @@ namespace SPF\Rpc\Tool;
 
 use SPF\Rpc\Config;
 use SPF\Rpc\RpcException;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 class Helper
 {   
@@ -19,7 +21,7 @@ class Helper
         $class = str_replace('.', '\\', $package);
 
         $nsPrefix = Config::get('app.namespacePrefix', '');
-        $nsImpl = Config::get('app.tars.ImplNs', 'Impl');
+        $nsImpl = Config::get('app.tars.implNs', 'Impl');
         $fullClass = "{$nsPrefix}\\{$nsImpl}\\{$class}";
         
         $map = ReflectionClassMap::getMap();
@@ -50,5 +52,19 @@ class Helper
         } elseif (function_exists('cli_set_process_title')) {
             cli_set_process_title($name);
         }
+    }
+
+    /**
+     * 递归读取文件夹
+     * 
+     * @param string $folder
+     * 
+     * @return \RecursiveIteratorIterator
+     */
+    public static function recurseReadFolder($folder)
+    {
+        $iterator = new RecursiveDirectoryIterator($folder, RecursiveDirectoryIterator::SKIP_DOTS);
+
+        return new RecursiveIteratorIterator($iterator);
     }
 }

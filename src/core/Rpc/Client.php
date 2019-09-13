@@ -21,8 +21,6 @@ class Client
         'service' => null,
         // 本地SDK命名空间前缀
         'localNsPrefix' => null,
-        // 服务端SDK命名空间前缀
-        'serverNsPrefix' => null,
         // 业务方提供SDK版本
         'sdkVersion' => 0,
         // 打包协议
@@ -57,6 +55,27 @@ class Client
      * @var callable|array
      */
     protected $requestHandle = null;
+
+    /**
+     * 实例列表
+     * 
+     * @var self
+     */
+    protected static $instance = null;
+
+    /**
+     * 获取单例实例
+     * 
+     * @return self
+     */
+    public static function getInstance()
+    {
+        if (is_null(static::$instance)) {
+            static::$instance = new static;
+        }
+
+        return static::$instance;
+    }
 
     public function __construct(array $config = [])
     {
@@ -191,9 +210,8 @@ class Client
     {
         // 对class去除公共命名空间前缀   
         $localNsPrefix = $this->config['localNsPrefix'] . '\\';
-        $serverNsPrefix = $this->config['serverNsPrefix'];
         if (substr($class, 0, strlen($localNsPrefix)) == $localNsPrefix) {
-            $class = ($serverNsPrefix ? $serverNsPrefix . '\\' : $serverNsPrefix) . substr($class, strlen($localNsPrefix));
+            $class = substr($class, strlen($localNsPrefix));
         }
 
         return str_replace('\\', '.', $class) . '@' . $function;
@@ -355,5 +373,20 @@ class Client
         });
 
         return $servers[0];
+    }
+
+    /**
+     * 设置配置项
+     * 
+     * @param string $key
+     * @param mixed $value
+     * 
+     * @return self
+     */
+    public function setConfig($key, $value)
+    {
+        $this->config[$key] = $value;
+
+        return $this;
     }
 }
