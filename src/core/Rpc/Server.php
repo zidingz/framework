@@ -179,6 +179,11 @@ class Server
         $this->server->on('WorkerStop', [$this, 'onWorkerStop']);
         $this->server->on('WorkerExit', [$this, 'onWorkerExit']);
         $this->server->on('WorkerError', [$this, 'onWorkerError']);
+
+        if (Config::get('app.hotReload.driver')) {
+            $this->server->addProcess($this->getHostReloadProcess($this->server));
+            $this->console()->writeln("<comment>hot reload is enable, changed code will reload without manual reloading server</comment>");
+        }
         
         // 暴露hook
         $this->beforeStart($this->server);
@@ -295,5 +300,26 @@ class Server
         foreach (explode("\n", $e->getTraceAsString()) as $line) {
             $this->console()->writeln("<comment>    >{$line}</comment>");
         }
+    }
+
+    /**
+     * @return \swoole_process
+     */
+    protected function getHostReloadProcess(\swoole_server $server)
+    {
+        $driver = Config::get('app.hotReload.driver');
+        $hotReload = new $driver(Config::$rootPath, Config::get('app.hotReload', []));
+        $enableLog = Config::get('app.hotReload.log', true);
+        
+        $hotReload->setCallback(function($logs) use($enableLog, $server) {
+            if ($enableLog) {
+                foreach ($logs as $log) {
+                    echo $log, PHP_EOL;
+                }
+            }
+            $server->reload();
+        });
+
+        return $hotReload->make();
     }
 }
