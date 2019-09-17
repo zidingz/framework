@@ -32,72 +32,53 @@ class Server
      */
     public $consoleOutput = null;
 
-    const MIDDLEWARE_TCP = 'tcp';
-    const MIDDLEWARE_HTTP = 'http';
-    const MIDDLEWARE_COMMON = 'common';
-
-    protected $middlewares = [
-        'tcp' => [],
-        'common' => [],
-    ];
-
     /**
-     * 注册中间件
+     * 中间件，[protocol1 => [middleware1, middleware2], protocol2 => []]格式
      * 
-     * @param string $name 中间件名称
-     * @param callable|array $handle 中间件handle
-     * @param string $protocol 中间件协议
-     * 
-     * @return self
+     * @var array
      */
-    public function registerMiddleware($name, $handle, $protocol = self::MIDDLEWARE_COMMON)
-    {
-        // TODO 校验中间件是否合法
-        $this->middlewares[$protocol][$name] = $handle;
+    protected $middlewares = [];
 
-        return $this;
+    public function __construct()
+    {
+        $this->initMiddlewares();
     }
 
     /**
-     * 移除中间件
-     * 
-     * @param string $name 中间件名称
-     * @param string $protocol 中间件协议
-     * 
-     * @return self
+     * 初始化中间件，将中间件从配置文件读取分配到各个协议中
      */
-    public function removeMiddleware($name, $protocol = self::MIDDLEWARE_COMMON)
+    protected function initMiddlewares()
     {
-        unset($this->middlewares[$protocol][$name]);
-
-        return $this;
-    }
-
-    protected function registerMiddlewareVerifyIP($request, Closure $next)
-    {
-        // do something
-        $response = $next($request);
-        // after response
-
-        return $response;
-    }
-
-    protected function handleMiddleware($request, $protocol)
-    {
-        // TODO
-        return ;
-        // 先执行指定协议的中间件
-        foreach($this->middlewares[$protocol] as $name => $handle) {
-            try {
-                if (call_user_func($handle, $request) === false) {
-                    return false;
-                }
-            } catch (Throwable $e) {
-
-            }
+        $common = Config::get('app.middleware', []);
+        foreach(Config::get('app.server') as $server) {
+            $this->middlewares[$server['protocol']] = array_merge($common, $server['middleware'] ?? []);
         }
     }
 
+    /**
+     * 执行中间件
+     * 
+     * @param array $request
+     * @param string $protocol
+     * 
+     * @return mixed same as callFunction
+     */
+    protected function handleMiddleware(&$request, $protocol)
+    {
+        $middlewares = $this->middlewares[$protocol] ?? [];
+        $pipe = array_reduce(array_reverse($middlewares), function ($carry, $item) {
+            return function (&$request) use ($carry, $item) {
+                // return call_user_func($item, $request, $carry);
+                return $item($request, $carry);
+            };
+        }, $this->initPipeline());
+
+        return $pipe($request);
+    }
+
+    /**
+     * 执行请求
+     */
     protected function handleRequest($protocol, $data, $clientInfo = [], &$protocolHeader = [])
     {
         $dePacket = $this->decodePacket($data);
@@ -107,9 +88,8 @@ class Server
         $request['packet_header'] = $protocolHeader;
         $request['client'] = $clientInfo;
 
-        $this->handleMiddleware($request, $protocol);
+        $responseData = $this->handleMiddleware($request, $protocol);
 
-        $responseData = $this->callFunction($request);
         $responseFmt = FormatterFactory::encodeResponse($dePacket['header']['formatter'], $responseData, $request);
 
         return $this->encodePacket($responseFmt, $dePacket['header'], 0);
@@ -121,6 +101,18 @@ class Server
         $response = call_user_func_array([$class, $request['function']], $request['req_params']);
 
         return $response;
+    }
+
+    /**
+     * 初始化中间件管道
+     * 
+     * @return \Closure
+     */
+    protected function initPipeline()
+    {
+        return function(&$request) {
+            return $this->callFunction($request);
+        };
     }
 
     protected function encodePacket($response, $reqHeader, $errno = 0)
