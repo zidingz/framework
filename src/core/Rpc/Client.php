@@ -4,6 +4,7 @@ namespace SPF\Rpc;
 
 use SPF\Rpc\Formatter\FormatterFactory;
 use SPF\Rpc\Protocol\ProtocolHeader;
+use SPF\Rpc\Client\Request;
 use Throwable;
 
 class Client
@@ -91,36 +92,6 @@ class Client
     }
 
     /**
-     * 注册中间件
-     * 
-     * @param string $name 中间件名称
-     * @param callable|array $handle 中间件handle
-     * 
-     * @return self
-     */
-    public function registerMiddleware($name, $handle)
-    {
-        // TODO 校验中间件是否合法
-        $this->middlewares[$name] = $handle;
-
-        return $this;
-    }
-
-    /**
-     * 移除中间件
-     * 
-     * @param string $name 中间件名称
-     * 
-     * @return self
-     */
-    public function removeMiddleware($name)
-    {
-        unset($this->middlewares[$name]);
-
-        return $this;
-    }
-
-    /**
      * @param callable|string|array $requestHandle
      * 
      * @return self
@@ -135,20 +106,28 @@ class Client
     /**
      * 执行中间件
      */
-    protected function handleMiddleware($request)
+    protected function handleMiddleware($request, $protocol)
     {
-        // TODO
-        return;
-        // 先执行指定协议的中间件
-        foreach ($this->middlewares as $name => $handle) {
-            try {
-                if (call_user_func($handle, $request) === false) {
-                    return false;
-                }
-            } catch (Throwable $e) { 
-                // do something
-            }
-        }
+        $middlewares = $this->getMiddleware($protocol);
+        $pipe = array_reduce(array_reverse($middlewares), function ($carry, $item) {
+            return function (&$request) use ($carry, $item) {
+                return call_user_func($item, $request, $carry);
+            };
+        }, $this->initPipeline());
+
+        return $pipe($request);
+    }
+
+    protected function initPipeline()
+    {
+        return function (Request $request) {
+            return $this->handleCall($request);
+        };
+    }
+
+    protected function getMiddleware($protocol)
+    {
+        return array_merge($this->middlewares['common'] ?? [], $this->middlewares[$protocol] ?? []);
     }
 
     /**
@@ -161,7 +140,10 @@ class Client
     public function call($class, $function, $encodeBufs = [])
     {
         // TODO 中间件
-        $response = $this->handleCall($class, $function, $encodeBufs);
+        $connection = $this->getConnByWeight();
+        $request = new Request($class, $function, $encodeBufs, $connection, $this->config);
+
+        $response = $this->handleMiddleware($request, $request->getProtocol());
 
         return $response;
     }
@@ -173,20 +155,18 @@ class Client
      * 
      * @return mixed
      */
-    protected function handleCall($class, $function, $encodeBufs)
+    protected function handleCall(Request $request)
     {
-        $funcName = $this->encodeFuncName($class, $function);
-
         // 将参数进行打包操作，跟配置的打包类型
-        $buffer = $this->formatterEncode($encodeBufs, $funcName);
+        $buffer = $this->formatterEncode($request->params(), $request->getCallFunction());
 
         // 对包体增加32字节header
         $reqPacket = $this->encodePacket($buffer);
 
         // 发送请求
-        $resPacket = $this->sendRequest($reqPacket);
+        $resPacket = $this->sendRequest($reqPacket, $request->getConnection());
 
-        // 对包体解析32字节header
+        // 对包体解析32字节header 
         $resDecode = $this->decodePacket($resPacket);
 
         // 如果有异常，抛出相应异常
@@ -198,23 +178,6 @@ class Client
         $response = $this->formatterDecode($resDecode['body']);
 
         return $response;
-    }
-
-    /**
-     * @param string $class
-     * @param string $function
-     * 
-     * @return string ns1.ns2.class@func
-     */
-    protected function encodeFuncName($class, $function)
-    {
-        // 对class去除公共命名空间前缀   
-        $localNsPrefix = $this->config['localNsPrefix'] . '\\';
-        if (substr($class, 0, strlen($localNsPrefix)) == $localNsPrefix) {
-            $class = substr($class, strlen($localNsPrefix));
-        }
-
-        return str_replace('\\', '.', $class) . '@' . $function;
     }
 
     /**
@@ -264,13 +227,12 @@ class Client
      * 发送请求
      * 
      * @param string $reqPacket 请求包体
+     * @param array $conn 连接信息
      * 
      * @return string 响应包体
      */
-    protected function sendRequest($reqPacket)
+    protected function sendRequest($reqPacket, $conn)
     {
-        $conn = $this->getConnByWeight();
-
         if (!is_null($this->requestHandle)) {
             $resPacket = call_user_func($this->requestHandle, $reqPacket, $conn, $this);
         } else {
