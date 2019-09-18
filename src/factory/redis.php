@@ -2,7 +2,7 @@
 $app = SPF\App::getInstance();
 
 $config = $app->config['redis'][$app->factory_key];
-if (empty($config) or empty($config['host'])) {
+if (empty($config) or (empty($config['host']) and empty($config['socket']))) {
     throw new Exception("require redis[$app->factory_key] config.");
 }
 
