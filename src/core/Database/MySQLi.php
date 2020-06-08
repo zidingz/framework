@@ -118,6 +118,16 @@ class MySQLi implements SPF\IDatabase
     {
         $result = false;
         for ($i = 0; $i < 2; $i++) {
+            /**
+             * check mysql instance for connect failed and reset object
+             */
+            if (empty($call[0])) {
+                if ($this->connect()) {
+                    $call[0] = $this->mysqli;
+                } else {
+                    continue;
+                }
+            }
             $result = call_user_func_array($call, $params);
             if ($result === false) {
                 if ($this->mysqli->errno == 2013 or $this->mysqli->errno == 2006 or ($this->mysqli->errno == 0 and !$this->mysqli->ping())) {
