@@ -199,11 +199,11 @@ class HttpServer extends SPF\Protocol\WebServer implements  SPF\IFace\Protocol
      * 接收到数据
      * @param $serv \swoole_server
      * @param $client_id
-     * @param $from_id
+     * @param $tid
      * @param $data
      * @return null
      */
-    function onReceive($serv, $client_id, $from_id, $data)
+    function onReceive($serv, $client_id, $tid, $data)
     {
         //检测request data完整性
         $ret = $this->checkData($client_id, $data);
