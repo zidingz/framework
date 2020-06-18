@@ -24,7 +24,7 @@ class WebSocket extends SPF\Protocol\WebSocket
 
     function router()
     {
-        var_dump($this->message);
+        var_dump(strlen($this->message));
     }
 
     /**
@@ -59,10 +59,12 @@ class WebSocket extends SPF\Protocol\WebSocket
 
     /**
      * 接收到消息时
+     * @param $client_id
+     * @param $ws
      */
     function onMessage($client_id, $ws)
     {
-        $this->log("onMessage: ".$client_id.' = '.$ws['message']);
+        $this->log("onMessage: ".$client_id.' = '.strlen($ws['message']));
         $this->send($client_id, 'Server: '.$ws['message']);
 		//$this->broadcast($client_id, $ws['message']);
     }

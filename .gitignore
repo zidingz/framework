@@ -10,3 +10,4 @@
 /nbproject
 /.buildpath
 /.project
+/.phpunit.result.cache

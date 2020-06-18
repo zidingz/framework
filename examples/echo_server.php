@@ -6,7 +6,7 @@ $app = SPF\App::getInstance( realpath(__DIR__ . '/../'));
 
 class EchoServer extends SPF\Protocol\Base
 {
-    function onReceive($server, $client_id, $from_id, $data)
+    function onReceive($server, $client_id, $tid, $data)
     {
         $this->server->send($client_id, "SPF: " . $data);
     }
