@@ -1,7 +1,12 @@
 <?php
+
+use SPF\Network\Server;
+
 define('DEBUG', 'on');
-define("WEBPATH", str_replace("\\","/", __DIR__));
-require __DIR__ . '/../libs/lib_config.php';
+
+require __DIR__.'/../vendor/autoload.php';
+
+$app = SPF\App::getInstance( __DIR__.'/../');
 
 class WebSocket extends SPF\Protocol\WebSocket
 {
@@ -13,7 +18,7 @@ class WebSocket extends SPF\Protocol\WebSocket
      */
     function onStart($serv, $worker_id = 0)
     {
-        SPF\App::$app->router(array($this, 'router'));
+        SPF\App::getInstance()->router(array($this, 'router'));
         parent::onStart($serv, $worker_id);
     }
 
@@ -89,6 +94,7 @@ $AppSvr->setLogger(new \SPF\Log\EchoLog(true)); //Logger
  * EventTCP 使用libevent，需要安装libevent扩展
  */
 $enable_ssl = false;
+SPF\Network\Server::setOption('base', true);
 $server = SPF\Network\Server::autoCreate('0.0.0.0', 9443, $enable_ssl);
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程
