@@ -155,9 +155,9 @@ abstract class WebSocket extends HttpServer
 
     /**
      * Produce response for WebSocket request.
-     *
      * @param SPF\Request $request
      * @return SPF\Response
+     * @throws \Exception
      */
     function onWebSocketRequest(SPF\Request $request)
     {
@@ -170,6 +170,7 @@ abstract class WebSocket extends HttpServer
      * Request come
      * @param SPF\Request $request
      * @return SPF\Response
+     * @throws \Exception
      */
     function onRequest(SPF\Request $request)
     {

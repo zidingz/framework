@@ -36,11 +36,6 @@ class HttpServer extends SPF\Protocol\WebServer implements  SPF\IFace\Protocol
 
     function onStart($serv, $worker_id = 0)
     {
-        if (!defined('WEBROOT'))
-        {
-            define('WEBROOT', $this->config['server']['webroot']);
-        }
-
         if (isset($this->config['server']['user']))
         {
             SPF\Console::changeUser($this->config['server']['user']);
@@ -49,7 +44,7 @@ class HttpServer extends SPF\Protocol\WebServer implements  SPF\IFace\Protocol
         SPF\Error::$echo_html = true;
         $this->swoole_server = $serv;
         SPF\App::$app->server = $this;
-        $this->log(self::SOFTWARE . "[#{$worker_id}]. running. on {$this->server->host}:{$this->server->port}");
+        $this->log(self::SOFTWARE . "[#{$worker_id}]. running on {$this->server->host}:{$this->server->port}");
         set_error_handler(array($this, 'onErrorHandle'), E_USER_ERROR);
         register_shutdown_function(array($this, 'onErrorShutDown'));
     }

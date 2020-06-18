@@ -320,7 +320,7 @@ class Server extends Base implements Driver
      */
     static function autoCreate($host, $port, $ssl = false)
     {
-        if (class_exists('\\swoole_server', false))
+        if (class_exists('\\Swoole\\Server', false))
         {
             return new self($host, $port, $ssl);
         }
@@ -485,6 +485,8 @@ class Server extends Base implements Driver
         {
             $this->runtimeSetting['task_worker_num'] = intval(self::$options['tasker']);
         }
+
+        $this->log("server settings=".var_export($this->runtimeSetting, true));
         $this->sw->set($this->runtimeSetting);
         $this->sw->on('Start', array($this, 'onMasterStart'));
         $this->sw->on('Shutdown', array($this, 'onMasterStop'));
