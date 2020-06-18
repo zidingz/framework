@@ -65,12 +65,16 @@ class MySQLi implements SPF\IDatabase
         } elseif (isset($db_config['database'])) {
             $db_config['name'] = $db_config['database'];
         }
+        if (!isset($db_config['socket'])) {
+            $db_config['socket'] = null;
+		}
         $this->mysqli = mysqli_connect(
             $host,
             $db_config['user'],
             $db_config['password'],
             $db_config['name'],
-            $db_config['port']
+            $db_config['port'],
+            $db_config['socket']
         );
         if (!$this->mysqli) {
             trigger_error("mysqli connect to server[$host:{$db_config['port']}] failed: " . $this->mysqli->connect_error, E_USER_WARNING);
