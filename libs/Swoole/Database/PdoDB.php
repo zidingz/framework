@@ -181,9 +181,9 @@ class PdoDB extends \PDO implements Swoole\IDatabase
 		return;
 	}
 
-    function quote($str)
+    function quote($str,$parameter_type = NULL)
     {
-        $safeStr = parent::quote($str);
+        $safeStr = parent::quote($str,$parameter_type = NULL);
         return substr($safeStr, 1, strlen($safeStr) - 2);
     }
 }
