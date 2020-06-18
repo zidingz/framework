@@ -34,8 +34,9 @@ abstract class WebSocket extends HttpServer
      */
     const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
-    public $frame_list = array();
-    public $connections = array();
+    protected $frame_list = [];
+    protected $buffer_list = [];
+    public $connections = [];
     public $max_connect = 10000;
     public $max_frame_size = 2097152; //数据包最大长度，超过此长度会被认为是非法请求
     public $heart_time = 600; //600s life time
@@ -203,14 +204,15 @@ abstract class WebSocket extends HttpServer
      * @access  public
      * @throw   \Exception
      */
-    public function onReceive($server, $fd, $from_id, $data)
+    public function onReceive($server, $fd, $tid, $data)
     {
-        //$this->log("Connection[{$fd}] received ".strlen($data)." bytes.");
-        //未连接
+        $this->log("Connection[{$fd}] received ".strlen($data)." bytes.");
+        //未完成握手，先进入 Http 握手阶段
         if (!isset($this->connections[$fd])) {
-            return parent::onReceive($server, $fd, $from_id, $data);
+            return parent::onReceive($server, $fd, $tid, $data);
         }
 
+        //处理数据
         while (strlen($data) > 0 and isset($this->connections[$fd])) {
             //新的请求
             if (!isset($this->frame_list[$fd])) {
@@ -221,28 +223,30 @@ abstract class WebSocket extends HttpServer
                     break;
                 }
                 //数据完整
-                if ($frame['finish']) {
+                if ($frame['completed']) {
                     $this->log("NewFrame finish. Opcode=" . $frame['opcode'] . "|Length={$frame['length']}");
                     $this->opcodeSwitch($fd, $frame);
                 } //数据不完整加入到缓存中
                 else {
                     $this->frame_list[$fd] = $frame;
+                    $this->log("[total length] = ".$frame['length'].'. [current length] = '.strlen($frame['data']));
+                    break;
                 }
             } else {
                 $frame = &$this->frame_list[$fd];
                 $frame['data'] .= $data;
 
-                //$this->log("wait length = ".$ws['length'].'. data_length='.strlen($ws['data']));
+                $this->log("[total length] = ".$frame['length'].'. [current length] = '.strlen($frame['data']));
 
                 //数据已完整，进行处理
                 if (strlen($frame['data']) >= $frame['length']) {
-                    $frame['fin'] = 1;
-                    $frame['finish'] = true;
-                    $frame['data'] = substr($frame['data'], 0, $frame['length']);
-                    $frame['message'] = $this->parseMessage($frame);
-                    $this->opcodeSwitch($fd, $frame);
+                    $frame['completed'] = true;
                     $data = substr($frame['data'], $frame['length']);
-                } //数据不足，跳出循环，继续等待数据
+                    $frame['data'] = substr($frame['data'], 0, $frame['length']);
+                    $this->opcodeSwitch($fd, $frame);
+                    unset($this->frame_list[$fd]);
+                }
+                //数据不足，跳出循环，继续等待数据
                 else {
                     break;
                 }
@@ -259,10 +263,10 @@ abstract class WebSocket extends HttpServer
      */
     function parseFrame(&$buffer)
     {
-        //$this->log("PaserFrame. BufferLen=".strlen($buffer));
+        $this->log("PaserFrame. BufferLen=".strlen($buffer));
         //websocket
         $ws = array();
-        $ws['finish'] = false;
+        $ws['completed'] = false;
 
         $data_offset = 0;
 
@@ -284,7 +288,6 @@ abstract class WebSocket extends HttpServer
         $data_offset++;
 
         if ($length == 0x7e) {
-            //2
             $handle = unpack('nl', substr($buffer, $data_offset, 2));
             $data_offset += 2;
             $length = $handle['l'];
@@ -305,27 +308,27 @@ abstract class WebSocket extends HttpServer
             $data_offset += 4;
         }
 
-        //把头去掉
+        //去掉 websocket 头
         $buffer = substr($buffer, $data_offset);
 
         //数据长度为0的帧
         if (0 === $length) {
-            $ws['finish'] = true;
+            $ws['completed'] = true;
             $ws['message'] = '';
             return $ws;
         }
 
         //完整的一个数据帧
         if (strlen($buffer) >= $length) {
-            $ws['finish'] = true;
+            $ws['completed'] = true;
             $ws['data'] = substr($buffer, 0, $length);
-            $ws['message'] = $this->parseMessage($ws);
             //截取数据
             $buffer = substr($buffer, $length);
             return $ws;
-        } //需要继续等待数据
+        }
+        //需要继续等待数据
         else {
-            $ws['finish'] = false;
+            $ws['completed'] = false;
             $ws['data'] = $buffer;
             $buffer = "";
             return $ws;
@@ -401,27 +404,49 @@ abstract class WebSocket extends HttpServer
     /**
      * opcode switch
      * @param $client_id
-     * @param $ws
+     * @param $frame
      */
-    function opcodeSwitch($client_id, &$ws)
+    function opcodeSwitch($client_id, &$frame)
     {
-        $this->log("[$client_id] opcode={$ws['opcode']}");
+        $this->log("[$client_id] opcode={$frame['opcode']}, fin={$frame['fin']}, length={$frame['length']}\n".str_repeat('-', 80));
 
-        switch ($ws['opcode']) {
+        if (!empty($frame['data'])) {
+            $frame['message'] = $this->parseMessage($frame);
+            unset($frame['data']);
+        }
+
+        switch ($frame['opcode']) {
             //data frame
             case self::OPCODE_BINARY_FRAME:
             case self::OPCODE_TEXT_FRAME:
-                if (0x1 === $ws['fin']) {
-                    $this->onMessage($client_id, $ws);
+            case self::OPCODE_CONTINUATION_FRAME:
+                /**
+                 * 等待数据合并
+                 */
+                if (isset($this->buffer_list[$client_id])) {
+                    $this->buffer_list[$client_id]['message'] .= $frame['message'];
+                    $this->log('merge data, [total length]=' . strlen($this->buffer_list[$client_id]['message']) .
+                        ', [chunk length]=' . strlen($frame['message']));
+                }
+
+                if (0x1 === $frame['fin']) {
+                    if (isset($this->buffer_list[$client_id])) {
+                        $frame = $this->buffer_list[$client_id];
+                        $frame['length'] = strlen($frame['message']);
+                        unset($this->buffer_list[$client_id]);
+                    }
+                    $this->onMessage($client_id, $frame);
                 } else {
-                    $this->log("not finish frame");
+                    if (!isset($this->buffer_list[$client_id])) {
+                        $this->buffer_list[$client_id] = $frame;
+                    }
                 }
                 break;
 
             //heartbeat
             case self::OPCODE_PING:
-                $message = &$ws['message'];
-                if (0x0 === $ws['fin'] or 0x7d < $ws['length']) {
+                $message = &$frame['message'];
+                if (0x0 === $frame['fin'] or 0x7d < $frame['length']) {
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "ping error");
                     break;
                 }
@@ -430,21 +455,21 @@ abstract class WebSocket extends HttpServer
                 break;
 
             case self::OPCODE_PONG:
-                if (0 === $ws['fin']) {
+                if (0 === $frame['fin']) {
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "pong? server cannot pong.");
                 }
                 break;
 
             //close the connection
             case self::OPCODE_CONNECTION_CLOSE:
-                $length = &$ws['length'];
+                $length = &$frame['length'];
                 if (1 === $length or 0x7d < $length) {
                     $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "client active close");
                     break;
                 }
 
                 if ($length > 0) {
-                    $message = $ws['message'];
+                    $message = $frame['message'];
                     $_code = unpack('nc', substr($message, 0, 2));
                     $code = $_code['c'];
 
@@ -466,10 +491,9 @@ abstract class WebSocket extends HttpServer
                 }
                 break;
             default:
-                $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "unkown websocket opcode[{$ws['opcode']}]");
+                $this->close($client_id, self::CLOSE_PROTOCOL_ERROR, "unkown websocket opcode[{$frame['opcode']}]");
                 break;
         }
-        unset($this->frame_list[$client_id]);
     }
 
     /**
