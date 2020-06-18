@@ -1,9 +1,8 @@
 <?php
 define('DEBUG', 'on');
-define("WEBPATH", realpath(__DIR__ . '/../'));
-require __DIR__ . '/../libs/lib_config.php';
+require __DIR__ . '/../vendor/autoload.php';
 //require __DIR__'/phar://swoole.phar';
-SPF\Config::$debug = false;
+$app = SPF\App::getInstance( realpath(__DIR__ . '/../'));
 
 class EchoServer extends SPF\Protocol\Base
 {
