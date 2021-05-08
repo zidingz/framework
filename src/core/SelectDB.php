@@ -949,7 +949,7 @@ class SelectDB
         foreach ($data as $key => $value)
         {
             $value = $this->db->quote($value);
-            if ($value != '' and $value{0} == '`')
+            if ($value != '' and $value[0] == '`')
             {
                 $update = $update . "`$key`=$value,";
             }
