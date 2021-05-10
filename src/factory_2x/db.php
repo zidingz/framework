@@ -1,7 +1,7 @@
 <?php
 $app = SPF\App::getInstance();
 $configs = $app->config['db'];
-if (empty($configs[$php->factory_key])) {
+if (empty($configs[$app->factory_key])) {
     throw new SPF\Exception\Factory("db->{$app->factory_key} is not found.");
 }
 $config = $configs[$app->factory_key];

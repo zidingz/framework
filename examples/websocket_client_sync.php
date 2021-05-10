@@ -1,7 +1,9 @@
 <?php
+
 define('DEBUG', 'on');
-define("WEBPATH", str_replace("\\","/", __DIR__));
-require __DIR__ . '/../libs/lib_config.php';
+require __DIR__ . '/../vendor/autoload.php';
+
+$app = SPF\App::getInstance(__DIR__ . '/../');
 
 $client = new SPF\Client\WebSocket('127.0.0.1', 9443, '/');
 if(!$client->connect())

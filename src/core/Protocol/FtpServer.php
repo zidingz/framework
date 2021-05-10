@@ -490,7 +490,7 @@ class FtpServer extends Base
         }
     }
 
-    function onReceive($serv, $fd, $from_id, $recv_data)
+    function onReceive($serv, $fd, $tid, $recv_data)
     {
         $read = trim($recv_data);
         echo "[<--]\t" . $read . "\n";

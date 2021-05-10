@@ -28,8 +28,11 @@
   "require": {
     "filp/whoops": "^2.2",
     "Symfony/Console": "^4.1",
-    "symfony/process": "^4.1",
     "ext-swoole": ">=4.4",
-    "nikic/php-parser": "^4.2"
+    "ext-pdo": "*",
+    "ext-mysqli": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "8.5.x-dev"
   }
 }

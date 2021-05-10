@@ -1,19 +1,15 @@
 <?php
-
-use SPF\Network\Server;
-
 define('DEBUG', 'on');
+require __DIR__ . '/../../vendor/autoload.php';
 
-require __DIR__.'/../vendor/autoload.php';
+$app = SPF\App::getInstance(__DIR__ . '/../');
 
-$app = SPF\App::getInstance( __DIR__.'/../');
-
-class WebSocket extends SPF\Protocol\WebSocket
+class WebSocket2 extends SPF\Protocol\WebSocket
 {
     protected $message;
 
     /**
-     * @param     $serv swoole_server
+     * @param     $serv Swoole\Server
      * @param int $worker_id
      */
     function onStart($serv, $worker_id = 0)
@@ -24,7 +20,7 @@ class WebSocket extends SPF\Protocol\WebSocket
 
     function router()
     {
-        var_dump(strlen($this->message));
+        var_dump($this->message);
     }
 
     /**
@@ -48,7 +44,7 @@ class WebSocket extends SPF\Protocol\WebSocket
 
     function onMessage_mvc($client_id, $ws)
     {
-        $this->log("onMessage: ".$client_id.' = '.$ws['message']);
+        $this->log("onMessage: " . $client_id . ' = ' . $ws['message']);
 
         $this->message = $ws['message'];
         $response = SPF\App::$app->handle();
@@ -59,53 +55,35 @@ class WebSocket extends SPF\Protocol\WebSocket
 
     /**
      * 接收到消息时
-     * @param $client_id
-     * @param $ws
      */
     function onMessage($client_id, $ws)
     {
-        $this->log("onMessage: ".$client_id.' = '.strlen($ws['message']));
-        $this->send($client_id, 'Server: '.$ws['message']);
-		//$this->broadcast($client_id, $ws['message']);
+        $this->log("onMessage: " . $client_id . ' = ' . $ws['message']);
+        $this->send($client_id, 'Server: ' . $ws['message']);
+        //$this->broadcast($client_id, $ws['message']);
     }
 
     function broadcast($client_id, $msg)
     {
-        foreach ($this->connections as $clid => $info)
-        {
-            if ($client_id != $clid)
-            {
+        foreach ($this->connections as $clid => $info) {
+            if ($client_id != $clid) {
                 $this->send($clid, $msg);
             }
         }
     }
 }
 
-//require __DIR__'/phar://swoole.phar';
 SPF\Config::$debug = true;
 SPF\Error::$echo_html = false;
 
-$AppSvr = new WebSocket();
-$AppSvr->loadSetting(__DIR__."/swoole.ini"); //加载配置文件
-$AppSvr->setLogger(new \SPF\Log\EchoLog(true)); //Logger
+$AppSvr = new WebSocket2();
+$AppSvr->setLogger(new \SPF\Log\EchoLog(true));
 
-/**
- * 如果你没有安装swoole扩展，这里还可选择
- * BlockTCP 阻塞的TCP，支持windows平台
- * SelectTCP 使用select做事件循环，支持windows平台
- * EventTCP 使用libevent，需要安装libevent扩展
- */
 $enable_ssl = false;
 SPF\Network\Server::setOption('base', true);
-$server = SPF\Network\Server::autoCreate('0.0.0.0', 9443, $enable_ssl);
+$server = SPF\Network\Server::autoCreate('0.0.0.0', 9501, $enable_ssl);
 $server->setProtocol($AppSvr);
 //$server->daemonize(); //作为守护进程
 $server->run(array(
     'worker_num' => 1,
-    'ssl_key_file' => __DIR__.'/ssl/ssl.key',
-    'ssl_cert_file' => __DIR__.'/ssl/ssl.crt',
-    //'max_request' => 1000,
-    //'ipc_mode' => 2,
-    //'heartbeat_check_interval' => 40,
-    //'heartbeat_idle_time' => 60,
 ));

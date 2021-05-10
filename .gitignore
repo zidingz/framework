@@ -10,4 +10,4 @@
 /nbproject
 /.buildpath
 /.project
-/.vscode
+/.phpunit.result.cache

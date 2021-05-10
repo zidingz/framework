@@ -17,7 +17,7 @@ class FlashPolicy extends Base implements SPF\IFace\Protocol
         $this->policy_xml = file_get_contents($filename);
     }
 
-    function onReceive($server,$client_id, $from_id, $data)
+    function onReceive($server,$client_id, $tid, $data)
     {
         echo $data;
         $this->server->send($client_id, $this->policy_xml);

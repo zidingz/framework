@@ -9,7 +9,7 @@ class UDPQueue implements SPF\IFace\Protocol
     {
         $this->queue = new FileQueue(array('name'=>$name));
     }
-    function onReceive($serv, $fd, $from_id, $data)
+    function onReceive($serv, $fd, $tid, $data)
     {
         $this->queue->put($data);
         echo "queue in data:".$data.NL;

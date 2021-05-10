@@ -81,7 +81,7 @@ class FastCGI extends WebServer
         }
     }
 
-    function onReceive($serv, $fd, $from_id, $data)
+    function onReceive($serv, $fd, $tid, $data)
     {
         $result = $this->parseRecord($data);
         if (count($result['records']) == 0)

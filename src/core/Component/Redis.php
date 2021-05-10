@@ -79,11 +79,20 @@ class Redis
             $this->_redis = new \Redis();
             if (!empty($this->config['pconnect']))
             {
-                $this->_redis->pconnect($this->config['host'], $this->config['port'], $this->config['timeout']);
+                // 判断是否使用socket
+                if (isset($this->config['socket'])) {
+                    $this->_redis->pconnect($this->config['socket']);
+				} else {
+                    $this->_redis->pconnect($this->config['host'], $this->config['port'], $this->config['timeout']);
+				}
             }
             else
             {
-                $this->_redis->connect($this->config['host'], $this->config['port'], $this->config['timeout']);
+                if (isset($this->config['socket'])) {
+					$this->_redis->connect($this->config['socket']);
+				} else {
+					$this->_redis->connect($this->config['host'], $this->config['port'], $this->config['timeout']);
+				}
             }
             
             if (!empty($this->config['password']))

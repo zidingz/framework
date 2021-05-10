@@ -10,32 +10,19 @@ class BaseContext
 
     static function get($type)
     {
-        $cid = Coroutine::getuid();
-        if ($cid < 0)
-        {
-            return false;
-        }
-
-        return self::$pool[$type][$cid];
+        $context = Coroutine::getContext();
+        return $context[$type];
     }
 
     static function put($type, $object)
     {
-        $cid = Coroutine::getuid();
-        if ($cid < 0)
-        {
-            return;
-        }
-        self::$pool[$type][$cid] = $object;
+        $context = Coroutine::getContext();
+        $context[$type] = $object;
     }
 
-    static function delete($type)
+    static function delete($type, $object)
     {
-        $cid = Coroutine::getuid();
-        if ($cid < 0)
-        {
-            return;
-        }
-        unset(self::$pool[$type][$cid]);
+        $context = Coroutine::getContext();
+        unset($context[$type]);
     }
 }

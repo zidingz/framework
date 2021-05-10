@@ -36,11 +36,6 @@ class HttpServer extends SPF\Protocol\WebServer implements  SPF\IFace\Protocol
 
     function onStart($serv, $worker_id = 0)
     {
-        if (!defined('WEBROOT'))
-        {
-            define('WEBROOT', $this->config['server']['webroot']);
-        }
-
         if (isset($this->config['server']['user']))
         {
             SPF\Console::changeUser($this->config['server']['user']);
@@ -49,7 +44,7 @@ class HttpServer extends SPF\Protocol\WebServer implements  SPF\IFace\Protocol
         SPF\Error::$echo_html = true;
         $this->swoole_server = $serv;
         SPF\App::$app->server = $this;
-        $this->log(self::SOFTWARE . "[#{$worker_id}]. running. on {$this->server->host}:{$this->server->port}");
+        $this->log(self::SOFTWARE . "[#{$worker_id}]. running on {$this->server->host}:{$this->server->port}");
         set_error_handler(array($this, 'onErrorHandle'), E_USER_ERROR);
         register_shutdown_function(array($this, 'onErrorShutDown'));
     }
@@ -204,11 +199,11 @@ class HttpServer extends SPF\Protocol\WebServer implements  SPF\IFace\Protocol
      * 接收到数据
      * @param $serv \swoole_server
      * @param $client_id
-     * @param $from_id
+     * @param $tid
      * @param $data
      * @return null
      */
-    function onReceive($serv, $client_id, $from_id, $data)
+    function onReceive($serv, $client_id, $tid, $data)
     {
         //检测request data完整性
         $ret = $this->checkData($client_id, $data);
