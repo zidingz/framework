@@ -29,11 +29,11 @@ class MakeConfig extends Command
         $args = $input->getArguments();
         $type = strtolower($args['type']);
         $name = strtolower($args['name']);
-        if (!is_dir(\SPF\App::$app_path.'/configs'))
+        if (!is_dir(\SPF\App::getInstance()->app_path.'/configs'))
         {
-            MakeApplication::init(\SPF\App::$app_path);
+            MakeApplication::init(\SPF\App::getInstance()->app_path);
         }
-        $file = \SPF\App::$app_path . '/configs/' . $type . '.php';
+        $file = \SPF\App::getInstance()->app_path . '/configs/' . $type . '.php';
         if (is_file($file) and empty($name))
         {
             $output->writeln("<error>Config[{$type}](file={$file}) already exists!</error>");

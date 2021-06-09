@@ -21,7 +21,7 @@ class View extends \ArrayObject
     function __construct($swoole)
     {
         $this->swoole = $swoole;
-        $this->template_dir = \SPF\App::$app_path . '/views/';
+        $this->template_dir = \SPF\App::getInstance()->app_path . '/views/';
     }
 
     /**
