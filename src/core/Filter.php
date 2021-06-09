@@ -212,12 +212,7 @@ class Filter
         }
         //HTML转义
         $string = htmlspecialchars($string, ENT_QUOTES, App::$charset);
-        //启用了magic_quotes
-        $magic_exists = function_exists("get_magic_quotes_gpc");
-        if (!$magic_exists or ($magic_exists and !\get_magic_quotes_gpc()))
-        {
-            $string = addslashes($string);
-        }
+        $string = addslashes($string);
         return $string;
     }
 }
