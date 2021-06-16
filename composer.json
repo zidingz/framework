@@ -16,6 +16,6 @@
     ],
     "require": {
       "filp/whoops": "^2.2",
-      "Symfony/Console": "^4.1"
+      "symfony/console": "^4.1"
     }
 }
